@@ -10,9 +10,9 @@ case.prepared <- matching.prepare(cas1$sample.A, cas1$sample.B, cas1$pdi, cas1$p
 
 #fonctionnel:
 #disc <- matching.arbitrate(case.prepared, nA=50000,nB=40000, nu.A=0, phi.A=0, delta.A=1, nu.B=0, phi.B=0, delta.B=0, gamma=1)
-disc <- matching.arbitrate(case.prepared, nA=50000,nB=40000, nu.A=0, phi.A=0, delta.A=1, gamma=1, delta.B=1, phi.B=0, nu.B=1)
-# disc <- matching.arbitrate(case.prepared, nA=50000, nB=40000, nu.A=0, phi.A=0, delta.A=0, gamma=1, delta.B=1, phi.B=1, nu.B=1)
-# disc <- matching.arbitrate(case.prepared, nA=50000, nB=40000, nu.A=1, phi.A=0, delta.A=1, gamma=0, delta.B=1, phi.B=1, nu.B=1)
+#disc <- matching.arbitrate(case.prepared, nA=50000,nB=40000, nu.A=0, phi.A=0, delta.A=1, gamma=1, delta.B=1, phi.B=0, nu.B=1)
+#disc <- matching.arbitrate(case.prepared, nA=50000, nB=40000, nu.A=0, phi.A=0, delta.A=0, gamma=1, delta.B=1, phi.B=1, nu.B=1)
+disc <- matching.arbitrate(case.prepared, nA=50000, nB=40000, nu.A=1, phi.A=0, delta.A=1, gamma=0, delta.B=1, phi.B=1, nu.B=1)
 
 
 # refusé à raison:
@@ -27,7 +27,6 @@ disc <- matching.arbitrate(case.prepared, nA=50000,nB=40000, nu.A=0, phi.A=0, de
 print(disc)
 
 # generate the population
-#case <- matching.generate(disc, cas1$sample.A, cas1$sample.B)
-#print(case)
+case <- matching.generate(disc, cas1$sample.A, cas1$sample.B)
+print(case)
 
-#report.print(case)

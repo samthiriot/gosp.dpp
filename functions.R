@@ -1938,38 +1938,3 @@ measure.population <- function(case, pop, sample.A, sample.B, pij) {
 	res
 
 }
-
-report.print <- function(case) {
-
-	cat("======= input parameters\n")
-	cat("alpha:",case$mix$params$alpha,"beta:",case$mix$params$beta,"gamma:",case$mix$params$gamma,"\n")
-	cat("phi i: ",case$mix$params$phii,"deltai:",case$mix$params$deltai,"phij:",case$mix$params$phij,"delta j:",case$mix$params$deltaj,"\n")
-	cat("nL:",case$inputs$nL)
-	cat("\n\n")
-	cat("======= matching probabilities\n")
-	cat("==== original:\n")
-	print(case$inputs$pij$data)
-	cat("==== target (MSE",case$mix$mse.pij,"):\n")
-	print(case$mix$hat.pij)
-	cat("==== measured (MSE",case$measure$pij$mse.target,"):\n")
-	print(case$measure$pij$hat.pij)
-	cat("\n\n")
-
-	cat("======= p(di=n)\n")
-	cat("==== original:\n")
-	print(case$inputs$pdi$data)
-	cat("==== measured (MSE", case$measure$pdi$mse.orig,")\n")
-	print(case$measure$pdi$hat.pd)
-	cat("\n")
-
-	cat("======= p(dj=n)\n")
-	cat("==== original:\n")
-	print(case$inputs$pdj$data)
-	cat("==== measured (MSE", case$measure$pdj$mse.orig,")\n")
-	print(case$measure$pdj$hat.pd)
-}
-
-# TODO latex exportation
-export.report.latex <- function(case, filename) {
-
-}
