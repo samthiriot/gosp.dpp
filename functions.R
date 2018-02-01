@@ -7,6 +7,9 @@
 # - summary function
 # - automatic arbitration between various possibilities
 # - create a R package
+# - igraph export
+# - check 0-cells
+
 
 # DONE
 # - how can we have over degree ???? (nota: its in the mix already - a wrong multiplication?) => there is none :-)
