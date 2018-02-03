@@ -2,6 +2,9 @@
 
 S3method(as.igraph,dpp_population)
 S3method(as.igraph,dpp_result)
+S3method(print,dpp_degree_cpt)
+S3method(print,dpp_sample)
+export(create_degree_probabilities_table)
 export(create_sample)
 export(matching.generate)
 export(matching.prepare)

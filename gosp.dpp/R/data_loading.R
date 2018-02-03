@@ -31,6 +31,7 @@
 #' 
 #' @export
 #'
+#' @author Samuel Thiriot <samuel.thiriot@res-ear.ch> 
 create_sample <- function(data, encoding=NULL, weight.colname=NULL) {
 
     # test types if parameters
@@ -105,6 +106,14 @@ create_sample <- function(data, encoding=NULL, weight.colname=NULL) {
 
 }
 
+#' Display a sample for Direct Probabilistic Peering
+#' 
+#' @describeIn print prints a sample prepared for Direct Probabilistic Peering
+#' 
+#' @export
+#' 
+#' @author Samuel Thiriot <samuel.thiriot@res-ear.ch>
+#' 
 print.dpp_sample <- function(x, ...) {
     cat("Sample containing", nrow(x$sample), "elements ")
 
@@ -113,7 +122,27 @@ print.dpp_sample <- function(x, ...) {
     cat(" (weight column:",x$dictionary$colname.weight,")\n")
 }
 
-# creates a table storing probabilities for degrees
+# TODO manage multiple attributes
+# 
+#' Creates a table storing probabilities for degrees
+#' 
+#' @param probabilities a data frame containing the probabilities 
+#' @param attributes.names the vector of the attributes refered to in the probabilities
+#' 
+#' @examples
+#' 
+#' p <- data.frame(
+#'                  'small'=c(0.2, 0.8, 0, 0, 0),
+#'                  'medium'=c(0.15, 0.8, 0.05, 0, 0),
+#'                  'large'=c(0.05, 0.8, 0.1, 0.05, 0)
+#'                  ),
+#' create_degree_probabilities_table(probabilities=p, attributes.names="size")
+#' 
+#' 
+#' @export
+#' 
+#' @author Samuel Thiriot <samuel.thiriot@res-ear.ch>
+#' 
 create_degree_probabilities_table <- function(probabilities, attributes.names) {
     # TODO check
     res <- list(
@@ -124,6 +153,15 @@ create_degree_probabilities_table <- function(probabilities, attributes.names) {
 
     return(res)
 }
+
+#' Display a sample for Direct Probabilistic Peering
+#' 
+#' @describeIn print prints a degrees distribution of probabilities for Direct Probabilistic Peering
+#' 
+#' @export
+#' 
+#' @author Samuel Thiriot <samuel.thiriot@res-ear.ch>
+#' 
 print.dpp_degree_cpt <- function(x, ...) {
     cat("distribution of degrees depending to attributes '", x$attributes,"':\n")
     print(x$data)
