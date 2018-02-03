@@ -35,7 +35,7 @@ matching.generate.copy_population <- function(n, select.colname, sample) {
 
     cat("copying population based on attribute '",select.colname,"' with ",n,"\n")
 
-    #cols_without_weight <- -which(names(sample$sample) == sample$dictionnary$colname.weight)
+    #cols_without_weight <- -which(names(sample$sample) == sample$dictionary$colname.weight)
 
     target <- sample$sample[FALSE,] 	# empty with the same properties
 
@@ -46,7 +46,7 @@ matching.generate.copy_population <- function(n, select.colname, sample) {
 
         #cat("* copying", count.required, " having ",select.colname,"=",name,"\n")
 
-        code <- sample$dictionnary$encoding[[select.colname]][[name]] # .table
+        code <- sample$dictionary$encoding[[select.colname]][[name]] # .table
         
         #cat("* copying", count.required, " having ",select.colname,"=",code,"\n")
         
@@ -55,17 +55,17 @@ matching.generate.copy_population <- function(n, select.colname, sample) {
         }
         
         # TODO do not copy weight
-        #cols <- (colnames(sample$sample) %in% c(sample$dictionnary$colname.weight))
+        #cols <- (colnames(sample$sample) %in% c(sample$dictionary$colname.weight))
 		#print(cols_without_weight)
         available <- sample$sample[which(sample$sample[select.colname] == code),]
 
 		count.available <- nrow(available)
-		weights.available <- sum(available[,sample$dictionnary$colname.weight])
+		weights.available <- sum(available[,sample$dictionary$colname.weight])
 
 		cat("should copy ", count.required, " individuals for ", select.colname, "=", code, "(for",name,") ",
 					"and found ",count.available, " individuals with weights summing to ", weights.available,"\n")
 
-		toAdd <- matching.generate.resize_population(available, count.required, sample$dictionnary$colname.weight)
+		toAdd <- matching.generate.resize_population(available, count.required, sample$dictionary$colname.weight)
 
 		# extend the original target population
 		target <- rbind(target, toAdd)
@@ -82,7 +82,7 @@ matching.generate.copy_population <- function(n, select.colname, sample) {
 #' Adds a target degree column to a population 
 #' based on the distribution of contigency for degrees passed as a parameter.
 #'
-#' @param samp the original sample (used for its dictionnary) 
+#' @param samp the original sample (used for its dictionary) 
 #' @param pop the population to which the column will be added to
 #' @param n the expected contigencies (used as a control)
 #' @param ndx the contigencies for each degree
@@ -100,9 +100,9 @@ matching.generate.add_degree <- function(samp, pop, n, ndx, colname) {
 
 	# for each different value  
 	#  colnames(pdi$data)
-	for (name in names(samp$dictionnary$encoding[[colname]])) {
+	for (name in names(samp$dictionary$encoding[[colname]])) {
 
-		code <- samp$dictionnary$encoding[[colname]][[name]]
+		code <- samp$dictionary$encoding[[colname]][[name]]
 		
 		totalForDegree <- 0
 		lastDegreeNonNull <- 0
@@ -217,11 +217,11 @@ matching.generate <- function(case, sample.A, sample.B) {
 	# match them 
 	for (cA in colnames(case$gen$hat.nij)) {
 
-		codeA <- sample.A$dictionnary$encoding[[case$inputs$pij$Ai]][[cA]]
+		codeA <- sample.A$dictionary$encoding[[case$inputs$pij$Ai]][[cA]]
 
 		for (cB in rownames(case$gen$hat.nij)) {
 
-			codeB <- sample.B$dictionnary$encoding[[case$inputs$pij$Bi]][[cB]]
+			codeB <- sample.B$dictionary$encoding[[case$inputs$pij$Bi]][[cB]]
 
 			count.required <- case$gen$hat.nij[cB,cA] 
 

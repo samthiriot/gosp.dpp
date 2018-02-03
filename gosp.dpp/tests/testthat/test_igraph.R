@@ -2,7 +2,10 @@
 # tests on 
 
 library(gosp.dpp)
+library(is.directed)
+
 data(cas1)
+
 
 context("tests on igraph conversion")
 

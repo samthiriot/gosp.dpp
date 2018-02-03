@@ -1,35 +1,81 @@
+#
+# All the methods related to loading data and making it into the structures
+# expected by the rest of the library.
+#
 
+#' Creates a sample organized for dpp manipulation. 
+#' 
+#' The resulting object contains the sample and a dictionary of data. 
+#' If no weight column is provided, one will be created with value 1 (uniform weights).
+#' 
+#' @param data a data frame containing a sample (weighted list) of entities
+#' @param encoding a dictionary containing information about the variables of the sample
+#' @param weight.colname the name of the column containing the weights
+#' @return a sample 
+#' 
+#' @examples 
+#' # to read a CSV file as a sample
+#' f <- system.file("data-raw", "logements.csv", package = "gosp.dpp")
+#' m <- read.csv(f, sep=";", dec=",")
+#' df <- as.data.frame(m)
+#' dictionary <- list('surface'=list('small'=1, 'medium'=2, 'large'=3))
+#' create_sample(data=df, encoding=dictionary, weight.colname="weight")
+#' 
+#' # to create a sample from random data
+#' # ... create 100 entities being either male of female
+#' df <- data.frame(gender=sample(1:2, size=100, replace=TRUE))
+#' # ... describe the encoding of data
+#' dictionary <- list("gender"=list("male"=1,"female"=2))
+#' create_sample(data=df, encoding=dictionary)
+#' # ... the weights columns was created automatically
+#' 
+#' @export
+#'
+create_sample <- function(data, encoding=NULL, weight.colname=NULL) {
 
+    # test types if parameters
+    if (!is.data.frame(data)) {
+        stop("data is expected to be a dataframe")
+    }
 
+    if (is.null(weight.colname)) {
+        # if no weight column is given, then create a weight column filled by 1.0 
+        weight.colname <- "_auto_weight"
+        data[ , weight.colname] <- rep(1, times=nrow(data))
+    } else {
+        # ensure the weight column does exist in the dataset
+        if (!weight.colname %in% colnames(data)) {
+            stop(paste("There is no column weight.colname='",weight.colname,"' in the data",sep=""))
+        }
+    }
 
-# import("dplyr")
+    # if no encoding is provided, then create one with a direct mapping
+    if (is.null(encoding)) {
+        encoding <- list()
+        for (name in colnames(data)) {
 
-# exportPattern("^[[:alpha:]]+")
+            uniques <- unique(data[,name])
+            if (
+                # skip when columns have a huge cardinality,
+                # as they might be ids, weights... which don't require a dictionnary
+                (length(uniques) < nrow(data))
+                # don't create a dictionary for weights
+                && (name != weight.colname)
+                ) {
+                
+                    values <- sort(uniques)
+                    keys <- as.character(values)
+                    encoding[[name]] <- setNames(values, keys)        
+            }
 
-# S3method(print, dpp_measure)
-# S3method(print, dpp_population)
-# S3method(print, dpp_result)
-
-# S3method(print, dpp_degree_cpt)
-# S3method(print, dpp_matching_probas)
-# S3method(print, dpp_prepared)
-# S3method(print, dpp_resolved)
-# S3method(print, dpp_sample)
-
-
-
-# creates a sample. 
-# note a sample is just a specific type of list
-create_sample <- function(data, encoding, weight.colname) {
-
-    # ensure the weight column does exist
-    # TODO 
+        }
+    }
 
     # ensure the inputs are consistent
 
     encoding.table <- list()
 
-    # build the inverse dictionnary 
+    # build the inverse dictionary 
     decoding <- list()
     for (attname in names(encoding)) {
         values <- list()
@@ -46,7 +92,7 @@ create_sample <- function(data, encoding, weight.colname) {
 
     res <- list(
             sample=data,
-            dictionnary=list(
+            dictionary=list(
                 encoding=encoding,
                 encoding.table=encoding.table,
                 decoding=decoding,
@@ -62,9 +108,9 @@ create_sample <- function(data, encoding, weight.colname) {
 print.dpp_sample <- function(x, ...) {
     cat("Sample containing", nrow(x$sample), "elements ")
 
-    cat("having ",length(x$dictionnary$encoding),"columns:",names(x$dictionnary$encoding))
+    cat("having ",length(x$dictionary$encoding),"columns:",names(x$dictionary$encoding))
     
-    cat(" (weight column:",x$dictionnary$colname.weight,")\n")
+    cat(" (weight column:",x$dictionary$colname.weight,")\n")
 }
 
 # creates a table storing probabilities for degrees

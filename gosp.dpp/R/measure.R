@@ -39,11 +39,11 @@ measure.pij <- function(pop, sample.A, sample.B, pij, mix.pij, A2l2B) {
 
 	for (cA in colnames(pij$data)) {
 
-		codeA <- sample.A$dictionnary$encoding[[pij$Ai]][[cA]]
+		codeA <- sample.A$dictionary$encoding[[pij$Ai]][[cA]]
 
 		for (cB in rownames(pij$data)) {
 
-			codeB <- sample.B$dictionnary$encoding[[pij$Bi]][[cB]]
+			codeB <- sample.B$dictionary$encoding[[pij$Bi]][[cB]]
 
 			cat("\tcount how many links connect", pij$Ai, "=", codeA, "(", cA, ") and", pij$Bi, "=", codeB, "(", cB, ")")
 
@@ -139,15 +139,15 @@ measure.population <- function(case, pop, sample.A, sample.B, pij) {
 	res <- list(
 				nL=nrow(A2l2B),
 				
-				#ni=measure.ni_pi(case$gen$ni, case$stats$pi, case$gen$hat.pi, case$inputs$pij$Ai, case$inputs$sample.A$dictionnary, A2l2B),
-				#nj=measure.ni_pi(case$gen$nj, case$stats$pj, case$gen$hat.pj, case$inputs$pij$Bi, case$inputs$sample.B$dictionnary, A2l2B),
+				#ni=measure.ni_pi(case$gen$ni, case$stats$pi, case$gen$hat.pi, case$inputs$pij$Ai, case$inputs$sample.A$dictionary, A2l2B),
+				#nj=measure.ni_pi(case$gen$nj, case$stats$pj, case$gen$hat.pj, case$inputs$pij$Bi, case$inputs$sample.B$dictionary, A2l2B),
 				
-                fi=measure.ci_fi(case$gen$hat.ni, case$stats$fi, case$inputs$pij$Ai, case$inputs$sample.A$dictionnary, pop$A),
-                fj=measure.ci_fi(case$gen$hat.nj, case$stats$fj, case$inputs$pij$Bi, case$inputs$sample.B$dictionnary, pop$B),
+                fi=measure.ci_fi(case$gen$hat.ni, case$stats$fi, case$inputs$pij$Ai, case$inputs$sample.A$dictionary, pop$A),
+                fj=measure.ci_fi(case$gen$hat.nj, case$stats$fj, case$inputs$pij$Bi, case$inputs$sample.B$dictionary, pop$B),
                 
 				# TODO add mix
-				pdi=measure.pdn(case$inputs$sample.A$dictionnary, case$inputs$pdi, pop$A),
-				pdj=measure.pdn(case$inputs$sample.B$dictionnary, case$inputs$pdj, pop$B),
+				pdi=measure.pdn(case$inputs$sample.A$dictionary, case$inputs$pdi, pop$A),
+				pdj=measure.pdn(case$inputs$sample.B$dictionary, case$inputs$pdj, pop$B),
 
 				pij=measure.pij(pop, sample.A, sample.B, pij, case$gen$hat.pij, A2l2B)
 				)

@@ -7,9 +7,9 @@ measure_contigencies <- function(sample, group.colname) {
         v = toString(sample$sample[i,group.colname])
 
         if (is.null(res[[v]])) {
-            res[v] <- sample$sample[i,sample$dictionnary$colname.weight]
+            res[v] <- sample$sample[i,sample$dictionary$colname.weight]
         } else {
-            res[[v]] <- res[[v]] + sample$sample[i,sample$dictionnary$colname.weight]
+            res[[v]] <- res[[v]] + sample$sample[i,sample$dictionary$colname.weight]
         }
         #total <- total + 1
     }
@@ -21,8 +21,8 @@ measure_contigencies <- function(sample, group.colname) {
     
     # order into a vector
     ci <- c() 
-    for (code in names(sample$dictionnary$encoding[[group.colname]])) {
-        idx <- sample$dictionnary$encoding[[group.colname]][[code]]
+    for (code in names(sample$dictionary$encoding[[group.colname]])) {
+        idx <- sample$dictionary$encoding[[group.colname]][[code]]
         ci <- c(ci, res[[toString(idx)]])
     }
 
@@ -90,8 +90,8 @@ matching.prepare <- function(sample.A, sample.B, pdi, pdj, pij) {
                 pdi=pdi, 
                 pdj=pdj,
                 pij=pij,
-                sample.A=list(dictionnary=sample.A$dictionnary),
-                sample.B=list(dictionnary=sample.B$dictionnary)
+                sample.A=list(dictionary=sample.A$dictionary),
+                sample.B=list(dictionary=sample.B$dictionary)
                 )
 
   

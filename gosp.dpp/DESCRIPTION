@@ -6,9 +6,9 @@ Date: 2018-02-01
 Author: Samuel Thiriot
 Maintainer: Samuel Thiriot <samuel.thiriot@res-ear.ch>
 Description: TODO More about what it does (maybe more than one line)
-Imports: dplyr
+Imports: dplyr, igraph
 Depends: R (>= 2.10)
-Suggests: igraph, testthat
+Suggests: testthat
 License: TODO What license is it under?
 RoxygenNote: 6.0.1
 LazyData: true
