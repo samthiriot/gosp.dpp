@@ -1,14 +1,31 @@
 
-# ' Takes a population and returns it as an igraph graph
-# ' 
-# ' @param pop the population to convert
-# ' @return an igraph result
-# '
-# ' @export
-# as_igraph <- function (x, ...) {
-#    UseMethod("as_igraph", x)
-# }
-
+#' Takes a population and returns it as an igraph graph
+# 
+#' @param pop the population to convert
+#'
+#' @return an igraph result
+#'
+#' @export
+#'
+#' @examples
+#' TODO
+#'
+#' g <- as.igraph(pop)
+#'
+#' # can export the graph using one of the igraph formats
+#' write.graph(g,file="mygraph.graphml", format="graphml")
+#'
+#' # can visualize the population as a graph
+#' lay <- layout_nicely(g)
+#' tkplot(g,layout=lay)
+#'
+#' # test structural properties
+#' is.connected(g)
+#' average.path.length(g)
+#'
+#' # detect communities 
+#' # TODO !
+#'
 #' @importFrom igraph graph_from_edgelist 
 #' @importFrom igraph set_vertex_attr
 as.igraph.dpp_population <- function(pop, with.attributes=FALSE, ...) {
@@ -17,7 +34,6 @@ as.igraph.dpp_population <- function(pop, with.attributes=FALSE, ...) {
 
     g <- graph_from_edgelist(as.matrix(pop$links), directed=TRUE)
 
-    # TODO set_vertex_attr
     if (as.logical(with.attributes)) {
 
         # copy the content of attributes of A
@@ -32,4 +48,5 @@ as.igraph.dpp_population <- function(pop, with.attributes=FALSE, ...) {
     }
 
     g
+
 }
