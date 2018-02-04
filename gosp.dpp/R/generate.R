@@ -353,9 +353,17 @@ matching.generate <- function(case, sample.A, sample.B) {
 	res
 }
 
-
+#' Display a generated population
+#' 
+#' @param x the population to print
+#' @param ... ignored
+#'
+#' @export
+#' 
+#' @author Samuel Thiriot <samuel.thiriot@res-ear.ch>
+#' 
 print.dpp_population <- function(x,...) {
-    cat("result population with ",nrow(x$A)," parents, ",nrow(x$B)," children, ",nrow(x$links)," links\n",sep="")
+    cat("Synthetic population with ",nrow(x$A)," parents, ",nrow(x$B)," children, ",nrow(x$links)," links\n",sep="")
     
     cat("\n$A (first lines)\n")
     print(head(x$A))
