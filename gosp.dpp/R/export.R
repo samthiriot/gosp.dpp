@@ -12,16 +12,28 @@
 #' @export
 #'
 #' @examples
-#' TODO
-#'
-#' g <- as.igraph(pop, with.attributes=TRUE)
+#' # TODO loading of pop
+#' # load the igraph library
+#' library(igraph)
+#' # generate a population based on sample case 1
+#' data(cas1)
+#' case.prepared <- matching.prepare(cas1$sample.A, cas1$sample.B, cas1$pdi, cas1$pdj, cas1$pij)
+#' disc <- matching.arbitrate(case.prepared, 
+#'                     nA=500,nB=400, 
+#'                     nu.A=0, phi.A=0, delta.A=1, 
+#'                     gamma=1, 
+#'                     delta.B=0, phi.B=0, nu.B=0)
+#' case <- matching.generate(disc, cas1$sample.A, cas1$sample.B)
+#' 
+#' # convert the population as a population
+#' g <- as.igraph(case$pop, with.attributes=TRUE)
 #'
 #' # can export the graph using one of the igraph formats
 #' write.graph(g,file="mygraph.graphml", format="graphml")
 #'
 #' # can visualize the population as a graph
-#' lay <- layout_nicely(g)
-#' tkplot(g,layout=lay)
+#' #lay <- layout_nicely(g)
+#' #tkplot(g,layout=lay)
 #'
 #' # test structural properties
 #' is.connected(g)
@@ -41,6 +53,10 @@
 #' @importFrom igraph graph_from_edgelist 
 #' @importFrom igraph set_vertex_attr
 #' @importFrom igraph as.igraph
+#'
+#'
+#' @author Samuel Thiriot <samuel.thiriot@res-ear.ch> 
+#'
 as.igraph.dpp_population <- function(pop, with.attributes=FALSE, ...) {
     
     # pop$links is a data frame that requires convertion to a matrix
@@ -79,9 +95,13 @@ as.igraph.dpp_population <- function(pop, with.attributes=FALSE, ...) {
 #' 
 #' @describeIn as.igraph exports a generation result as an igraph graph
 #'
+#'
 #' @export
 #'
 #' @importFrom igraph as.igraph
+#'
+#'
+#' @author Samuel Thiriot <samuel.thiriot@res-ear.ch> 
 #'
 as.igraph.dpp_result <- function(generated, with.attributes=FALSE, ...) {
 

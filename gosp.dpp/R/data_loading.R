@@ -32,6 +32,9 @@
 #' @export
 #'
 #' @author Samuel Thiriot <samuel.thiriot@res-ear.ch> 
+#'
+#' @importFrom stats setNames
+#'
 create_sample <- function(data, encoding=NULL, weight.colname=NULL) {
 
     # test types if parameters
@@ -130,13 +133,13 @@ print.dpp_sample <- function(x, ...) {
 #' @param attributes.names the vector of the attributes refered to in the probabilities
 #' 
 #' @examples
-#' 
+#' # create a table describing degrees depending to size; the bigger the size, the highest the degree
 #' p <- data.frame(
 #'                  'small'=c(0.2, 0.8, 0, 0, 0),
 #'                  'medium'=c(0.15, 0.8, 0.05, 0, 0),
 #'                  'large'=c(0.05, 0.8, 0.1, 0.05, 0)
-#'                  ),
-#' create_degree_probabilities_table(probabilities=p, attributes.names="size")
+#'                  )
+#' create_degree_probabilities_table(probabilities=p, attributes.names=c("size"))
 #' 
 #' 
 #' @export
@@ -144,7 +147,15 @@ print.dpp_sample <- function(x, ...) {
 #' @author Samuel Thiriot <samuel.thiriot@res-ear.ch>
 #' 
 create_degree_probabilities_table <- function(probabilities, attributes.names) {
-    # TODO check
+
+    # check inputs
+    if (!is.data.frame(probabilities)) {
+        stop("probabilities should be a data frame")
+    }
+
+    # TODO check attributes !
+
+    # forge the result 
     res <- list(
             data=probabilities,
             attributes=attributes.names
@@ -165,16 +176,60 @@ create_degree_probabilities_table <- function(probabilities, attributes.names) {
 print.dpp_degree_cpt <- function(x, ...) {
     cat("distribution of degrees depending to attributes '", x$attributes,"':\n")
     print(x$data)
-   
 }
 
+# TODO manage multiple attributes
+# 
+#' Creates a table storing matching probabilities 
+#' 
+#' 
+#' 
+#' @param data a data frame containing matching probabilities
+#' @param Ai the list of attributes related to population A
+#' @param Bi the list of attributes related to population B
+#' @return a matching probability table ready to be used for usage with \code{\link{matching.prepare}}
+#' 
+#' @examples
+#' 
+#' cas1.pij <- create_matching_probabilities_table(
+#'                data=data.frame(
+#'                    'small'=c(0.2, 0.1, 0.05, 0.025),
+#'                    'medium'=c(0.0375, 0.125, 0.1, 0.05),
+#'                    'large'=c(0.0125, 0.025, 0.1, 0.175),
+#'                    row.names=c("1 person", "2 persons", "3 persons", "4 and more")
+#'                    ),
+#'                Ai=c("surface"),
+#'                Bi=c("size")
+#'                )
+#' print(cas1.pij)
+#'
+#' @export
+#' 
+#' @author Samuel Thiriot <samuel.thiriot@res-ear.ch>
+#' 
 create_matching_probabilities_table <- function(data, Ai, Bi) {
 
+    # check inputs
+    if (!is.data.frame(data)) {
+        stop("data should be a data frame")
+    }
+
     # TODO check input
+
     res <- list(data=data, Ai=Ai,Bi=Bi)
     class(res) <- "dpp_matching_probas"
+
     res
 }
+
+#' Display matching probabilities
+#' 
+#' @describeIn print prints matching probabilities for Direct Probabilistic Peering
+#' 
+#' @export
+#' 
+#' @author Samuel Thiriot <samuel.thiriot@res-ear.ch>
+#' 
 print.dpp_matching_probas <- function(x, ...) {
     cat("matching probabilities given '", x$Ai,"' and '",x$Bi,"':\n")
     print(x$data)

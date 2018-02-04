@@ -5,10 +5,20 @@ Version: 1.0
 Date: 2018-02-01
 Author: Samuel Thiriot
 Maintainer: Samuel Thiriot <samuel.thiriot@res-ear.ch>
-Description: TODO More about what it does (maybe more than one line)
-Imports: dplyr, igraph
+Description: Peering of entities for Synthetic populations, 
+	such as composing entities within each others (individuals in households,
+	households in dwellings...) or creating links 
+	(social links between individuals). 
+	It relies on the Direct Probabilistic Peering method: the user 
+	provides two samples to be linked together, probabilities for entities 
+	to have different degrees (count of entities each entity should be linked
+	with), and probabilities for two individuals to be linked according to 
+	their characteristics. The problem is then solved anatically depending 
+	to user constrainsts, before a direct generation of the links 
+	between the populations.
+Imports: dplyr, igraph, stats, utils
 Depends: R (>= 2.10)
 Suggests: testthat
-License: TODO What license is it under?
+License: GPL-2
 RoxygenNote: 6.0.1
 LazyData: true

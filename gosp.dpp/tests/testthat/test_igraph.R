@@ -2,7 +2,9 @@
 # tests on 
 
 library(gosp.dpp)
-library(is.directed)
+
+import::from(igraph, is.directed)
+import::from(igraph, as.igraph)
 
 data(cas1)
 

@@ -82,8 +82,28 @@ assess.min.pd <- function(orig.pd) {
 }
 
 
-# prepares a case based on two samples and two sets of probabilities
+#' Prepares a case for Direct Probabilistic Peering
+#'
+#' Prepares a case based on two samples and two sets of probabilities.
+#' It takes two samples, probabilities distributions for degrees 
+#' (count of links per entity) and matching probabilities. 
+#' It ensures all the parameters are consistent.
+#'
+#' @param sample.A the sample to use for population A created using \code{\link{create_sample}}
+#' @param sample.B the sample to use for population B created using \code{\link{create_sample}}
+#' @param pdi the distribution of degrees for population A created with \code{\link{create_degree_probabilities_table}}
+#' @param pdj the distribution of degrees for population B created with \code{\link{create_degree_probabilities_table}}
+#' @param pij the matching probabilities created with \code{\link{create_matching_probabilities_table}}
+#' @return a case ready to be arbitrated with \code{\link{matching.arbitrate}}
+#' 
+#' @examples
+#' data(cas1)
+#' case.prepared <- matching.prepare(cas1$sample.A, cas1$sample.B, cas1$pdi, cas1$pdj, cas1$pij)
+#'
 #' @export
+#'
+#' @author Samuel Thiriot <samuel.thiriot@res-ear.ch> 
+#'
 matching.prepare <- function(sample.A, sample.B, pdi, pdj, pij) {
 
     inputs <- list(

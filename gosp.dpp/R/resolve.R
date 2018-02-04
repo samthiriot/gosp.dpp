@@ -149,10 +149,13 @@ update_degree_distribution.col <- function(pdx, t.target) {
 
 #' Update a given distribution of degrees probabilities so its matching target values.
 #' 
-#' This process is done column by column by calling @link{update_degree_distribution.col}.
+#' This process is done column by column by calling \link{update_degree_distribution.col}.
 #' '
 #' @param pdx the distribution of degrees 
 #' @param dx the vector of the expected average degrees
+#'
+#' @author Samuel Thiriot <samuel.thiriot@res-ear.ch> 
+#'
 update_degree_distribution <- function(pdx, dx) {
 
     # ... sum the weight we are playing with 
@@ -184,7 +187,10 @@ update_degree_distribution <- function(pdx, dx) {
 #' (basically solves rounding issues for this specific case)
 #'
 #' @param pdn the contigencies of degrees
-#' @param nn the expected totals that should be reached 
+#' @param nn the expected totals that should be reached
+#'
+#' @author Samuel Thiriot <samuel.thiriot@res-ear.ch> 
+#' 
 rectify.degree.counts <- function(pdn, nn) {
 
     for (col in 1:ncol(pdn)) {
@@ -1000,7 +1006,15 @@ resolve.missing.chain <- function(sol, chain, case, nA, nB, nu.A, phi.A, delta.A
     res
 }
 
-
+# ' Solves the missing chains. 
+# ' 
+# ' TODO
+# ' 
+# ' 
+# ' @export 
+# ' 
+# ' @author Samuel Thiriot <samuel.thiriot@res-ear.ch>
+# ' 
 resolve <- function(sol, case, nA, nB, nu.A, phi.A, delta.A, nu.B, phi.B, delta.B, gamma) {
 
     cat("we know: ",names(sol),"\n")
@@ -1115,7 +1129,51 @@ ensure.form <- function(sol, case) {
     sol
 }
 
-matching.arbitrate <- function(case, nA, nB, nu.A, phi.A, delta.A, nu.B, phi.B, delta.B, gamma) {
+#' Solves the equations by arbitrating.
+#' 
+#' Solves the underlying equations based on data, the inputs parameters, 
+#' and the control parameters. It distributes the errors in the places 
+#' accepted by the user. 
+# 
+#' @param case a case prepared with \code{\link{matching.prepare}}
+#' @param nA the count of entities expected for population A
+#' @param nB the count of entities expected for population B
+#' @param nu.A control for nA: 0 means "respect nA", non-null "adapt it to solve the case"
+#' @param phi.A control for frequencies: 0 means "respect the original frequencies as detected in the sample", non-null "adapt it to solve the case"
+#' @param delta.A control for degree A: 0 means "respect the input parameters pdi", non-null "adapt them to solve the case"
+#' @param gamma control for pij: 0 means "respect the matching probabilities pij", non-null "adapt them to solve the case"
+#' @param delta.B control for degree B: 0 means "respect the input parameters pdj", non-null "adapt them to solve the case"
+#' @param phi.B control for frequencies: 0 means "respect the original frequencies as detected in the sample", non-null "adapt it to solve the case"
+#' @param nu.B control for nB: 0 means "respect nB", non-null "adapt it to solve the case"
+#'
+#' @return a case ready for generation
+#'
+#' @export
+#'
+#' @seealso \code{\link{matching.prepare}} to prepare a case for this function, \code{\link{matching.generate}} to use the result for actual generation 
+#' 
+#' @examples
+#'
+#' # load sample data
+#' data(cas1)
+#' # prepare the case  
+#' case.prepared <- matching.prepare(cas1$sample.A, cas1$sample.B, cas1$pdi, cas1$pdj, cas1$pij)
+#' # resolve tbe case
+#' disc <- matching.arbitrate(case.prepared, 
+#'                     nA=50000,nB=40000, 
+#'                     nu.A=0, phi.A=0, delta.A=1, 
+#'                     gamma=1, 
+#'                     delta.B=0, phi.B=0, nu.B=0)
+#' # print the resolution information
+#' print(disc)
+#' # access the solved frequencies, distribution of degrees and matching probabilities
+#' print(disc$gen$hat.fi)
+#' print(disc$gen$hat.pdi)
+#' print(disc$gen$hat.pij)
+#' 
+#' @author Samuel Thiriot <samuel.thiriot@res-ear.ch> 
+#'
+matching.arbitrate <- function(case, nA, nB, nu.A, phi.A, delta.A, gamma, delta.B, phi.B, nu.B) {
 
     
     mixx <- list()

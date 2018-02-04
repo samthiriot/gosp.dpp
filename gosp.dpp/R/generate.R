@@ -11,7 +11,7 @@ NULL
 #' If the population is exactly of the right size, then it will be entirely kept as 
 #' in the original sample.
 #'
-#' The actual sampling is entirely delegated to the \link{dplyr::sample_n} function.
+#' The actual sampling is entirely delegated to the \link{dplyr}{sample_n} function.
 #' 
 #' TODO ensure it is able to load exactly the same entities  
 #'
@@ -20,6 +20,9 @@ NULL
 #' @param colname.weight a string describing the column to be used as a weight in the sample
 #'
 #' @importFrom dplyr sample_n
+#'
+#'
+#' @author Samuel Thiriot <samuel.thiriot@res-ear.ch> 
 #'
 matching.generate.resize_population <- function(sample, count.required, colname.weight) {
 	# weights.factor <- count.required / weights.available
@@ -87,6 +90,9 @@ matching.generate.copy_population <- function(n, select.colname, sample) {
 #' @param n the expected contigencies (used as a control)
 #' @param ndx the contigencies for each degree
 #' @param colname the name of the column on which the degrees depend on
+#'
+#' @author Samuel Thiriot <samuel.thiriot@res-ear.ch> 
+#'
 matching.generate.add_degree <- function(samp, pop, n, ndx, colname) {
 
 	# we have to reweight the distribution of degrees
@@ -169,12 +175,15 @@ matching.generate.add_degree <- function(samp, pop, n, ndx, colname) {
 #' the adds degrees to them, then creates links based on degrees 
 #' and characteristics, before measuring the result.  
 #'
-#' @param case the case resolved by the \link{resolve} function. 
+#' @param case the case resolved by the \code{\link{matching.arbitrate}} function. 
 #' @param sample.A the sample to use as population A 
 #' @param sample.B the sample to use as population B
 #' @return the generated population
 #' 
 #' @export 
+#'
+#' @author Samuel Thiriot <samuel.thiriot@res-ear.ch> 
+#'
 matching.generate <- function(case, sample.A, sample.B) {
 
     cat("starting generation\n")
