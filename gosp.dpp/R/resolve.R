@@ -1255,6 +1255,7 @@ resolve <- function(sol, case, nA, nB, nu.A, phi.A, delta.A, nu.B, phi.B, delta.
         #print(missing.chains)
     }
 
+
     # print("propagated")
     # print(sol)
 
@@ -1453,7 +1454,22 @@ matching.arbitrate <- function(case,
 
     sol <- resolve(sol, case, nA, nB, nu.A, phi.A, delta.A, nu.B, phi.B, delta.B, gamma, verbose=verbose)
 
-    
+     if (!all(c(
+            "hat.pdi","hat.pdj",
+            "hat.ci","hat.cj",
+            "hat.nij",
+            "hat.nA","hat.nB") %in% names(sol))) {
+        stop("The case is too constrained to be solved: some of the variables were not solved (",
+            paste(setdiff(c(
+                "hat.pdi","hat.pdj",
+                "hat.ci","hat.cj",
+                "hat.nij",
+                "hat.nA","hat.nB"),
+                names(sol)),
+                collapse=","),
+            ")")
+    }
+
     detect.problems(sol, case)
 
     # measure errors
