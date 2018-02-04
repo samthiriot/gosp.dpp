@@ -187,6 +187,30 @@ test_that("constraints: nothing (totally free - long chain)", {
 	
 })
 
+# small counts
+
+{
+	case.prepared <- matching.prepare(cas1$sample.A, cas1$sample.B, cas1$pdi, cas1$pdj, cas1$pij)
+	for (factor in c(5000,2000,1000,500,333,300,200,101,100,50)) {
+
+		nA <- 5*factor
+		nB <- 4*factor
+
+		test_that(paste("resolution with small values for nA=",nA," and nB=",nB,sep=""), {
+				
+			#cat("test with size nA=",nA," and nB=",nB,"\n",sep="")
+
+			disc <- matching.arbitrate(case.prepared, nA=nA,nB=nB, nu.A=0, phi.A=1, delta.A=1, gamma=1, delta.B=0, phi.B=0, nu.B=0)
+
+			expect_is(disc, "dpp_resolved")
+
+			expect_equal(nA, disc$gen$hat.nA)
+			expect_equal(nB, disc$gen$hat.nB)
+		
+		})
+	}
+}
+
 # FAILURES
 # ensure expected failures do fail
 

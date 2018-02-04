@@ -183,6 +183,8 @@ update_degree_distribution <- function(pdx, dx) {
 }
 
 
+#' Patches a degree distribution contingencies so its totals fit expectations
+#' 
 #' Adapts a distribution of degrees so that each column times n sums to expected nn
 #' (basically solves rounding issues for this specific case)
 #'
@@ -254,11 +256,40 @@ rectify.degree.counts <- function(pdn, nn, verbose=FALSE) {
     pdn
 }
 
+#' Normalise an object
+#' 
+#' takes a vector, matrix or list and updates its content
+#' by dividing it by its sum.
+#'
+#' @param df any data to normalise
+#' @return the same object normalised
+#'
 normalise <- function(df) {
     df / sum(df)
 }
 
 
+#' Completes a partial solution by inference  
+#' 
+#' Takes an incomplete solution and enriches by applying the equations.
+#' For instance if an equation links \code{hat.di * hat.ci = hat.ni}, 
+#' then this equation will be applied if two of these variables are available.   
+#'
+#'
+#' @param sol the current solution (a named list)
+#' @param case the case to solve
+#' @param verbose if TRUE, will display detailed information on the console
+#' @param indent the level of indentation for verbose messages
+#' @return a solution with possibly more variables known
+#'
+#' @seealso this function relies on \code{\link{round_sum}} to round values 
+#'          so their sums is preserved; 
+#'          \code{\link{normalise}} to normalise variables;
+#'          \code{\link{update_degree_distribution}} to compute the detail 
+#'          of degree distributions from average degrees.
+#'  
+#' @author Samuel Thiriot <samuel.thiriot@res-ear.ch>
+#'  
 propagate.direct <- function(sol,case, verbose=FALSE, indent=1) {
 
     info.rule <- function(name, sol, verbose=FALSE, indent=3) {
@@ -646,12 +677,23 @@ propagate.direct <- function(sol,case, verbose=FALSE, indent=1) {
 
 }
 
+#' Asserts two values are equal.
+#' 
+#' In the context of checking the consistency of a solution,
+#' ensures the content are similar.
+#' 
+#' @param v1 a scalar, vector, matrix or data frame 
+#' @param v2 a scalar, vector, matrix or data frame 
+#' @param msg the message to display in case of failure
+#' @param verbose if TRUE, assertion errors will be displayed in the console
+#' @return 1 in case of error else 0
+#' 
 assert.equal <- function(v1,v2,msg, verbose=FALSE) {
 
     if (!identical(v1,v2) && !(all.equal(v1,v2)==TRUE)) {  # && ((length(v1) > 1) & sum((v1-v2)^2) > 0)
 
         if (verbose) {
-            cat("\nASSERT ERROR:",msg,"\n")
+            cat("\n\n\n\nASSERT ERROR:",msg,"\n")
             print(v1)
             print(v2)
             
@@ -927,6 +969,42 @@ paste.known <- function(sol) {
         )
 }
 
+#' Solves a chain of missing variables
+#' 
+#' For a given incomplete solution, a set of dependant variables to solve,
+#'  a generation case, and targets defined by the user, tries to identify 
+#' the best solution (if any).   
+#'
+#' It works by (i) trying to define hypothesis such as "let's try to respect 
+#' the ideal value for this variable". It then (ii) relies on inference to 
+#' determine the consequences of this hypothesis, and checks (iii) whether
+#' this solution is consistent. 
+#' 
+#' At the end of this process, we might have no solution, one unique solution or 
+#' several ones. If several solutions are available, the best one is taken, with best
+#' being defined as the solution which minimizes the cumulated errors weighted by the 
+#' user weights.   
+#'
+#' @param sol the current solution (a named list)
+#' @param chain the chain to be solved (a list of strings containing variable names)
+#' @param case the case to solve
+#' @param nA the target population size for A
+#' @param nB the target population size for B
+#' @param nu.A control for nA: 0 means "respect nA", non-null "adapt it to solve the case"
+#' @param phi.A control for frequencies: 0 means "respect the original frequencies as detected in the sample", non-null "adapt it to solve the case"
+#' @param delta.A control for degree A: 0 means "respect the input parameters pdi", non-null "adapt them to solve the case"
+#' @param gamma control for pij: 0 means "respect the matching probabilities pij", non-null "adapt them to solve the case"
+#' @param delta.B control for degree B: 0 means "respect the input parameters pdj", non-null "adapt them to solve the case"
+#' @param phi.B control for frequencies: 0 means "respect the original frequencies as detected in the sample", non-null "adapt it to solve the case"
+#' @param nu.B control for nB: 0 means "respect nB", non-null "adapt it to solve the case"
+#' @param verbose if TRUE, will display detailed information on the console
+#' @return a list of vectors (the chains) of strings 
+#'
+#' @seealso \code{\link{propagate.direct}} for the inference of the consequences of the hypothesis,
+#'          \code{\link{detect.problems}} to ensure potential solutions are consistent
+#'  
+#' @author Samuel Thiriot <samuel.thiriot@res-ear.ch>
+#'  
 resolve.missing.chain <- function(sol, chain, case, 
                                     nA, nB, 
                                     nu.A, phi.A, delta.A, nu.B, phi.B, delta.B, gamma, 
@@ -1209,6 +1287,16 @@ quantify.errors <- function(sol, case, nA, nB) {
     sol
 }
 
+#' Ensures the content of a solution is in the expect format
+#' 
+#' Ensures a solution is formatted well: notably guarantees
+#' the lists or data frames which have to be names are named 
+#' as expected.
+#' 
+#' @param sol the solution (might be partial)
+#' @param case the case
+#' @return the same solution fixed formats
+#' 
 ensure.form <- function(sol, case) {
 
     if (!is.null(sol$hat.ni)) {
@@ -1245,7 +1333,9 @@ ensure.form <- function(sol, case) {
 #' Solves the underlying equations based on data, the inputs parameters, 
 #' and the control parameters. It distributes the errors in the places 
 #' accepted by the user. 
-# 
+#'
+#' This function is deterministic.
+#'
 #' @param case a case prepared with \code{\link{matching.prepare}}
 #' @param nA the count of entities expected for population A
 #' @param nB the count of entities expected for population B
@@ -1361,7 +1451,15 @@ matching.arbitrate <- function(case,
     res
 }
 
-
+#' Display the result of a resolution
+#' 
+#' @param x the case to print
+#' @param ... ignored
+#'
+#' @export
+#' 
+#' @author Samuel Thiriot <samuel.thiriot@res-ear.ch>
+#' 
 print.dpp_resolved <- function(x,...) {
 
     cat("case prepared and ready for generation\n")

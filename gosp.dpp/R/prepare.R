@@ -147,6 +147,15 @@ matching.prepare <- function(sample.A, sample.B, pdi, pdj, pij) {
     res
 }
 
+#' Display a prepared case
+#' 
+#' @param x the case to print
+#' @param ... ignored
+#'
+#' @export
+#' 
+#' @author Samuel Thiriot <samuel.thiriot@res-ear.ch>
+#' 
 print.dpp_prepared <- function(x,...) {
     cat("prepared case:n\n")
     print(x$inputs$pdi)
