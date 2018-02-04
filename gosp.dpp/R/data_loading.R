@@ -15,7 +15,7 @@
 #' 
 #' @examples 
 #' # to read a CSV file as a sample
-#' f <- system.file("data-raw", "logements.csv", package = "gosp.dpp")
+#' f <- system.file("extdata", "logements.csv", package = "gosp.dpp")
 #' m <- read.csv(f, sep=";", dec=",")
 #' df <- as.data.frame(m)
 #' dictionary <- list('surface'=list('small'=1, 'medium'=2, 'large'=3))
