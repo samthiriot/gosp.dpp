@@ -31,13 +31,13 @@ matching.generate.resize_population <- function(sample, count.required, colname.
 	selected <- sample_n(sample, count.required, weight=sample[,colname.weight], replace=TRUE)
 	#print(nrow(selected))
 
-	selected
+	# return everything but the weights
+	selected[,names(selected) != colname.weight]
 }
 
 matching.generate.copy_population <- function(n, select.colname, sample) {
 
     #cat("copying population based on attribute '",select.colname,"' with ",n,"\n")
-
     
     target <- sample$sample[FALSE,] 	# empty dataframe with the same properties
 
