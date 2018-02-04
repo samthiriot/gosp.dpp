@@ -1,4 +1,14 @@
 
+#' Measures the contigencies from a sample 
+#'
+#' measures, for a given variable, the cumulated weights for 
+#' each modality of this variable in the sample
+#' 
+#' @param sample the sample to measure
+#' @param group.colname the name of the column to check
+#' 
+#' @return a vector containing the contigencies 
+#'  
 measure_contigencies <- function(sample, group.colname) {
  
     res <- list()
@@ -29,35 +39,16 @@ measure_contigencies <- function(sample, group.colname) {
     ci
 }
 
-# for each class, compute the degree expected 
-# so starting with a probability table which described p(d=n|A1)
-# it returns the expected probability d(A1)
+
+#' Computes the average degree from a distribution of degrees
+#' 
+#' @param pd the probability distribution
+#' @return a vector containing the average degree
+#' 
 compute_average_degree <- function(pd) {
- 
-    # TODO move into data preparation?
 
-    # ensure the given colnames(cas1$pdi)
-    for (name in colnames(pd$data)) {
-        if (abs(sum(pd$data[name]) - 1.0) >= 0.0000000001) {
-            stop(paste(c("invalid probabilities for ", name, ": should sum to 1 but sums to ", sum(pd$data[name]), sep="")))
-        }
-    }
+    colSums(pd$data * (0:(nrow(pd$data)-1)))
 
-    # precomputation: sum the expected degree for each class
-    # based on the input table
-    #expected.degree = list()
-    tilded <- c()
-    for (name in colnames(pd$data)) {
-        sum <- 0;
-        for (i in 1:nrow(pd$data)) {
-            sum <- sum + (i-1) * pd$data[i,name]
-        }
-        #expected.degree[name] = sum
-        tilded <- c(tilded, sum)
-    }
-
-    #expected.degree
-    tilded
 }
 
 #' Computes the maximum degree which might be obtained using a given 
@@ -66,6 +57,7 @@ compute_average_degree <- function(pd) {
 #'
 #' @param orig.pd the probability distribution
 #' @return a vector containing the maximum possible degree 
+#'
 assess.max.pd <- function(orig.pd) {
     max.pd <- rep(0,ncol(orig.pd$data))
     for (i in 1:ncol(orig.pd$data)) {

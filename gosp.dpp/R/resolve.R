@@ -246,7 +246,7 @@ rectify.degree.counts <- function(pdn, nn, verbose=FALSE) {
     if (!all.equal(unname(colSums(pdn*0:(nrow(pdn)-1))), unname(nn))) {
         stop("was unable to fix the rounding of degree distributions ",
             "so the total degrees ",
-            paste(colSums(pdn* (0:(nrow(pdn)-1))), collapse=","),
+            paste(compute_average_degree(pdn), collapse=","),
             " sums up to ",
             paste(nn, collapse=",")
             )
@@ -1191,15 +1191,33 @@ resolve.missing.chain <- function(sol, chain, case,
     res
 }
 
-# ' Solves the missing chains. 
-# ' 
-# ' TODO
-# ' 
-# ' 
-# ' @export 
-# ' 
-# ' @author Samuel Thiriot <samuel.thiriot@res-ear.ch>
-# ' 
+#' Resolves a partial solution by inference and hypothesis
+#' 
+#' Resolves a given case starting with the base solution
+#' accordng to user parameters. 
+#' It first uses \code{\link{propagate.direct}} to infer 
+#' results from available elements; then it detects the 
+#' chains of variable which are not constrained enough to be solved this way 
+#' using \code{\link{detect.missing.chains}}. Then it solves each chain 
+#' iteratively until the entire problem is solved. 
+#' 
+#' @param sol the current solution (a named list)
+#' @param case the case to solve
+#' @param nA the target population size for A
+#' @param nB the target population size for B
+#' @param nu.A control for nA: 0 means "respect nA", non-null "adapt it to solve the case"
+#' @param phi.A control for frequencies: 0 means "respect the original frequencies as detected in the sample", non-null "adapt it to solve the case"
+#' @param delta.A control for degree A: 0 means "respect the input parameters pdi", non-null "adapt them to solve the case"
+#' @param gamma control for pij: 0 means "respect the matching probabilities pij", non-null "adapt them to solve the case"
+#' @param delta.B control for degree B: 0 means "respect the input parameters pdj", non-null "adapt them to solve the case"
+#' @param phi.B control for frequencies: 0 means "respect the original frequencies as detected in the sample", non-null "adapt it to solve the case"
+#' @param nu.B control for nB: 0 means "respect nB", non-null "adapt it to solve the case"
+#' @param verbose if TRUE, will display detailed information on the console
+#' 
+#' @return a list of vectors (the chains) of strings 
+#' 
+#' @author Samuel Thiriot <samuel.thiriot@res-ear.ch>
+#' 
 resolve <- function(sol, case, nA, nB, nu.A, phi.A, delta.A, nu.B, phi.B, delta.B, gamma, verbose=FALSE) {
 
     # direct propagation of what we know
@@ -1244,6 +1262,19 @@ resolve <- function(sol, case, nA, nB, nu.A, phi.A, delta.A, nu.B, phi.B, delta.
 }
 
 
+#' Quantifies the errors of a solution
+#' 
+#' Computes the errors in a (possibly partial) solution 
+#' for the variables which are defined and adds them 
+#' to these solutions. For instance if \code{sol$hat.fi}
+#' is available, \code{sol$mse.fi} will be computed. 
+#' 
+#' @param sol the solution to evaluate
+#' @param case the reference case
+#' @param nA the expected size of population A
+#' @param nB the expected size of population B
+#' @return the solution with additional variables for errors 
+#'  
 quantify.errors <- function(sol, case, nA, nB) {
 
     # measure errors
@@ -1507,5 +1538,4 @@ print.dpp_resolved <- function(x,...) {
     cat("\t",paste(x$gen$inference,collapse="\n\t"),sep="")
     cat("\n")
 } 
-# TODO we need to first round the factors for weights !
 

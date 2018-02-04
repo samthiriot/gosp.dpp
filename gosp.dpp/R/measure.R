@@ -1,4 +1,13 @@
 
+#' Display the result of measures on a generated population
+#'
+#' @param x the measure to display
+#' @param ... ignored 
+#'
+#' @export
+#' 
+#' @author Samuel Thiriot <samuel.thiriot@res-ear.ch>
+#' 
 print.dpp_measure <- function(x,...) {
 
     cat("measures on the generated population\n\n")
@@ -22,6 +31,16 @@ print.dpp_measure <- function(x,...) {
     
 }
 
+
+#' Display a generated population
+#'
+#' @param x the generation result to display
+#' @param ... ignored 
+#'
+#' @export
+#' 
+#' @author Samuel Thiriot <samuel.thiriot@res-ear.ch>
+#' 
 print.dpp_result <- function(x,...) {
     cat("generation result\n")
 
@@ -32,6 +51,23 @@ print.dpp_result <- function(x,...) {
     print(x$measure)
 }
 
+# TODO clearup that !
+#
+#' Measures the matching probabilities from a generated population
+#'
+#' Measures the matching probabilities from a generation result. 
+#' 
+#' @param pop the generated population
+#' @param sample.A the original sample for population A
+#' @param sample.B the original sample for population B
+#' @param pij the original matching probabilities
+#' @param mix.pij the arbitrated matching probabilities
+#' @param A2l2B the joined population A / links / population B
+#'
+#' @return a dataframe with the measured probabilities
+#' 
+#' @author Samuel Thiriot <samuel.thiriot@res-ear.ch>
+#' 
 measure.pij <- function(pop, sample.A, sample.B, pij, mix.pij, A2l2B) {
 
 
@@ -79,6 +115,21 @@ measure.pij <- function(pop, sample.A, sample.B, pij, mix.pij, A2l2B) {
 			)
 }
 
+# TODO cleanup
+#' Measures the the contigencies and frequencies from a generated population
+#'
+#' Measures the contigencies and frequencies from a generated population. 
+#' 
+#' @param target.ni the original ni 
+#' @param orig.fi frequencies 
+#' @param colname the name of the column on which fi depends on 
+#' @param dico the original dictionary 
+#' @param pop the generated population 
+#'
+#' @return a list containing the measures
+#' 
+#' @author Samuel Thiriot <samuel.thiriot@res-ear.ch>
+#' 
 measure.ci_fi <- function(target.ni, orig.fi, colname, dico, pop) {
 
     hat.ni <- c()
@@ -98,7 +149,19 @@ measure.ci_fi <- function(target.ni, orig.fi, colname, dico, pop) {
 
 }
 
-# measures the distribution of degrees from the population
+#' Measure the probability distribution
+#' 
+#' Measure the distributions of probabilities from the 
+#' generated population.
+#' 
+#' @param dico the dictionary
+#' @param pdn.orig the original expected distributions
+#' @param sample the sample to measure
+#' 
+#' 
+#' @return a list containing the measures
+#' @author Samuel Thiriot <samuel.thiriot@res-ear.ch>
+#' 
 measure.pdn <- function(dico, pdn.orig, sample) {
 
 
@@ -128,11 +191,50 @@ measure.pdn <- function(dico, pdn.orig, sample) {
 		count.under.degree=nrow(sample[which( sample$current.degree<sample$target.degree),])
 		)
 }
-measure.population <- function(case, pop, sample.A, sample.B, pij) {
+
+#' Merge entities and attributes
+#' 
+#' Merges a generated population: returns the join of population A,
+#' links and population B. 
+#' 
+#' The underlying operation is done by \code{\link{merge}}.
+#'
+#' @param pop the generated population
+#' @return a dataframe from the join 
+#' 
+#' @export 
+#' 
+merge_links <- function(pop) {
 
 	# merge the datasets	
 	A2l <- merge(pop$A, pop$links, by="id.A", suffixes=c("_A", "_l"))
 	A2l2B <- merge(A2l, pop$B, by="id.B", suffixes=c("_A", "_B"))
+
+	A2l2B
+}
+
+# TODO a given class ?
+#' Measures the characteristics of a generated population
+#'
+#' Measures the characteristics of a generated population:
+#' the contigencies and frequencies with \code{\link{measure.ci_fi}},
+#' the degree distributions with \code{\link{measure.pdn}},
+#' the matching probabilities with \code{\link{measure.pij}}.
+#' 
+#' @param case the original case
+#' @param pop the generated population
+#' @param sample.A the original sample A
+#' @param sample.B the original sample B
+#' @param pij the target matching probabilities
+#' 
+#' @return a list containg the measures 
+#' 
+#' @author Samuel Thiriot <samuel.thiriot@res-ear.ch>
+#' 
+measure.population <- function(case, pop, sample.A, sample.B, pij) {
+
+	# merge the datasets	
+	A2l2B <- merge_links(pop)
 
 	#cat("total links measured: ", nrow(pop$links),"\n")
 

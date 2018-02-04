@@ -154,6 +154,15 @@ create_degree_probabilities_table <- function(probabilities, attributes.names) {
         stop("probabilities should be a data frame")
     }
 
+    # ensure the given colnames(cas1$pdi)
+    for (name in colnames(probabilities)) {
+        if (abs(sum(probabilities[,name]) - 1.0) >= 0.0000000001) {
+            stop(paste("invalid probabilities for ", name, 
+                ": should sum to 1 but sums to ", 
+                sum(probabilities[,name]), sep=""))
+        }
+    }
+
     # TODO check attributes !
 
     # forge the result 
