@@ -45,7 +45,7 @@ measure.pij <- function(pop, sample.A, sample.B, pij, mix.pij, A2l2B) {
 
 			codeB <- sample.B$dictionary$encoding[[pij$Bi]][[cB]]
 
-			cat("\tcount how many links connect", pij$Ai, "=", codeA, "(", cA, ") and", pij$Bi, "=", codeB, "(", cB, ")")
+			# cat("\tcount how many links connect", pij$Ai, "=", codeA, "(", cA, ") and", pij$Bi, "=", codeB, "(", cB, ")")
 
 			colname.A <- pij$Ai
 			if (!(colname.A %in% colnames(A2l2B))) {
@@ -59,7 +59,7 @@ measure.pij <- function(pop, sample.A, sample.B, pij, mix.pij, A2l2B) {
 
 			criteria <- which( (A2l2B[colname.A] == codeA) & (A2l2B[colname.B] == codeB ) )
 			count <- nrow(A2l2B[criteria,])
-			cat("\t=>", count, "\n")
+			# cat("\t=>", count, "\n")
 			
 			hat.nij[cB,cA] <- count
 
@@ -109,9 +109,9 @@ measure.pdn <- function(dico, pdn.orig, sample) {
 		total <- 0
 		for (x in 1:nrow(pdn.orig$data)) {
 			degree <- x-1
-			cat("\tmeasuring how many entities have",pdn.orig$attributes,"=",codeA,"and current degree=",degree,"")
+			# cat("\tmeasuring how many entities have",pdn.orig$attributes,"=",codeA,"and current degree=",degree,"")
 			count <- nrow(sample[which( (sample[pdn.orig$attributes]==codeA) & (sample$current.degree==degree) ),])
-			cat("\t=>", count, "\n")
+			# cat("\t=>", count, "\n")
 			hat.pdn[x,codeA] <- count 
 			total <- total + count 
 		}
@@ -134,7 +134,7 @@ measure.population <- function(case, pop, sample.A, sample.B, pij) {
 	A2l <- merge(pop$A, pop$links, by="id.A", suffixes=c("_A", "_l"))
 	A2l2B <- merge(A2l, pop$B, by="id.B", suffixes=c("_A", "_B"))
 
-	cat("total links measured: ", nrow(pop$links),"\n")
+	#cat("total links measured: ", nrow(pop$links),"\n")
 
 	res <- list(
 				nL=nrow(A2l2B),

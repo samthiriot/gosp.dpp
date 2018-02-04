@@ -191,7 +191,7 @@ update_degree_distribution <- function(pdx, dx) {
 #'
 #' @author Samuel Thiriot <samuel.thiriot@res-ear.ch> 
 #' 
-rectify.degree.counts <- function(pdn, nn) {
+rectify.degree.counts <- function(pdn, nn, verbose=FALSE) {
 
     for (col in 1:ncol(pdn)) {
         total.current <- sum(pdn[,col]*0:(nrow(pdn)-1))
@@ -203,9 +203,10 @@ rectify.degree.counts <- function(pdn, nn) {
         if (total.current > total.expected) {
             to.remove <- total.current - total.expected
 
-            if (to.remove > 1) {
-                warning("/!\\ the case for fixing rounding errors below 1 slot (here:",to.remove,") is not managed well\n.",sep="")
-            }
+            # no more warning: we anyway check at the end how well we fixed it
+            # if (to.remove > 1) {
+            #     warning("/!\\ the solution to fix rounding errors below 1 slot (here:",to.remove,") is not managed well\n.",sep="")
+            # }
 
             # we are creating more slots than expected
             # ... we have to remove it somewhere 
@@ -213,15 +214,17 @@ rectify.degree.counts <- function(pdn, nn) {
                 pdn[2,col] <- pdn[2,col] - to.remove
                 pdn[1,col] <- pdn[1,col] + to.remove
             } else {
-                warning("/!\\ found no good solution to fix this rounding error of an additional R\n") 
+                if (verbose)
+                    warning("/!\\ found no good solution to fix this rounding error by removing ",to.remove,"\n") 
             }
 
         } else if (total.current < total.expected) {
             to.add <- total.expected - total.current 
 
-            if (to.add > 1) {
-                warning("/!\\ the case for fixing rounding errors above 1 slot (here:",to.add,") is not managed well\n", sep="")
-            }
+            # no more warning: we anyway check at the end how well we fixed it
+            # if (to.add > 1) {
+            #     warning("/!\\ the solution to fix rounding errors above 1 slot (here:",to.add,") is not managed well\n", sep="")
+            # }
 
             # we are creating more slots than expected
             # ... we have to remove it somewhere 
@@ -229,11 +232,23 @@ rectify.degree.counts <- function(pdn, nn) {
                 pdn[1,col] <- pdn[1,col] - to.add
                 pdn[2,col] <- pdn[2,col] + to.add
             } else {
-                warning("/!\\ found no good solution to fix this rounding error of an additional R\n") 
+                if (verbose)
+                    warning("/!\\ found no good solution to fix this rounding error of an additional ",to.add,"\n") 
             }
         }
 
     }
+
+    # ensure we did it well, that is we achieve to reach the expected result
+    if (!all.equal(unname(colSums(pdn*0:(nrow(pdn)-1))), unname(nn))) {
+        stop("was unable to fix the rounding of degree distributions ",
+            "so the total degrees ",
+            paste(colSums(pdn* (0:(nrow(pdn)-1))), collapse=","),
+            " sums up to ",
+            paste(nn, collapse=",")
+            )
+    }
+    
 
     pdn
 }
@@ -243,14 +258,19 @@ normalise <- function(df) {
 }
 
 
-propagate.direct <- function(sol,case) {
+propagate.direct <- function(sol,case, verbose=FALSE, indent=1) {
 
-
-    info.rule <- function(name, sol) {
-        cat("\t",name,"\n",sep="")
+    info.rule <- function(name, sol, verbose=FALSE, indent=3) {
+        if (verbose) { 
+            cat(paste(rep("\t",times=indent),collapse=""),name,"\n",sep="")
+        }
         sol$inference[[length(sol$inference)+1]] <- name
         sol
     } 
+
+    if (verbose) {
+        cat(paste(rep("\t",times=indent),collapse=""),"solving equations based on known variables: ",paste.known(sol),"\n",sep="")
+    }
 
     if (is.null(sol$inference)) {
         sol$inference <- list()
@@ -270,7 +290,7 @@ propagate.direct <- function(sol,case) {
             ) {
             sol$hat.ci <- round_sum(sol$hat.nA * sol$hat.fi)
             sol$hat.fi <- sol$hat.ci / sol$hat.nA
-            sol <- info.rule("hat.nA, hat.fi -> hat.ci", sol)
+            sol <- info.rule("hat.nA, hat.fi -> hat.ci", sol, verbose=verbose, indent=indent+1)
             #print("sol$hat.ci <- round(sol$hat.nA * sol$hat.fi)")
             changed <- TRUE
         }
@@ -282,8 +302,7 @@ propagate.direct <- function(sol,case) {
             sol$hat.cj <- round_sum(sol$hat.nB * sol$hat.fj)
             # rounding might introduce a bias; update this proba
             sol$hat.fj <- sol$hat.cj / sol$hat.nB
-            sol <- info.rule("hat.nB, hat.fj -> hat.cj", sol)
-            #print("sol$hat.cj <- round(sol$hat.nB * sol$hat.fj)")
+            sol <- info.rule("hat.nB, hat.fj -> hat.cj", sol, verbose=verbose, indent=indent+1)
             changed <- TRUE
         }
 
@@ -295,9 +314,7 @@ propagate.direct <- function(sol,case) {
             sol$hat.ni <- round_sum(sol$hat.ci * sol$hat.di)
             # adapt rounding
             sol$hat.di <- sol$hat.ni / sol$hat.ci 
-            #print("sol$hat.ni <- round(sol$hat.ci * sol$hat.di)")
-            sol <- info.rule("hat.ci, hat.di -> hat.ni", sol)
-            #print(sol$hat.ni)
+            sol <- info.rule("hat.ci, hat.di -> hat.ni", sol, verbose=verbose, indent=indent+1)
             changed <- TRUE
         }
 
@@ -307,7 +324,7 @@ propagate.direct <- function(sol,case) {
             ) {
             sol$hat.nj <- round_sum(sol$hat.cj * sol$hat.dj)
             sol$hat.dj <- sol$hat.nj / sol$hat.cj
-            sol <- info.rule("hat.cj, hat.dj -> hat.nj", sol)
+            sol <- info.rule("hat.cj, hat.dj -> hat.nj", sol, verbose=verbose, indent=indent+1)
             changed <- TRUE
         }
 
@@ -315,7 +332,7 @@ propagate.direct <- function(sol,case) {
             ("hat.ni" %in% names(sol)) && (!"hat.nL" %in% names(sol))
             ) {
             sol$hat.nL <- sum(sol$hat.ni)
-            sol <- info.rule("hat.ni -> hat.nL", sol)
+            sol <- info.rule("hat.ni -> hat.nL", sol, verbose=verbose, indent=indent+1)
             changed <- TRUE
         }
 
@@ -323,7 +340,7 @@ propagate.direct <- function(sol,case) {
             ("hat.nj" %in% names(sol)) && (!"hat.nL" %in% names(sol))
             ) {
             sol$hat.nL <- sum(sol$hat.nj)
-            sol <- info.rule("hat.nj -> hat.nL", sol)
+            sol <- info.rule("hat.nj -> hat.nL", sol, verbose=verbose, indent=indent+1)
             changed <- TRUE
         }
 
@@ -332,14 +349,14 @@ propagate.direct <- function(sol,case) {
             ("hat.ci" %in% names(sol)) && (!"hat.nA" %in% names(sol))
             ) {
             sol$hat.nA <- sum(sol$hat.ci)
-            sol <- info.rule("hat.ci -> hat.nA", sol)
+            sol <- info.rule("hat.ci -> hat.nA", sol, verbose=verbose, indent=indent+1)
             changed <- TRUE
         }
         if ( 
             ("hat.cj" %in% names(sol)) && (!"hat.nB" %in% names(sol))
             ) {
             sol$hat.nB <- sum(sol$hat.cj)
-            sol <- info.rule("hat.cj -> hat.nB", sol)
+            sol <- info.rule("hat.cj -> hat.nB", sol, verbose=verbose, indent=indent+1)
             changed <- TRUE
         }
 
@@ -355,15 +372,8 @@ propagate.direct <- function(sol,case) {
             }
             # adapt th based on rounded values
             sol$hat.pij <- sol$hat.nij / sum(sol$hat.nij)
-            # ... and propagate 
 
-            sol <- info.rule("hat.ni -> hat.nij, hat.pij", sol)
-
-            #print("sol$hat.nij <- round( sol$hat.ni * case$inputs$pij$data / colSums(case$inputs$pij$data) )")
-            #            print(sol$hat.nij)
-
-            # print("computed hat.nij from ni and pij")
-            # print(sol$hat.nij/sum(sol$hat.nij))
+            sol <- info.rule("hat.ni -> hat.nij, hat.pij", sol, verbose=verbose, indent=indent+1)
             changed <- TRUE
         }
         if ( 
@@ -376,10 +386,8 @@ propagate.direct <- function(sol,case) {
                 sol$hat.nij[i,] <- round_sum(sol$hat.nij[i,])
             }
             sol$hat.pij <- sol$hat.nij / sum(sol$hat.nij)
-            sol <- info.rule("hat.nj -> hat.nij, hat.pij", sol)
-            #print("sol$hat.nij <- round(sol$hat.nj * case$inputs$pij$data / rowSums(case$inputs$pij$data))")
-            #print("computed hat.nij from nj and pij")
-            #print(sol$hat.nij/sum(sol$hat.nij))
+            sol <- info.rule("hat.nj -> hat.nij, hat.pij", sol, verbose=verbose, indent=indent+1)
+
             changed <- TRUE
         }
 
@@ -388,8 +396,7 @@ propagate.direct <- function(sol,case) {
             ("hat.nij" %in% names(sol)) && (!"hat.ni" %in% names(sol))
             ) {
             sol$hat.ni <- colSums(sol$hat.nij)
-            #print("sol$hat.ni <- colSums(sol$hat.nij)")
-            sol <- info.rule("hat.nij -> hat.ni", sol)
+            sol <- info.rule("hat.nij -> hat.ni", sol, verbose=verbose, indent=indent+1)
 
             changed <- TRUE
         }
@@ -397,7 +404,7 @@ propagate.direct <- function(sol,case) {
             ("hat.nij" %in% names(sol)) && (!"hat.nj" %in% names(sol))
             ) {
             sol$hat.nj <- rowSums(sol$hat.nij)
-            sol <- info.rule("hat.nij -> hat.nj", sol)
+            sol <- info.rule("hat.nij -> hat.nj", sol, verbose=verbose, indent=indent+1)
             changed <- TRUE
         }
  
@@ -407,7 +414,7 @@ propagate.direct <- function(sol,case) {
             ) {
             sol$hat.ci <- round_sum(sol$hat.ni / sol$hat.di )
             sol$hat.di <- sol$hat.ni / sol$hat.ci
-            sol <- info.rule("hat.ni, hat.di -> hat.ci", sol)
+            sol <- info.rule("hat.ni, hat.di -> hat.ci", sol, verbose=verbose, indent=indent+1)
             changed <- TRUE
 
         }
@@ -416,7 +423,7 @@ propagate.direct <- function(sol,case) {
             ) {
             sol$hat.cj <- round_sum(sol$hat.nj / sol$hat.dj )
             sol$hat.dj <- sol$hat.nj / sol$hat.cj
-            sol <- info.rule("hat.nj, hat.dj -> hat.cj", sol)            
+            sol <- info.rule("hat.nj, hat.dj -> hat.cj", sol, verbose=verbose, indent=indent+1)            
             changed <- TRUE
 
         }
@@ -432,7 +439,7 @@ propagate.direct <- function(sol,case) {
                                     sol$hat.ni / sol$hat.ci
                                     )
                             )
-            sol <- info.rule("hat.ni, hat.ci -> hat.di", sol)
+            sol <- info.rule("hat.ni, hat.ci -> hat.di", sol, verbose=verbose, indent=indent+1)
             changed <- TRUE
         }
         if ( 
@@ -445,7 +452,7 @@ propagate.direct <- function(sol,case) {
                                     sol$hat.nj / sol$hat.cj
                                     )
                             )
-            sol <- info.rule("hat.nj, hat.cj -> hat.dj", sol)
+            sol <- info.rule("hat.nj, hat.cj -> hat.dj", sol, verbose=verbose, indent=indent+1)
             changed <- TRUE
         }
 
@@ -454,16 +461,14 @@ propagate.direct <- function(sol,case) {
             ("hat.pij" %in% names(sol)) && (!"hat.pi" %in% names(sol))
             ) {
             sol$hat.pi <- colSums(sol$hat.pij)
-            sol <- info.rule("hat.pij -> hat.pi", sol)
-            #print("sol$hat.pi <- colSums(sol$hat.pij)")
+            sol <- info.rule("hat.pij -> hat.pi", sol, verbose=verbose, indent=indent+1)
             changed <- TRUE
         }
         if ( 
             ("hat.pij" %in% names(sol)) && (!"hat.pj" %in% names(sol))
             ) {
             sol$hat.pj <- rowSums(sol$hat.pij)
-            sol <- info.rule("hat.pij -> hat.pj", sol)
-            #print("sol$hat.pj <- rowSums(sol$hat.pij)")
+            sol <- info.rule("hat.pij -> hat.pj", sol, verbose=verbose, indent=indent+1)
             changed <- TRUE
         }
 
@@ -476,7 +481,7 @@ propagate.direct <- function(sol,case) {
             # in factor we might change it of a factor, only the ratio matters
             sol$hat.di <- sol$hat.pi / sol$hat.fi
             
-            sol <- info.rule("hat.pi, hat.fi -> hat.di", sol)
+            sol <- info.rule("hat.pi, hat.fi -> hat.di", sol, verbose=verbose, indent=indent+1)
             
             #print("sol$hat.di <- x * sol$hat.pi / sol$hat.fi")
             # 
@@ -502,7 +507,7 @@ propagate.direct <- function(sol,case) {
             # in factor we might change it of a factor, only the ratio matters
             sol$hat.dj <- sol$hat.pj / sol$hat.fj
             
-            sol <- info.rule("hat.pj, hat.fj -> hat.dj", sol)
+            sol <- info.rule("hat.pj, hat.fj -> hat.dj", sol, verbose=verbose, indent=indent+1)
             
             #print("sol$hat.di <- x * sol$hat.pi / sol$hat.fi")
             # 
@@ -528,7 +533,7 @@ propagate.direct <- function(sol,case) {
             ("hat.fi" %in% names(sol)) && ("hat.di" %in% names(sol)) &&  (!"hat.pi" %in% names(sol))
             ) {
             sol$hat.pi <- normalise(sol$hat.fi * sol$hat.di)
-            sol <- info.rule("hat.fi, hat.di -> hat.pi", sol)
+            sol <- info.rule("hat.fi, hat.di -> hat.pi", sol, verbose=verbose, indent=indent+1)
             #print("sol$hat.pi <- normalise(sol$hat.fi * sol$hat.di)")
             changed <- TRUE
         }
@@ -537,7 +542,7 @@ propagate.direct <- function(sol,case) {
             ) {
             sol$hat.pj <- normalise(sol$hat.fj * sol$hat.dj)
             #print("sol$hat.pj <- normalise(sol$hat.fj * sol$hat.dj)")
-            sol <- info.rule("hat.fj, hat.dj -> hat.pj", sol)
+            sol <- info.rule("hat.fj, hat.dj -> hat.pj", sol, verbose=verbose, indent=indent+1)
             changed <- TRUE
         }
 
@@ -549,7 +554,7 @@ propagate.direct <- function(sol,case) {
             # print("sol$hat.pij <- case$inputs$pij$data / rowSums(case$inputs$pij$data) * sol$hat.pj")
             # print(case$inputs$pij$data)
             # print(sol$hat.pj)
-            sol <- info.rule("hat.pi -> hat.pij", sol)
+            sol <- info.rule("hat.pi -> hat.pij", sol, verbose=verbose, indent=indent+1)
             changed <- TRUE
         }
         if ( 
@@ -559,7 +564,7 @@ propagate.direct <- function(sol,case) {
             # print("sol$hat.pij <- case$inputs$pij$data / rowSums(case$inputs$pij$data) * sol$hat.pj")
             # print(case$inputs$pij$data)
             # print(sol$hat.pj)
-            sol <- info.rule("hat.pj -> hat.pij", sol)
+            sol <- info.rule("hat.pj -> hat.pij", sol, verbose=verbose, indent=indent+1)
             changed <- TRUE
         }
 
@@ -569,7 +574,7 @@ propagate.direct <- function(sol,case) {
             ) {
             sol$hat.fi <- sol$hat.ci / sum(sol$hat.ci)
             #print("sol$hat.fi <- sol$hat.ci / sum(sol$hat.ci)")
-            sol <- info.rule("hat.ci -> hat.fi", sol)
+            sol <- info.rule("hat.ci -> hat.fi", sol, verbose=verbose, indent=indent+1)
             changed <- TRUE
         }
         if ( 
@@ -577,7 +582,7 @@ propagate.direct <- function(sol,case) {
             ) {
             sol$hat.fj <- sol$hat.cj / sum(sol$hat.cj)
             #print("sol$hat.fj <- sol$hat.cj / sum(sol$hat.cj)")
-            sol <- info.rule("hat.cj -> hat.fj", sol)
+            sol <- info.rule("hat.cj -> hat.fj", sol, verbose=verbose, indent=indent+1)
             changed <- TRUE
         }
 
@@ -587,7 +592,7 @@ propagate.direct <- function(sol,case) {
             ("hat.pdi" %in% names(sol)) && ("hat.ci" %in% names(sol)) && (!"hat.ndi" %in% names(sol))
             ) {
             
-            sol <- info.rule("hat.pdi, hat.ci -> hat.ndi", sol)
+            sol <- info.rule("hat.pdi, hat.ci -> hat.ndi", sol, verbose=verbose, indent=indent+1)
             sol$hat.ndi <- round_sum(t(t(sol$hat.pdi) * sol$hat.ci))
             sol$hat.ndi <- rectify.degree.counts(sol$hat.ndi, sol$hat.ni)   
             changed <- TRUE
@@ -596,7 +601,7 @@ propagate.direct <- function(sol,case) {
             ("hat.pdj" %in% names(sol)) && ("hat.cj" %in% names(sol)) && (!"hat.ndj" %in% names(sol))
             ) {
             
-            sol <- info.rule("hat.pdj, hat.cj -> hat.ndj", sol)
+            sol <- info.rule("hat.pdj, hat.cj -> hat.ndj", sol, verbose=verbose, indent=indent+1)
             sol$hat.ndj <- round_sum(t(t(sol$hat.pdj) * sol$hat.cj))
             sol$hat.ndj <- rectify.degree.counts(sol$hat.ndj, sol$hat.nj)   
             changed <- TRUE
@@ -607,65 +612,69 @@ propagate.direct <- function(sol,case) {
         if ( 
             ("hat.di" %in% names(sol)) && (!"hat.pdi" %in% names(sol))
             ) {
-            sol <- info.rule("hat.di -> hat.pdi", sol)
+            sol <- info.rule("hat.di -> hat.pdi", sol, verbose=verbose, indent=indent+1)
             sol$hat.pdi <- tryCatch({
                         update_degree_distribution(case$inputs$pdi$data, sol$hat.di)
                     }, error = function(e) {
                         stop("The case is too constrained to be solved (hat.di are not compliant with the original pdi)")
-                    })            #print("sol$hat.fi <- sol$hat.ci / sum(sol$hat.ci)")
+                    })           
             changed <- TRUE
         }
 
         if ( 
             ("hat.dj" %in% names(sol)) && (!"hat.pdj" %in% names(sol))
             ) {
-            sol <- info.rule("hat.dj -> hat.pdj", sol)
+            sol <- info.rule("hat.dj -> hat.pdj", sol, verbose=verbose, indent=indent+1)
             sol$hat.pdj <- tryCatch({
                         update_degree_distribution(case$inputs$pdj$data, sol$hat.dj)
                     }, error = function(e) {
                         stop("The case is too constrained to be solved (probabilities hat.dj are not compliant with the original pdj)")
-                    })            #print("sol$hat.fi <- sol$hat.ci / sum(sol$hat.ci)")
+                    })
             changed <- TRUE
         }
 
-    
+        # stop looping when we changed nothing 
+        # (so we are sure we cannot apply any novel equation)
         if (!changed) {
             break
         }
 
     }
 
-    #print("propagated")
-    #print(sol)
-
     sol
 
 }
 
-assert.equal <- function(v1,v2,msg) {
+assert.equal <- function(v1,v2,msg, verbose=FALSE) {
 
     if (!identical(v1,v2) && !(all.equal(v1,v2)==TRUE)) {  # && ((length(v1) > 1) & sum((v1-v2)^2) > 0)
-        cat("\nASSERT ERROR:",msg,"\n")
-        print(v1)
-        print(v2)
+
+        if (verbose) {
+            cat("\nASSERT ERROR:",msg,"\n")
+            print(v1)
+            print(v2)
+            
+            print( all.equal(v1,v2) )
+        }
         
-        print( all.equal(v1,v2) )
-        #cat(msg,"(",str(v1),",",str(v2),")\n")
         return(1)
     }
     0
 }
 
-detect.problems <- function(sol, case, fail=TRUE) {
-    
+detect.problems <- function(sol, case, fail=TRUE, verbose=FALSE) {
+
+    if (verbose) {
+        cat("\tchecking the consistency of the current solution with ",paste.known(sol),"\n",sep="")
+    }    
     problems <- 0
 
     # nA = sum(ni)
     if (!is.null(sol$hat.nA) && !is.null(sol$hat.ci)) {
-        problems <- problems + assert.equal(sol$hat.nA, sum(sol$hat.ci), "hat.nA = sum(hat.ci)")
+        problems <- problems + assert.equal(sol$hat.nA, sum(sol$hat.ci), "hat.nA = sum(hat.ci)", verbose=verbose)
     }
     if (!is.null(sol$hat.nB) && !is.null(sol$hat.cj)) {
-        problems <- problems + assert.equal(sol$hat.nB, sum(sol$hat.cj), "hat.nB = sum(hat.cj)")
+        problems <- problems + assert.equal(sol$hat.nB, sum(sol$hat.cj), "hat.nB = sum(hat.cj)", verbose=verbose)
     }
 
     # ni / nA = fi 
@@ -673,21 +682,21 @@ detect.problems <- function(sol, case, fail=TRUE) {
         problems <- problems + assert.equal(
                                         as.vector(sol$hat.ci/sol$hat.nA), 
                                         as.vector(sol$hat.fi), 
-                                        "hat.ci/hat.nA = hat.fi")
+                                        "hat.ci/hat.nA = hat.fi", verbose=verbose)
     }
     if (!is.null(sol$hat.nB) && !is.null(sol$hat.cj) && !is.null(sol$hat.fj)) {
         problems <- problems + assert.equal(
                                         as.vector(sol$hat.cj/sol$hat.nB), 
                                         as.vector(sol$hat.fj), 
-                                        "hat.cj/hat.nB = hat.fj")
+                                        "hat.cj/hat.nB = hat.fj", verbose=verbose)
     }  
 
     # sum(fi) = 1
     if (!is.null(sol$hat.fi)) {
-        problems <- problems + assert.equal(1, sum(sol$hat.fi), "sum(hat.fi)=1")
+        problems <- problems + assert.equal(1, sum(sol$hat.fi), "sum(hat.fi)=1", verbose=verbose)
     }
     if (!is.null(sol$hat.fj)) {
-        problems <- problems + assert.equal(1, sum(sol$hat.fj), "sum(hat.fj)=1")
+        problems <- problems + assert.equal(1, sum(sol$hat.fj), "sum(hat.fj)=1", verbose=verbose)
     }
 
     # ni = ci*di
@@ -695,55 +704,57 @@ detect.problems <- function(sol, case, fail=TRUE) {
         problems <- problems + assert.equal(
                                     as.vector(sol$hat.ci*sol$hat.di), 
                                     as.vector(sol$hat.ni), 
-                                    "hat.ni = hat.ci*hat.di")
+                                    "hat.ni = hat.ci*hat.di", 
+                                    verbose=verbose)
     }
     if (!is.null(sol$hat.cj) && !is.null(sol$hat.dj) && !is.null(sol$hat.nj)) {
         problems <- problems + assert.equal(
                                     as.vector(sol$hat.cj*sol$hat.dj), 
                                     as.vector(sol$hat.nj), 
-                                    "hat.nj = hat.cj*hat.dj")
+                                    "hat.nj = hat.cj*hat.dj", 
+                                    verbose=verbose)
     }
 
     # nL = sum(ni)
     if (!is.null(sol$hat.nL) && !is.null(sol$hat.ni)) {
-        problems <- problems + assert.equal(sol$hat.nL, sum(sol$hat.ni), "hat.nL = sum(hat.ni)")
+        problems <- problems + assert.equal(sol$hat.nL, sum(sol$hat.ni), "hat.nL = sum(hat.ni)", verbose=verbose)
     }
     if (!is.null(sol$hat.nL) && !is.null(sol$hat.nj)) {
-        problems <- problems + assert.equal(sol$hat.nL, sum(sol$hat.nj), "hat.nL = sum(hat.nj)")
+        problems <- problems + assert.equal(sol$hat.nL, sum(sol$hat.nj), "hat.nL = sum(hat.nj)", verbose=verbose)
     }
 
     # nL = sum(nij)
     if (!is.null(sol$hat.nL) && !is.null(sol$hat.nij)) {
-        problems <- problems + assert.equal(sol$hat.nL, sum(sol$hat.nij), "hat.nL = sum(hat.nij)")
+        problems <- problems + assert.equal(sol$hat.nL, sum(sol$hat.nij), "hat.nL = sum(hat.nij)", verbose=verbose)
     }
 
     # sum(hat.pij) = 1
     if (!is.null(sol$hat.pij)) {
-        problems <- problems + assert.equal(1, sum(sol$hat.pij), "sum(hat.pij) = 1")
+        problems <- problems + assert.equal(1, sum(sol$hat.pij), "sum(hat.pij) = 1", verbose=verbose)
     }
 
     # hat.pij = hat.nij/sum(hat.nij)
     if (!is.null(sol$hat.nij) && !is.null(sol$hat.pij)) {
-        problems <- problems + assert.equal(sol$hat.nij/sum(sol$hat.nij), sol$hat.pij, "hat.pij = hat.nij/sum(hat.nij)")
+        problems <- problems + assert.equal(sol$hat.nij/sum(sol$hat.nij), sol$hat.pij, "hat.pij = hat.nij/sum(hat.nij)", verbose=verbose)
     }
     
     # colSum(hat.nij) = hat.ni 
     if (!is.null(sol$hat.nij) && !is.null(sol$hat.ni)) {
-        problems <- problems + assert.equal(as.vector(colSums(sol$hat.nij)), as.vector(sol$hat.ni), "hat.ni = colSums(hat.nij)")
+        problems <- problems + assert.equal(as.vector(colSums(sol$hat.nij)), as.vector(sol$hat.ni), "hat.ni = colSums(hat.nij)", verbose=verbose)
     }
     if (!is.null(sol$hat.nij) && !is.null(sol$hat.nj)) {
-        problems <- problems + assert.equal(as.vector(rowSums(sol$hat.nij)), as.vector(sol$hat.nj), "hat.nj = rowSums(hat.nij)")
+        problems <- problems + assert.equal(as.vector(rowSums(sol$hat.nij)), as.vector(sol$hat.nj), "hat.nj = rowSums(hat.nij)", verbose=verbose)
     }
 
     # vsum(pdi) = 1
     if (!is.null(sol$hat.pdi)) {
         for (i in 1:ncol(sol$hat.pdi)) {
-            problems <- problems + assert.equal(1, sum(sol$hat.pdi[,i]), paste("sum(hat.pdi[",i,"])=1",sep=""))       
+            problems <- problems + assert.equal(1, sum(sol$hat.pdi[,i]), paste("sum(hat.pdi[",i,"])=1",sep=""), verbose=verbose)       
         }
     } 
     if (!is.null(sol$hat.pdj)) {
         for (i in 1:ncol(sol$hat.pdj)) {
-            problems <- problems + assert.equal(1, sum(sol$hat.pdj[,i]), paste("sum(hat.pdj[",i,"])=1",sep=""))       
+            problems <- problems + assert.equal(1, sum(sol$hat.pdj[,i]), paste("sum(hat.pdj[",i,"])=1",sep=""), verbose=verbose)       
         }
     } 
 
@@ -752,13 +763,13 @@ detect.problems <- function(sol, case, fail=TRUE) {
         problems <- problems + assert.equal(
                                         as.vector(sol$hat.ci), 
                                         as.vector(colSums(sol$hat.ndi)), 
-                                        "hat.ci = sum(hat.ndi)")   
+                                        "hat.ci = sum(hat.ndi)", verbose=verbose)  
     }    
     if (!is.null(sol$hat.ndj) && !is.null(sol$hat.cj)) {
         problems <- problems + assert.equal(
                                         as.vector(sol$hat.cj), 
                                         as.vector(colSums(sol$hat.ndj)), 
-                                        "hat.cj = sum(hat.ndj)")   
+                                        "hat.cj = sum(hat.ndj)", verbose=verbose)  
     }    
 
     # sum(hat.ndi * n) = hat.ni
@@ -766,50 +777,60 @@ detect.problems <- function(sol, case, fail=TRUE) {
         problems <- problems + assert.equal(
                                 as.vector(colSums(sol$hat.ndi * 0:(nrow(sol$hat.ndi)-1))), 
                                 as.vector(sol$hat.ni), 
-                                "hat.ni = sum( n * ndi[n])")   
+                                "hat.ni = sum( n * ndi[n])", verbose=verbose)  
     }
     if (!is.null(sol$hat.ndj) && !is.null(sol$hat.nj)) {
         problems <- problems + assert.equal(
                                 as.vector(colSums(sol$hat.ndj * 0:(nrow(sol$hat.ndj)-1))), 
                                 as.vector(sol$hat.nj), 
-                                "hat.nj = sum( n * ndj[n])")   
+                                "hat.nj = sum( n * ndj[n])", verbose=verbose)  
     }
 
     # TODO ? min max di dj
     if (!is.null(sol$hat.di)) {
-        #print("TESTING DI")
+        #print("TESTING DI", verbose=verbose
         problems <- problems + assert.equal(
                                 FALSE, 
                                 any(sol$hat.di < case$inputs$min.di), 
-                                "hat.di >= min.di")      
+                                "hat.di >= min.di", verbose=verbose)     
         problems <- problems + assert.equal(
                                 FALSE, 
                                 any(sol$hat.di > case$inputs$max.di), 
-                                "hat.di <= max.di")      
+                                "hat.di <= max.di", verbose=verbose)     
     }
     if (!is.null(sol$hat.dj)) {
-        #print("TESTING DJ")
+        #print("TESTING DJ", verbose=verbose
         problems <- problems + assert.equal(
                                 FALSE, 
                                 any(sol$hat.dj < case$inputs$min.dj), 
-                                "hat.dj >= min.dj")      
+                                "hat.dj >= min.dj", verbose=verbose)     
         problems <- problems + assert.equal(
                                 FALSE, 
                                 any(sol$hat.dj > case$inputs$max.dj), 
-                                "hat.dj <= max.dj")      
+                                "hat.dj <= max.dj", verbose=verbose)     
     }
 
+    if (verbose) {
+        if (problems > 0) {
+            cat("\t=> the solution is NOT consistent: ",problems," detected\n", sep="")
+        } else {
+            cat("\t=> the solution is consistent\n")
+        }
+    }
     if (fail && (problems > 0)) {
         stop("The case is too constrained to be solved (led to incoherent state)")
     }
+
     problems
 
 }
 
-detect.missing.chains <- function(sol) {
+detect.missing.chains <- function(sol, verbose=FALSE) {
 
-    cat("we know: ",names(sol),"\n")
-
+    if (verbose) {
+        cat("we know: ",paste.known(sol),"\n",sep="")
+    }
+    
     missing.chains <- list()
     current.chain <- NULL
 
@@ -822,7 +843,7 @@ detect.missing.chains <- function(sol) {
         #print(var.name)
 
         if (!(var.name %in% names(sol))) {
-            cat("missing",var.name,"\n")
+            #cat("missing",var.name,"\n")
             if (is.null(current.chain)) {
                 # new chain 
                 current.chain <- c(var.name)
@@ -844,23 +865,50 @@ detect.missing.chains <- function(sol) {
         current.chain <- NULL
     }
 
-    print("missing chains")
-    print(missing.chains)
+    #print("missing chains")
+    #print(missing.chains)
+    missing.chains
 }
 
-resolve.missing.chain <- function(sol, chain, case, nA, nB, nu.A, phi.A, delta.A, nu.B, phi.B, delta.B, gamma) {
 
-    cat("starting the investigation of missing chain: ",paste(chain,collapse=","),"\n",sep="")
+#' Concatenates the known values
+#' 
+#' Only keeps in a solution (a list) the variables names which correspondond  to 
+#' the chain of variables we need to solve
+#'
+#' @param sol the current solution (a list)
+#' @return a string
+#' 
+paste.known <- function(sol) {
+    paste(
+        intersect(
+            names(sol),
+            c("hat.nA", "hat.ci", "hat.fi", "hat.di", "hat.pij", "hat.dj", "hat.fj", "hat.cj", "hat.nB")
+            ),
+        collapse=","
+        )
+}
+
+resolve.missing.chain <- function(sol, chain, case, 
+                                    nA, nB, 
+                                    nu.A, phi.A, delta.A, nu.B, phi.B, delta.B, gamma, 
+                                    verbose=FALSE) {
+
+    if (verbose) {
+        cat("\tstarting the investigation of the missing chain: ",paste(chain,collapse=","),"\n",sep="")
+    }
 
     solutions <- list()
 
-    for (var.hat.name in chain) {
+    # iterate all the missing elements of the chain that we might put hypothesis on
+    for (var.hat.name in intersect(
+                            chain,
+                            c("hat.di","hat.dj","hat.fi","hat.fj","hat.pij","hat.nA","hat.nB"))
+                            ) {
 
         sol.hyp <- sol
 
         explored <- list()
-
-        cat("let's investigate", var.hat.name, "\n")
 
         explored$investigated.var.name <- var.hat.name 
         explored$hypothesis <- setdiff(chain,c(var.hat.name))
@@ -893,7 +941,16 @@ resolve.missing.chain <- function(sol, chain, case, nA, nB, nu.A, phi.A, delta.A
         else if (var.hat.name == "hat.nA") { sol.hyp[[var.hat.name]] <- nA }
         else if (var.hat.name == "hat.nB") { sol.hyp[[var.hat.name]] <- nB }
 
-        else { cat("/!\\ cannot create such an hypothesis\n") }
+        else { 
+                # we should never reach this step. 
+                # we screwed up on the list of variables at the head of the for loop
+                stop("/!\\ cannot create such an hypothesis\n")
+        }
+
+        if (verbose) {
+            cat("\t\ttrying with hypothesis", var.hat.name, "=", substr(var.hat.name, 5, nchar(var.hat.name)), "\n")
+        }
+        
 
         if (is.null(sol.hyp$inference)) {
             sol.hyp$inference <- list()
@@ -902,62 +959,74 @@ resolve.missing.chain <- function(sol, chain, case, nA, nB, nu.A, phi.A, delta.A
 
         # propagate on this basis
         sol.hyp <- tryCatch({
-                        propagate.direct(sol.hyp, case)
+                        propagate.direct(sol.hyp, case, verbose=verbose, indent=3)
                     }, error = function(e) {
-                        cat("/!\\ error in this exploration, this solution is not valid\n\n")
+                        if (verbose) {
+                            cat("\t\t\tfound an invalid solution.\n")
+                        }
+                        NULL
                     })     
         
         # so know we have an estimation
         #candidate.sol <- sol.hyp[[var.hat.name]]
         #explored$value <- candidate.sol
 
-        if (!all(chain %in% names(sol.hyp))) {
-            # we cannot infer anything from this hypothesis; let's ignore it
-            cat("we can infer nothing from our hypothesis\n")
-            
-        } else {
-            cat("we found a solution based on an hypothesis on ",var.hat.name,"\n")
-        
-            #print(sol.hyp[[var.hat.name]])
-
-
-            # let's come back to the original problem
-            #sol.hyp <- sol
-            # add our solution
-            #sol.hyp[[var.hat.name]] <- candidate.sol
-            # propagate on this basis
-            #sol.hyp <- propagate.direct(sol.hyp, case)
-
-            # do we achieve to solve the problem on this basis ?
-            nb.problems <- detect.problems(sol.hyp, case, fail=FALSE)
-
-            if (nb.problems > 0) {
-                cat("this variable does not provides a valid solution to our problem","\n")
-                
+        if (!is.null(sol.hyp)) {
+            if (!all(chain %in% names(sol.hyp))) {
+                # we cannot infer anything from this hypothesis; let's ignore it
+                if (verbose) {
+                    cat("\t\t\twe cannot infer anything.\n")
+                }
             } else {
-                cat("we have a valid solution for ",var.hat.name,"\n")
-                #print(sol.hyp)
-                sol.hyp <- quantify.errors(sol.hyp, case, nA, nB)
-                explored$sol <- sol.hyp
-                solutions[[length(solutions)+1]] <- explored
+                
+                #print(sol.hyp[[var.hat.name]])
+
+
+                # let's come back to the original problem
+                #sol.hyp <- sol
+                # add our solution
+                #sol.hyp[[var.hat.name]] <- candidate.sol
+                # propagate on this basis
+                #sol.hyp <- propagate.direct(sol.hyp, case)
+
+                # do we achieve to solve the problem on this basis ?
+                nb.problems <- detect.problems(sol.hyp, case, fail=FALSE)
+
+                if (nb.problems > 0) {
+                    #cat("this variable does not provides a valid solution to our problem","\n")
+                    if (verbose) {
+                        cat("\t\t\twe found an invalid solution",var.hat.name,"\n")
+                    }   
+                } else {
+                    if (verbose) {
+                        cat("\t\t\twe found a valid solution which provides: ", paste.known(sol.hyp),"\n")
+                    }
+                    #print(sol.hyp)
+                    sol.hyp <- quantify.errors(sol.hyp, case, nA, nB)
+                    explored$sol <- sol.hyp
+                    solutions[[length(solutions)+1]] <- explored
+                }
+                
             }
-            
         }
 
 
     }
 
-
-    cat("found ",length(solutions)," solutions\n")
-    #print(solutions)
-
     res <- NULL 
     if (length(solutions) == 0) {
-        cat("found no solution for this chain :-(\n\n")
+        if (verbose) 
+            cat("\t\t\tfound no solution for this chain :-(\n")
     } else if (length(solutions) == 1) {
         # return the unique solution
         res <- solutions[[1]]$sol
+        if (verbose)
+            cat("\t\t\tfound one valid solution\n")
     } else {
+
+        if (verbose)
+            cat("\t\t\tfound ",length(solutions)," solutions, we have to select the best according to weights\n")
+
         # TODO pls 
         #print("TODO select the best? a mix ?")
         
@@ -972,12 +1041,12 @@ resolve.missing.chain <- function(sol, chain, case, nA, nB, nu.A, phi.A, delta.A
         }
         cumulated.errors <- rep(0, times=length(solutions))
         weights <- c(nu.A, phi.A, delta.A, gamma, delta.B, phi.B, nu.B)
-        print("weights")
-        print(weights)
+        # print("weights")
+        # print(weights)
         for (i in 1:length(solutions)) {
 
             s <- solutions[[i]]
-            print(names(s$sol))
+            # print(names(s$sol))
 
             errors <- c(
                         val.or.0(s$sol$error.nA), 
@@ -989,16 +1058,16 @@ resolve.missing.chain <- function(sol, chain, case, nA, nB, nu.A, phi.A, delta.A
                         val.or.0(s$sol$error.nB)
                         )
 
-            print("errors for this sol")
-            print(errors)
-            print("weighted")
-            print(errors * weights)
+            # print("errors for this sol")
+            # print(errors)
+            # print("weighted")
+            # print(errors * weights)
             cumulated.errors[i] <- sum(errors * weights)
             
         }
-        cat("\t=>", cumulated.errors,"\n")
+        cat("\t\t\t\tsolution (",i,") =>", cumulated.errors,"\n")
         best.solution <- which.min(cumulated.errors)
-        cat("\t=> will keep solution ",best.solution," which is the one with the lowest weighted error\n")
+        cat("\t\t\t\t=> will keep solution ",best.solution," which is the one with the lowest weighted error\n",sep="")
         res <- solutions[[best.solution]]$sol
         #print(names(solutions[[best.solution]]$sol))
     }
@@ -1015,12 +1084,14 @@ resolve.missing.chain <- function(sol, chain, case, nA, nB, nu.A, phi.A, delta.A
 # ' 
 # ' @author Samuel Thiriot <samuel.thiriot@res-ear.ch>
 # ' 
-resolve <- function(sol, case, nA, nB, nu.A, phi.A, delta.A, nu.B, phi.B, delta.B, gamma) {
-
-    cat("we know: ",names(sol),"\n")
+resolve <- function(sol, case, nA, nB, nu.A, phi.A, delta.A, nu.B, phi.B, delta.B, gamma, verbose=FALSE) {
 
     # direct propagation of what we know
-    sol.tmp <- propagate.direct(sol,case)
+    sol.tmp <- propagate.direct(sol,case,verbose=verbose)
+
+    # if (verbose) {
+    #     cat("resolving the case based on known: ",paste(names(sol.tmp),collapse=","),"\n",sep="")
+    # }
 
     # detect what to solve 
 
@@ -1028,23 +1099,25 @@ resolve <- function(sol, case, nA, nB, nu.A, phi.A, delta.A, nu.B, phi.B, delta.
 
     #chain.p <- c("hat.fi", "hat.di", "hat.pij", "hat.dj", "hat.fj")
 
-    
     missing.chains <- detect.missing.chains(sol.tmp)
     while (length(missing.chains) > 0) {
 
-    #for (chain in missing.chains) {
         chain <- missing.chains[[1]]
         missing.chains[[1]] <- NULL
 
-        found <- resolve.missing.chain(sol.tmp, chain, case, nA, nB, nu.A, phi.A, delta.A, nu.B, phi.B, delta.B, gamma)
+        found <- resolve.missing.chain(sol.tmp, chain, case, 
+                    nA, nB, nu.A, phi.A, delta.A, nu.B, phi.B, delta.B, gamma, 
+                    verbose=verbose)
 
         if (!is.null(found)) {
-            cat("found a solution which we will use. It provides ",paste(names(found),collapse=","),"\n", sep="")
+            if (verbose) {
+                cat("\tthis missing chain was solved\n", sep="")
+            }
             sol.tmp <- found 
             missing.chains <- detect.missing.chains(sol.tmp)
         }
 
-        cat("still ",length(missing.chains)," missing\n")
+        #cat("still ",length(missing.chains)," missing\n")
         #print(missing.chains)
     }
 
@@ -1145,7 +1218,8 @@ ensure.form <- function(sol, case) {
 #' @param delta.B control for degree B: 0 means "respect the input parameters pdj", non-null "adapt them to solve the case"
 #' @param phi.B control for frequencies: 0 means "respect the original frequencies as detected in the sample", non-null "adapt it to solve the case"
 #' @param nu.B control for nB: 0 means "respect nB", non-null "adapt it to solve the case"
-#'
+#' @param verbose if TRUE, the resolution will emit messages for debug
+#' 
 #' @return a case ready for generation
 #'
 #' @export
@@ -1173,7 +1247,12 @@ ensure.form <- function(sol, case) {
 #' 
 #' @author Samuel Thiriot <samuel.thiriot@res-ear.ch> 
 #'
-matching.arbitrate <- function(case, nA, nB, nu.A, phi.A, delta.A, gamma, delta.B, phi.B, nu.B) {
+matching.arbitrate <- function(case, 
+                                nA, nB, 
+                                nu.A, phi.A, delta.A, 
+                                gamma, 
+                                delta.B, phi.B, nu.B, 
+                                verbose = FALSE) {
 
     
     mixx <- list()
@@ -1191,9 +1270,9 @@ matching.arbitrate <- function(case, nA, nB, nu.A, phi.A, delta.A, gamma, delta.
     mask.fj.all <- as.integer(rowSums(mask.pij.all) > 0)
 
 
-
-    cat("\n\n=============== QUE VIVA LA RESOLUTION !\n")
-    
+    if (verbose) {
+        cat("\nstarting the resolution of the case\n")
+    }
 
     sol <- list()
     if (nu.A == 0)  { sol$hat.nA <- nA }
@@ -1206,12 +1285,14 @@ matching.arbitrate <- function(case, nA, nB, nu.A, phi.A, delta.A, gamma, delta.
 
     if (gamma == 0) { sol$hat.pij <- case$inputs$pij$data }
 
-    #parameters <- list(nA=nA, nB=nB, nu.A=nu.A, phi.A=phi.A, delta.A=delta.A, nu.B=nu.B, phi.B=phi.B, delta.B=delta.B, gamma=gamma)
+    if (verbose) {
+        cat("\taccording to user weights, we already know: ",paste(names(sol),collapse=","),"\n",sep="")
+    }
 
     # detect issues right now; maybe the problem is overconstrained or badly constrainted
-    detect.problems(sol, case)
+    detect.problems(sol, case, verbose=verbose)
 
-    sol <- resolve(sol, case, nA, nB, nu.A, phi.A, delta.A, nu.B, phi.B, delta.B, gamma)
+    sol <- resolve(sol, case, nA, nB, nu.A, phi.A, delta.A, nu.B, phi.B, delta.B, gamma, verbose=verbose)
 
     
     detect.problems(sol, case)
@@ -1222,9 +1303,7 @@ matching.arbitrate <- function(case, nA, nB, nu.A, phi.A, delta.A, gamma, delta.
     # ensure the form is ok
     sol <- ensure.form(sol, case)
 
-    print("end of resolution")
-    print(sol)
-
+    # prepare the result
     res <- case
     res$inputs$nA <- nA
     res$inputs$nB <- nB

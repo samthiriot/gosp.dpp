@@ -26,6 +26,7 @@ test_that("case 1 preparation", {
 
 	expect_is(case.prepared, "dpp_prepared")
 	
+	# TODO more tests
   
 })
 
@@ -45,6 +46,16 @@ test_that("resolution with nA, phi.A, delta.B, phi.B and nB", {
 
 	expect_equal(case.prepared$inputs$pdj$data, disc$gen$hat.pdj, tolerance=1e-5)
   
+  	# TODO finish this block and reuse it on every test
+  	# the actual generation is long and uses memory and CPU; so we avoid it on CRAN
+  	skip_on_cran()
+  	case <- matching.generate(disc, cas1$sample.A, cas1$sample.B)
+
+  	expect_equal(nrow(case$pop$A), 50000)
+  	expect_equal(nrow(case$pop$B), 40000)
+
+  	# TODO more tests
+
 })
 
 
@@ -135,7 +146,10 @@ test_that("constraints: phi.A, gamma (free on A and B)", {
 	
 	case.prepared <- matching.prepare(cas1$sample.A, cas1$sample.B, cas1$pdi, cas1$pdj, cas1$pij)
 
-	disc <- matching.arbitrate(case.prepared, nA=50000, nB=40000, nu.A=1, phi.A=0, delta.A=1, gamma=0, delta.B=1, phi.B=1, nu.B=1)
+	disc <- matching.arbitrate(case.prepared, 
+		nA=50000, nB=40000, 
+		nu.A=1, phi.A=0, delta.A=1, gamma=0, delta.B=1, phi.B=1, nu.B=1
+		)
 	
 	expect_is(disc, "dpp_resolved")
 

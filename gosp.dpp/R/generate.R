@@ -36,12 +36,10 @@ matching.generate.resize_population <- function(sample, count.required, colname.
 
 matching.generate.copy_population <- function(n, select.colname, sample) {
 
-    cat("copying population based on attribute '",select.colname,"' with ",n,"\n")
+    #cat("copying population based on attribute '",select.colname,"' with ",n,"\n")
 
-    #cols_without_weight <- -which(names(sample$sample) == sample$dictionary$colname.weight)
-
-    target <- sample$sample[FALSE,] 	# empty with the same properties
-
+    
+    target <- sample$sample[FALSE,] 	# empty dataframe with the same properties
 
 	for (name in names(n)) {
 
@@ -65,8 +63,8 @@ matching.generate.copy_population <- function(n, select.colname, sample) {
 		count.available <- nrow(available)
 		weights.available <- sum(available[,sample$dictionary$colname.weight])
 
-		cat("should copy ", count.required, " individuals for ", select.colname, "=", code, "(for",name,") ",
-					"and found ",count.available, " individuals with weights summing to ", weights.available,"\n")
+		# cat("should copy ", count.required, " individuals for ", select.colname, "=", code, "(for",name,") ",
+		# 			"and found ",count.available, " individuals with weights summing to ", weights.available,"\n")
 
 		toAdd <- matching.generate.resize_population(available, count.required, sample$dictionary$colname.weight)
 
@@ -76,8 +74,7 @@ matching.generate.copy_population <- function(n, select.colname, sample) {
 	}
 
     if (sum(n) != nrow(target)) {   
-        cat("hum, we should have copied ",sum(n),"rows but we only copied",nrow(target),"instead\n")
-        stop("wrong size")
+        stop(paste("we should have copied ",sum(n)," rows but we only copied",nrow(target),"instead\n",sep=""))
     }
 	target
 }
@@ -98,8 +95,8 @@ matching.generate.add_degree <- function(samp, pop, n, ndx, colname) {
 	# we have to reweight the distribution of degrees
 	# TODO do that earlier at discretisation tile
 
-    cat("adding degress based on ndx", "\n")
-    print(ndx)
+    # cat("adding degress based on ndx", "\n")
+    # print(ndx)
 
 	# add the column with NA
 	pop$target.degree <- rep.int(NA, nrow(pop))
@@ -120,7 +117,7 @@ matching.generate.add_degree <- function(samp, pop, n, ndx, colname) {
 
 			criteriaRaw <- which( (pop[colname] == code) & is.na(pop["target.degree"]) )
 			
-			cat("set target degree", degree, "for", count.required, "over", length(criteriaRaw), "having", colname, "=", code, "(",name,")\n")
+			# cat("set target degree", degree, "for", count.required, "over", length(criteriaRaw), "having", colname, "=", code, "(",name,")\n")
 			
 			if (count.required == 0) {
 				next 
@@ -128,7 +125,6 @@ matching.generate.add_degree <- function(samp, pop, n, ndx, colname) {
 			
 			lastDegreeNonNull <- degree
 
-			#print(criteriaRaw)
 			criteria <- NULL 
 			if (count.required < length(criteriaRaw)) {
 				criteria <- sample(criteriaRaw, count.required)
@@ -136,20 +132,16 @@ matching.generate.add_degree <- function(samp, pop, n, ndx, colname) {
 				criteria <- criteriaRaw
 			}
 
-			#print("criteria")
-			#print(criteria)
-			
 			pop[criteria,"target.degree"] <- degree
 		}
 
 
 		if (totalForDegree < n[name]) {
 	
-			cat("oops, not created enough slots here:",totalForDegree,"for",n[name],"expected\n")
+			warning(paste("oops, not created enough slots here:",totalForDegree," for ",n[name]," expected; ",
+					"defining the last ",length(criteriaRaw), "to degree ",lastDegreeNonNull,"\n",sep=""))
 
 			criteriaRaw <- which( (pop[colname] == code) & is.na(pop["target.degree"]) )
-			
-			cat("defining the last ",length(criteriaRaw), "to degree ",lastDegreeNonNull,"\n")
 			
 			pop[criteriaRaw,"target.degree"] <- lastDegreeNonNull
 	
@@ -159,7 +151,7 @@ matching.generate.add_degree <- function(samp, pop, n, ndx, colname) {
 
 	still.missing <- pop[ which( is.na(pop["target.degree"]) ),]
 	if (nrow(still.missing)>0) {
-		print("oooops some values are still missing, they will be fixed at zero target degree")
+		warning("some entities were not given any degree, they will be fixed at zero target degree")
 		print(head(still.missing))
 		pop[ which( is.na(pop["target.degree"]) ),"target.degree"] <- 0
 	}
@@ -186,7 +178,7 @@ matching.generate.add_degree <- function(samp, pop, n, ndx, colname) {
 #'
 matching.generate <- function(case, sample.A, sample.B) {
 
-    cat("starting generation\n")
+    # cat("starting generation\n")
 
 	# copy the individuals required for A
 	targetA <- sample.A$sample[FALSE,] 	# empty with the same properties
@@ -198,7 +190,7 @@ matching.generate <- function(case, sample.A, sample.B) {
 	targetA <- matching.generate.copy_population(n=nni, select.colname=case$inputs$pij$Ai, sample=sample.A)
 	targetB <- matching.generate.copy_population(n=nnj, select.colname=case$inputs$pij$Bi, sample=sample.B)
 
-    cat("creating ids...\n")
+    # cat("creating ids...\n")
 	# create unique ids (unique at the level of both populations)
 	targetA$id.A <- seq.int(1, nrow(targetA))
 	targetB$id.B <- seq.int(nrow(targetA)+1, nrow(targetA)+nrow(targetB))
@@ -212,7 +204,7 @@ matching.generate <- function(case, sample.A, sample.B) {
 	# remove the weight columns (which have no meaning here anymore)
     # TODO !!!
 
-    cat("\nadding target degrees...\n")
+    # cat("\nadding target degrees...\n")
 	# add columns for target degree 
 	targetA <- matching.generate.add_degree(sample.A, targetA, case$gen$hat.ni, case$gen$hat.ndi, case$inputs$pdi$attributes)
 	targetB <- matching.generate.add_degree(sample.B, targetB, case$gen$hat.nj, case$gen$hat.ndj, case$inputs$pdj$attributes)
@@ -221,7 +213,7 @@ matching.generate <- function(case, sample.A, sample.B) {
 	targetA$current.degree <- rep.int(0, nrow(targetA))
 	targetB$current.degree <- rep.int(0, nrow(targetB))
 
-    cat("\nmatching A and B to create total",case$gen$hat.nL,"links...\n")
+    # cat("\nmatching A and B to create total",case$gen$hat.nL,"links...\n")
 
 	# match them 
 	for (cA in colnames(case$gen$hat.nij)) {
@@ -234,7 +226,7 @@ matching.generate <- function(case, sample.A, sample.B) {
 
 			count.required <- case$gen$hat.nij[cB,cA] 
 
-			cat("should create", count.required, "links for A:\t", case$inputs$pij$Ai, "=", cA, "\tand B:\t",  case$inputs$pij$Bi, "=", cB, "\n")
+			# cat("should create", count.required, "links for A:\t", case$inputs$pij$Ai, "=", cA, "\tand B:\t",  case$inputs$pij$Bi, "=", cB, "\n")
 
 			pass.remaining <- 1
 
@@ -275,8 +267,8 @@ matching.generate <- function(case, sample.A, sample.B) {
 
 				# TODO keep it ???
 				#print(targetA[criteriaAraw,"target.degree"]-targetA[criteriaAraw,"current.degree"])
-				cat("\tfound", length(criteriaAraw), "in A and", length(criteriaBraw), "in B")
-				cat("\t=> creating", count.found, "links\n")
+				# cat("\tfound", length(criteriaAraw), "in A and", length(criteriaBraw), "in B")
+				# cat("\t=> creating", count.found, "links\n")
 				
 				criteriaA <- sample(criteriaAraw, count.found) #, prob=targetA[criteriaAraw,"target.degree"]-targetA[criteriaAraw,"current.degree"]
 				criteriaB <- sample(criteriaBraw, count.found)
@@ -301,30 +293,35 @@ matching.generate <- function(case, sample.A, sample.B) {
 
 			if ( count.required > 0)  {
 
-				cat("\t/!\\ failed to create", count.required,"link (rounding effect ?)\n")
+				warning(paste("\t/!\\ failed to create ", count.required," link(s) ",
+						"for ",case$inputs$pij$Ai, "=", cA, 
+						"\tand B:\t",  case$inputs$pij$Bi, "=", cB,"\n",sep=""))
 
-				if (count.required > 1) {
-					# TODO for pop B ?
-					criteriaAllAvailable <- which(targetA$current.degree < targetA$target.degree)
-					actualCount <- sum(targetA[criteriaAllAvailable,"target.degree"]-targetA[criteriaAllAvailable,"current.degree"])
+				# for debugging purpose
+				# should not be necessary anymore as there is no generation error possibility anymore.
 
-					actualCountUs <- sum(targetA[criteriaAraw,"target.degree"]-targetA[criteriaAraw,"current.degree"])
+				# if (count.required > 1) {
+				# 	# TODO for pop B ?
+				# 	criteriaAllAvailable <- which(targetA$current.degree < targetA$target.degree)
+				# 	actualCount <- sum(targetA[criteriaAllAvailable,"target.degree"]-targetA[criteriaAllAvailable,"current.degree"])
+
+				# 	actualCountUs <- sum(targetA[criteriaAraw,"target.degree"]-targetA[criteriaAraw,"current.degree"])
 
 
-					print(cat("not enough individuals found in the population A ", actualCountUs," to fullfill the demand ", count.required,
-								". We created ", nni[cA], " entities for", sum(case$gen$hat.nij[,cA]), " required for matching" ))
-					print(cat("we were supposed to match based on "))
-					print(case$gen$hat.nij)
-					print(cat("with degrees being "))
-					print(nni)
+				# 	cat("not enough individuals found in the population A ", actualCountUs," to fullfill the demand ", count.required,
+				# 				". We created ", nni[cA], " entities for", sum(case$gen$hat.nij[,cA]), " required for matching" )
+				# 	cat("we were supposed to match based on ")
+				# 	print(case$gen$hat.nij)
+				# 	cat("with degrees being ")
+				# 	print(nni)
 
-					print(cat("this total of slots are available:",actualCount))
+				# 	cat("this total of slots are available:",actualCount)
 
-					print(cat("but only this total of slots are available for us:",actualCountUs))
+				# 	cat("but only this total of slots are available for us:",actualCountUs)
 
-					print("population A is currently")
-					print(head(targetA[criteriaAraw,], n=100))
-				}
+				# 	print("population A is currently")
+				# 	print(head(targetA[criteriaAraw,], n=100))
+				# }
 			}
 
 			links.toadd <- data.frame(
