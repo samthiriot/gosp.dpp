@@ -188,6 +188,7 @@ update_degree_distribution <- function(pdx, dx) {
 #'
 #' @param pdn the contigencies of degrees
 #' @param nn the expected totals that should be reached
+#' @param verbose print detailed information during the process
 #'
 #' @author Samuel Thiriot <samuel.thiriot@res-ear.ch> 
 #' 
@@ -662,6 +663,22 @@ assert.equal <- function(v1,v2,msg, verbose=FALSE) {
     0
 }
 
+#' Checks the consistency of a solution
+#' 
+#' Takes a temptative solution and the initial case to resolve. 
+#' Tests wether the equations all lead to consistent results of 
+#' do contradict each other. Returns an error with \code{stop()}
+#' in case of error if \code{fail=TRUE}; else just returns the 
+#' count of problems. 
+#'
+#' @param sol the current solution (a named list)
+#' @param case the case to be solved
+#' @param fail if TRUE, an error will call stop()
+#' @param verbose if TRUE, will display detailed information on the console
+#' @return the count of problems 
+#'  
+#' @author Samuel Thiriot <samuel.thiriot@res-ear.ch>
+#'  
 detect.problems <- function(sol, case, fail=TRUE, verbose=FALSE) {
 
     if (verbose) {
@@ -825,6 +842,19 @@ detect.problems <- function(sol, case, fail=TRUE, verbose=FALSE) {
 
 }
 
+#' Detects the missing chains of variables 
+#' 
+#' For a given temptative solution supposed to be consistent, 
+#' checks the successive variables which depend on each other and 
+#' are not yet solved. These chains of variables probably require 
+#' using hypothesis for actual resolution.
+#'
+#' @param sol the current solution (a named list)
+#' @param verbose if TRUE, will display detailed information on the console
+#' @return a list of vectors (the chains) of strings 
+#'  
+#' @author Samuel Thiriot <samuel.thiriot@res-ear.ch>
+#'  
 detect.missing.chains <- function(sol, verbose=FALSE) {
 
     if (verbose) {
@@ -865,8 +895,16 @@ detect.missing.chains <- function(sol, verbose=FALSE) {
         current.chain <- NULL
     }
 
-    #print("missing chains")
-    #print(missing.chains)
+    if (verbose) {
+        if (length(missing.chains) > 0) {
+            cat("\tthere are ",length(missing.chains)," missing chains:\n")
+            for (c in missing.chains) {
+                cat("\t\t", paste(c,collapse=","))
+            }
+        } else {
+            cat("\tthere is no missing chain in this solution.")
+        }
+    }
     missing.chains
 }
 
