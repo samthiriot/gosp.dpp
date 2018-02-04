@@ -5,7 +5,8 @@
 #' Depending to parameters its vertices might be attributed.
 # 
 #' @param pop the population to convert
-#' @param with.attribute if TRUE, the attributes of entities are copied as vertex attributes 
+#' @param with.attributes if TRUE, the attributes of entities are copied as vertex attributes 
+#' @param ... ignored
 #'
 #' @return an igraph graph
 #'
@@ -48,7 +49,7 @@
 #' # detect communities 
 #' # TODO !
 #'
-#' @describeIn as.igraph exports a generation result as an igraph graph
+# @describeIn as.igraph exports a generation result as an igraph graph
 #'
 #' @importFrom igraph graph_from_edgelist 
 #' @importFrom igraph set_vertex_attr
@@ -93,8 +94,11 @@ as.igraph.dpp_population <- function(pop, with.attributes=FALSE, ...) {
 
 #' Exports a generation result as an igraph graph. 
 #' 
-#' @describeIn as.igraph exports a generation result as an igraph graph
+# @describeIn as.igraph exports a generation result as an igraph graph
 #'
+#' @param generated the generation result to convert to igraph
+#' @param with.attributes if TRUE, the attributes of entities are copied as vertex attributes 
+#' @param ... ignored
 #'
 #' @export
 #'

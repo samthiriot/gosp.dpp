@@ -3,8 +3,21 @@
 
 library(gosp.dpp)
 
-import::from(igraph, is.directed)
-import::from(igraph, as.igraph)
+
+# TODO make igraph optional
+
+library("igraph")
+
+# import::from(igraph, is.directed)
+# import::from(igraph, as.igraph)
+
+
+# if ("igraph" %in% installed.packages()) {
+
+# } else {
+# 	skip("igraph not installed")
+# }
+
 
 data(cas1)
 

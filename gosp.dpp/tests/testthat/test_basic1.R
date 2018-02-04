@@ -155,6 +155,8 @@ test_that("constraints: phi.A, gamma (free on A and B)", {
 
 test_that("constraints: nothing (totally free - long chain)", {
 	
+	skip("not yet ready")
+
 	case.prepared <- matching.prepare(cas1$sample.A, cas1$sample.B, cas1$pdi, cas1$pdj, cas1$pij)
 
 	disc <- matching.arbitrate(case.prepared, nA=50000,nB=40000, nu.A=1, phi.A=1, delta.A=1, gamma=1, delta.B=1, phi.B=1, nu.B=1)

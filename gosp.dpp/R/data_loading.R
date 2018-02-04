@@ -111,8 +111,11 @@ create_sample <- function(data, encoding=NULL, weight.colname=NULL) {
 
 #' Display a sample for Direct Probabilistic Peering
 #' 
-#' @describeIn print prints a sample prepared for Direct Probabilistic Peering
+# @describeIn print prints a sample prepared for Direct Probabilistic Peering
 #' 
+#' @param x the matching probabilities to print
+#' @param ... ignored
+#'
 #' @export
 #' 
 #' @author Samuel Thiriot <samuel.thiriot@res-ear.ch>
@@ -167,8 +170,11 @@ create_degree_probabilities_table <- function(probabilities, attributes.names) {
 
 #' Display a sample for Direct Probabilistic Peering
 #' 
-#' @describeIn print prints a degrees distribution of probabilities for Direct Probabilistic Peering
-#' 
+# @describeIn print prints a degrees distribution of probabilities for Direct Probabilistic Peering
+#'
+#' @param x the degrees distribution of probabilities to display
+#' @param ... ignored 
+#'
 #' @export
 #' 
 #' @author Samuel Thiriot <samuel.thiriot@res-ear.ch>
@@ -224,8 +230,11 @@ create_matching_probabilities_table <- function(data, Ai, Bi) {
 
 #' Display matching probabilities
 #' 
-#' @describeIn print prints matching probabilities for Direct Probabilistic Peering
+# @describeIn print prints matching probabilities for Direct Probabilistic Peering
 #' 
+#' @param x the matching probabilities to print
+#' @param ... ignored
+#'
 #' @export
 #' 
 #' @author Samuel Thiriot <samuel.thiriot@res-ear.ch>
