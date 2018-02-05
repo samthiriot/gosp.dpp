@@ -269,6 +269,21 @@ normalise <- function(df) {
 }
 
 
+#' Replaces NaN by zeros
+#' 
+#' Replaces NaN by zeros. Used when we divide 
+#' by a value and know the result should be 0 
+#' when the diviser is 0.
+#' 
+#' @param vv a vector or list
+#' @return the same vector without NaNs
+#'
+nan_to_zeros <- function(vv) {
+    vv[which(is.nan(vv))] <- 0
+    vv
+}
+
+
 #' Completes a partial solution by inference  
 #' 
 #' Takes an incomplete solution and enriches by applying the equations.
@@ -345,7 +360,7 @@ propagate.direct <- function(sol,case, verbose=FALSE, indent=1) {
             ) {
             sol$hat.ni <- round_sum(sol$hat.ci * sol$hat.di)
             # adapt rounding
-            sol$hat.di <- sol$hat.ni / sol$hat.ci 
+            sol$hat.di <- nan_to_zeros(sol$hat.ni / sol$hat.ci)
             sol <- info.rule("hat.ci, hat.di -> hat.ni", sol, verbose=verbose, indent=indent+1)
             changed <- TRUE
         }
@@ -355,7 +370,7 @@ propagate.direct <- function(sol,case, verbose=FALSE, indent=1) {
             ("hat.cj" %in% names(sol)) && ("hat.dj" %in% names(sol)) && (!"hat.nj" %in% names(sol))
             ) {
             sol$hat.nj <- round_sum(sol$hat.cj * sol$hat.dj)
-            sol$hat.dj <- sol$hat.nj / sol$hat.cj
+            sol$hat.dj <- nan_to_zeros(sol$hat.nj / sol$hat.cj)
             sol <- info.rule("hat.cj, hat.dj -> hat.nj", sol, verbose=verbose, indent=indent+1)
             changed <- TRUE
         }
@@ -444,8 +459,9 @@ propagate.direct <- function(sol,case, verbose=FALSE, indent=1) {
         if (
             ("hat.ni" %in% names(sol)) && ("hat.di" %in% names(sol)) && (!"hat.ci" %in% names(sol))
             ) {
-            sol$hat.ci <- round_sum(sol$hat.ni / sol$hat.di )
-            sol$hat.di <- sol$hat.ni / sol$hat.ci
+            # TODO if di = 0 ??? !!!
+            sol$hat.ci <- round_sum(sol$hat.ni / sol$hat.di)
+            sol$hat.di <- nan_to_zeros(sol$hat.ni / sol$hat.ci)
             sol <- info.rule("hat.ni, hat.di -> hat.ci", sol, verbose=verbose, indent=indent+1)
             changed <- TRUE
 
@@ -454,12 +470,11 @@ propagate.direct <- function(sol,case, verbose=FALSE, indent=1) {
             ("hat.nj" %in% names(sol)) && ("hat.dj" %in% names(sol)) && (!"hat.cj" %in% names(sol))
             ) {
             sol$hat.cj <- round_sum(sol$hat.nj / sol$hat.dj )
-            sol$hat.dj <- sol$hat.nj / sol$hat.cj
+            sol$hat.dj <- nan_to_zeros(sol$hat.nj / sol$hat.cj)
             sol <- info.rule("hat.nj, hat.dj -> hat.cj", sol, verbose=verbose, indent=indent+1)            
             changed <- TRUE
 
         }
-
         # if we have card and nx, then we can assess degree
         if ( 
             ("hat.ni" %in% names(sol)) && ("hat.ci" %in% names(sol)) &&  (!"hat.di" %in% names(sol))
@@ -468,7 +483,7 @@ propagate.direct <- function(sol,case, verbose=FALSE, indent=1) {
                             case$inputs$min.di, 
                             pmin(
                                     case$inputs$max.di,
-                                    sol$hat.ni / sol$hat.ci
+                                    nan_to_zeros(sol$hat.ni / sol$hat.ci)
                                     )
                             )
             sol <- info.rule("hat.ni, hat.ci -> hat.di", sol, verbose=verbose, indent=indent+1)
@@ -481,7 +496,7 @@ propagate.direct <- function(sol,case, verbose=FALSE, indent=1) {
                             case$inputs$min.dj, 
                             pmin(
                                     case$inputs$max.dj,
-                                    sol$hat.nj / sol$hat.cj
+                                    nan_to_zeros(sol$hat.nj / sol$hat.cj)
                                     )
                             )
             sol <- info.rule("hat.nj, hat.cj -> hat.dj", sol, verbose=verbose, indent=indent+1)
@@ -510,22 +525,20 @@ propagate.direct <- function(sol,case, verbose=FALSE, indent=1) {
             ("hat.pi" %in% names(sol)) && ("hat.fi" %in% names(sol)) && (!"hat.di" %in% names(sol))
             #&& (!"hat.ci" %in% names(sol)
             ) {
-            # in factor we might change it of a factor, only the ratio matters
-            sol$hat.di <- sol$hat.pi / sol$hat.fi
-            
+            sol$hat.di <- nan_to_zeros(sol$hat.pi / sol$hat.fi)
+            # fix potential NaNs due to di=0 by their native di counterparts (they do not matter anyway)
             sol <- info.rule("hat.pi, hat.fi -> hat.di", sol, verbose=verbose, indent=indent+1)
             
-            #print("sol$hat.di <- x * sol$hat.pi / sol$hat.fi")
-            # 
+            # in factor we might change it of a factor, only the ratio matters
             factor <- 1
             if (any(sol$hat.di > case$inputs$max.di)) {
                 # we are higher than what is allowed
-                factor <- min(case$inputs$max.di / sol$hat.di)
+                factor <- min(case$inputs$max.di / sol$hat.di, na.rm=TRUE)
             }  else if (any(sol$hat.di < case$inputs$min.di)) {
-                factor <- min(case$inputs$min.di / sol$hat.di) # TODO verifier
+                factor <- min(case$inputs$min.di / sol$hat.di, na.rm=TRUE) # TODO verifier
             }
             sol$hat.di <- sol$hat.di * factor
-
+            
             # print("et donc")
             #  print(sol$hat.di)
             #  print(normalise(sol$hat.di * sol$hat.fi))
@@ -533,22 +546,21 @@ propagate.direct <- function(sol,case, verbose=FALSE, indent=1) {
             changed <- TRUE
         }
 
+        # TODO patch for NA
         if ( 
             ("hat.pj" %in% names(sol)) && ("hat.fj" %in% names(sol)) &&  (!"hat.dj" %in% names(sol))
             ) {
-            # in factor we might change it of a factor, only the ratio matters
-            sol$hat.dj <- sol$hat.pj / sol$hat.fj
+            sol$hat.dj <- nan_to_zeros(sol$hat.pj / sol$hat.fj)
             
             sol <- info.rule("hat.pj, hat.fj -> hat.dj", sol, verbose=verbose, indent=indent+1)
             
-            #print("sol$hat.di <- x * sol$hat.pi / sol$hat.fi")
-            # 
+            # in factor we might change it of a factor, only the ratio matters
             factor <- 1
             if (any(sol$hat.dj > case$inputs$max.dj)) {
                 # we are higher than what is allowed
-                factor <- min(case$inputs$max.dj / sol$hat.dj)
+                factor <- min(case$inputs$max.dj / sol$hat.dj, na.rm=TRUE)
             }  else if (any(sol$hat.di < case$inputs$min.di)) {
-                factor <- min(case$inputs$min.dj / sol$hat.dj) # TODO verifier
+                factor <- min(case$inputs$min.dj / sol$hat.dj, na.rm=TRUE) # TODO verifier
             }
             sol$hat.dj <- sol$hat.dj * factor
 
@@ -648,6 +660,9 @@ propagate.direct <- function(sol,case, verbose=FALSE, indent=1) {
             sol$hat.pdi <- tryCatch({
                         update_degree_distribution(case$inputs$pdi$data, sol$hat.di)
                     }, error = function(e) {
+                        if (verbose) 
+                            cat(rep("\t",times=indent+1),"unable to update hat.pdi to fit hat.di=",paste(sol$hat.di,collapse=","),"\n",sep="")                   
+                        
                         stop("The case is too constrained to be solved (hat.di are not compliant with the original pdi)")
                     })           
             changed <- TRUE
@@ -660,6 +675,8 @@ propagate.direct <- function(sol,case, verbose=FALSE, indent=1) {
             sol$hat.pdj <- tryCatch({
                         update_degree_distribution(case$inputs$pdj$data, sol$hat.dj)
                     }, error = function(e) {
+                        if (verbose) 
+                            cat(rep("\t",times=indent+1),"unable to update hat.pdj to fit hat.dj=",paste(sol$hat.dj,collapse=","),"\n",sep="")                   
                         stop("The case is too constrained to be solved (probabilities hat.dj are not compliant with the original pdj)")
                     })
             changed <- TRUE
@@ -721,10 +738,10 @@ assert.equal <- function(v1,v2,msg, verbose=FALSE) {
 #'  
 #' @author Samuel Thiriot <samuel.thiriot@res-ear.ch>
 #'  
-detect.problems <- function(sol, case, fail=TRUE, verbose=FALSE) {
+detect.problems <- function(sol, case, fail=TRUE, verbose=FALSE, indent=1) {
 
     if (verbose) {
-        cat("\tchecking the consistency of the current solution with ",paste.known(sol),"\n",sep="")
+        cat(rep("\t",times=indent),"checking the consistency of the current solution with ",paste.known(sol),"\n",sep="")
     }    
     problems <- 0
 
@@ -871,9 +888,9 @@ detect.problems <- function(sol, case, fail=TRUE, verbose=FALSE) {
 
     if (verbose) {
         if (problems > 0) {
-            cat("\t=> the solution is NOT consistent: ",problems," detected\n", sep="")
+            cat(rep("\t",times=indent),"=> the solution is NOT consistent: ",problems," detected\n", sep="")
         } else {
-            cat("\t=> the solution is consistent\n")
+            cat(rep("\t",times=indent),"=> the solution is consistent\n")
         }
     }
     if (fail && (problems > 0)) {
@@ -1049,11 +1066,12 @@ resolve.missing.chain <- function(sol, chain, case,
 
         # }
 
-        if (var.hat.name == "hat.di") { sol.hyp[[var.hat.name]] <- case$inputs$di }
-        else if (var.hat.name == "hat.dj") { sol.hyp[[var.hat.name]] <- case$inputs$dj }
-        else if (var.hat.name == "hat.fi") { sol.hyp[[var.hat.name]] <- case$stats$fi }
-        else if (var.hat.name == "hat.fj") { sol.hyp[[var.hat.name]] <- case$stats$fj }
-        else if (var.hat.name == "hat.pij") { sol.hyp[[var.hat.name]] <- case$inputs$pij$data }
+        # TODO mask
+        if (var.hat.name == "hat.di") { sol.hyp[[var.hat.name]] <- case$inputs$di * case$masks$mask.di.all }
+        else if (var.hat.name == "hat.dj") { sol.hyp[[var.hat.name]] <- case$inputs$dj * case$masks$mask.dj.all }
+        else if (var.hat.name == "hat.fi") { sol.hyp[[var.hat.name]] <- normalise(case$stats$fi * case$masks$mask.fi.all) }
+        else if (var.hat.name == "hat.fj") { sol.hyp[[var.hat.name]] <- normalise(case$stats$fj * case$masks$mask.fj.all)}
+        else if (var.hat.name == "hat.pij") { sol.hyp[[var.hat.name]] <- normalise(case$inputs$pij$data * case$masks$mask.pij.all) }
         else if (var.hat.name == "hat.nA") { sol.hyp[[var.hat.name]] <- nA }
         else if (var.hat.name == "hat.nB") { sol.hyp[[var.hat.name]] <- nB }
 
@@ -1106,7 +1124,7 @@ resolve.missing.chain <- function(sol, chain, case,
                 #sol.hyp <- propagate.direct(sol.hyp, case)
 
                 # do we achieve to solve the problem on this basis ?
-                nb.problems <- detect.problems(sol.hyp, case, fail=FALSE)
+                nb.problems <- detect.problems(sol.hyp, case, fail=FALSE, verbose=verbose)
 
                 if (nb.problems > 0) {
                     #cat("this variable does not provides a valid solution to our problem","\n")
@@ -1419,31 +1437,33 @@ matching.arbitrate <- function(case,
 
     # start with masks
     # TODO reuse
-    mask.fi <- as.integer(case$stats$fi > 0)
-    mask.fj <- as.integer(case$stats$fj > 0)
-    mask.di <- as.integer(case$inputs$di > 0)
-    mask.dj <- as.integer(case$inputs$di > 0)
-    mask.pij <- (case$inputs$pij$data > 0)*1
+    case$masks <- list()
+    case$masks$mask.fi <- as.integer(case$stats$fi > 0)
+    case$masks$mask.fj <- as.integer(case$stats$fj > 0)
+    case$masks$mask.di <- as.integer(case$inputs$di > 0)
+    case$masks$mask.dj <- as.integer(case$inputs$dj > 0)
+    case$masks$mask.pij <- (case$inputs$pij$data > 0)*1
 
-    mask.pij.all <-  t(t(mask.pij) * mask.fi * mask.di) * mask.fj * mask.dj
-    mask.fi.all <- as.integer(colSums(mask.pij.all) > 0)
-    mask.fj.all <- as.integer(rowSums(mask.pij.all) > 0)
+    case$masks$mask.pij.all <-  t(t(case$masks$mask.pij) * case$masks$mask.fi * case$masks$mask.di) * case$masks$mask.fj * case$masks$mask.dj
+    case$masks$mask.fi.all <- as.integer(colSums(case$masks$mask.pij.all) > 0)
+    case$masks$mask.fj.all <- as.integer(rowSums(case$masks$mask.pij.all) > 0)
+    case$masks$mask.di.all <- case$masks$mask.di * case$masks$mask.fi.all
+    case$masks$mask.dj.all <- case$masks$mask.dj * case$masks$mask.fj.all
 
-
-    if (verbose) {
+    if (verbose) 
         cat("\nstarting the resolution of the case\n")
-    }
+    
 
     sol <- list()
     if (nu.A == 0)  { sol$hat.nA <- nA }
-    if (phi.A == 0) { sol$hat.fi <- case$stats$fi }
-    if (delta.A == 0) { sol$hat.di <- case$inputs$di }
+    if (phi.A == 0) { sol$hat.fi <- normalise(case$stats$fi * case$masks$mask.fi.all) }
+    if (delta.A == 0) { sol$hat.di <- case$inputs$di * case$masks$mask.di.all }
 
     if (nu.B == 0) { sol$hat.nB <- nB }
-    if (phi.B == 0) { sol$hat.fj <- case$stats$fj }
-    if (delta.B == 0) { sol$hat.dj <- case$inputs$dj }
+    if (phi.B == 0) { sol$hat.fj <- normalise(case$stats$fj * case$masks$mask.fj.all) }
+    if (delta.B == 0) { sol$hat.dj <- case$inputs$dj * case$masks$mask.dj.all }
 
-    if (gamma == 0) { sol$hat.pij <- case$inputs$pij$data }
+    if (gamma == 0) { sol$hat.pij <- normalise(case$inputs$pij$data * case$masks$mask.pij.all) }
 
     if (verbose) {
         cat("\taccording to user weights, we already know: ",paste(names(sol),collapse=","),"\n",sep="")
@@ -1468,10 +1488,13 @@ matching.arbitrate <- function(case,
                 names(sol)),
                 collapse=","),
             ")")
-    }
+    } 
 
     detect.problems(sol, case)
 
+    if (verbose) {
+        cat("\ncase solved.\n")
+    }
     # measure errors
     sol <- quantify.errors(sol, case, nA, nB)
 

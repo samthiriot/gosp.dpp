@@ -57,7 +57,7 @@ test_that("resolution with nA, phi.A, delta.B, phi.B and nB", {
   	# ensure the weight column in not present
   	expect_false(cas1$sample.A$dictionary$colname.weight %in% colnames(case$pop$A))
   	expect_false(cas1$sample.B$dictionary$colname.weight %in% colnames(case$pop$B))
-  	
+
   	# TODO more tests
 
 })
@@ -214,6 +214,41 @@ test_that("constraints: nothing (totally free - long chain)", {
 		})
 	}
 }
+
+
+# ZERO CELLS
+# ensure expected failures do fail
+
+test_that("constraints: pdi with zero (p(di=0)=1.0)", {
+	
+	cas1.zero.di <- cas1 
+	cas1.zero.di$pdi <- create_degree_probabilities_table(
+								probabilities=data.frame(
+				                    'small'=c(0.2, 0.8, 0, 0, 0),
+				                    'medium'=c(1.0, 0.0, 0.0, 0, 0),
+				                    'large'=c(0.05, 0.8, 0.1, 0.05, 0)
+				                    ), 
+								attributes.names=cas1$pdi$attributes
+								)
+
+	case.prepared <- matching.prepare(cas1.zero.di$sample.A, cas1.zero.di$sample.B, cas1.zero.di$pdi, cas1.zero.di$pdj, cas1.zero.di$pij)
+
+	disc <- matching.arbitrate(case.prepared, 
+		nA=50000, nB=40000, 
+		nu.A=1, phi.A=0, delta.A=1, gamma=0, delta.B=1, phi.B=1, nu.B=1,
+		verbose=FALSE
+		)
+	
+	expect_is(disc, "dpp_resolved")
+
+	expect_false(is.null(disc$gen$hat.nA))
+	expect_false(is.null(disc$gen$hat.nB))
+	expect_false(is.null(disc$gen$hat.di))
+	
+	#expect_equal(case.prepared$stats$fi, unname(disc$gen$hat.fi), tolerance=1e-5)
+	#expect_equal(as.matrix(cas1.zero.di$pij$data), disc$gen$hat.pij, tolerance=1e-5)
+	
+})
 
 # FAILURES
 # ensure expected failures do fail
