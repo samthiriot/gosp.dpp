@@ -191,20 +191,30 @@ test_that("constraints: nothing (totally free - long chain)", {
 	
 })
 
-# small counts
+# SMALL COUNTS
+context("tests on case 1 with small sizes")
 
 {
 	case.prepared <- matching.prepare(cas1$sample.A, cas1$sample.B, cas1$pdi, cas1$pdj, cas1$pij)
-	for (factor in c(5000,2000,1000,500,333,300,200,101,100,50)) {
+	for (factor in c(5000,
+		#2000,
+		1000,500,333,
+		#300,
+		200,101,100
+		#,50
+		)) {
 
 		nA <- 5*factor
 		nB <- 4*factor
 
-		test_that(paste("resolution with small values for nA=",nA," and nB=",nB,sep=""), {
+		test_that(paste("resolution with small values for nA=",nA," and nB=",nB,"(test factor ",factor,")",sep=""), {
 				
 			#cat("test with size nA=",nA," and nB=",nB,"\n",sep="")
 
-			disc <- matching.arbitrate(case.prepared, nA=nA,nB=nB, nu.A=0, phi.A=1, delta.A=1, gamma=1, delta.B=0, phi.B=0, nu.B=0)
+			disc <- matching.arbitrate(case.prepared, 
+										nA=nA,nB=nB, 
+										nu.A=0, phi.A=1, delta.A=1, gamma=1, delta.B=0, phi.B=0, nu.B=0,
+										verbose=FALSE)
 
 			expect_is(disc, "dpp_resolved")
 
@@ -215,6 +225,8 @@ test_that("constraints: nothing (totally free - long chain)", {
 	}
 }
 
+
+context("tests on case 1 with zero cells")
 
 # ZERO CELLS
 # ensure expected failures do fail
@@ -249,6 +261,43 @@ test_that("constraints: pdi with zero (p(di=0)=1.0)", {
 	#expect_equal(as.matrix(cas1.zero.di$pij$data), disc$gen$hat.pij, tolerance=1e-5)
 	
 })
+
+
+test_that("constraints: pdj with zero (p(dj=0)=1.0)", {
+	
+	skip("yet to be implemented")
+
+	cas1.zero.dj <- cas1 
+	cas1.zero.dj$pdj <- create_degree_probabilities_table(
+			                probabilities=data.frame(
+			                    '1 person'=c(0, 1),
+			                    '2 persons'=c(0, 1),
+			                    '3 persons'=c(1, 0),
+			                    '4 and more'=c(0, 1)
+			                    ),
+			                attributes.names=c("size")
+			                )
+
+	case.prepared <- matching.prepare(cas1.zero.dj$sample.A, cas1.zero.dj$sample.B, cas1.zero.dj$pdi, cas1.zero.dj$pdj, cas1.zero.dj$pij)
+
+	disc <- matching.arbitrate(case.prepared, 
+		nA=50000, nB=40000, 
+		nu.A=0, phi.A=0, delta.A=0, gamma=0, delta.B=0, phi.B=1, nu.B=1,
+		verbose=TRUE
+		)
+	
+	expect_is(disc, "dpp_resolved")
+
+	expect_false(is.null(disc$gen$hat.nA))
+	expect_false(is.null(disc$gen$hat.nB))
+	expect_false(is.null(disc$gen$hat.di))
+	
+	#expect_equal(case.prepared$stats$fi, unname(disc$gen$hat.fi), tolerance=1e-5)
+	#expect_equal(as.matrix(cas1.zero.di$pij$data), disc$gen$hat.pij, tolerance=1e-5)
+	
+})
+
+context("tests on case 1 with expected failures")
 
 # FAILURES
 # ensure expected failures do fail
