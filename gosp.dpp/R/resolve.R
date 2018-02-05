@@ -721,6 +721,7 @@ propagate.direct <- function(sol,case, verbose=FALSE, indent=1) {
 #' @param v1 a scalar, vector, matrix or data frame 
 #' @param v2 a scalar, vector, matrix or data frame 
 #' @param msg the message to display in case of failure
+#' @param indent the indentation (count of tabs) for verbose display
 #' @param verbose if TRUE, assertion errors will be displayed in the console
 #' @return 1 in case of error else 0
 #' 
@@ -764,6 +765,7 @@ assert.equal <- function(v1,v2,msg, verbose=FALSE, indent=3) {
 #' @param case the case to be solved
 #' @param fail if TRUE, an error will call stop()
 #' @param verbose if TRUE, will ddetect.problemsisplay detailed information on the console
+#' @param indent the indentation (count of tabs) for verbose display
 #' @return the count of problems 
 #'  
 #' @author Samuel Thiriot <samuel.thiriot@res-ear.ch>
