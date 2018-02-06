@@ -5,7 +5,7 @@
 library(gosp.dpp)
 data(cas1)
 
-context("tests on case 1")
+context("tests on generation with one attribute only (case 1)")
 
 test_that("case 1 properly loaded", {
 

@@ -649,7 +649,6 @@ propagate.direct <- function(sol,case, verbose=FALSE, indent=1) {
             changed <- TRUE
         }
 
-
         # pdi, ci -> ndi
         if ( 
             ("hat.pdi" %in% names(sol)) && ("hat.ci" %in% names(sol)) && (!"hat.ndi" %in% names(sol))
