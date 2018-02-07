@@ -99,3 +99,33 @@ test_that("samples: fail if the weight column is missing", {
 		)
 
 })
+
+
+test_that("samples: automatic creation of missing parts in dictionary", {
+
+	# create a useless dataframe without weight 
+	df <- data.frame(	gender=sample(1:2, size=100, replace=TRUE),
+						useless_more=sample(1:5, size=100, replace=TRUE)
+						)
+	s <- create_sample(data=df,encoding=list("gender"=list("male"=1,"female"=2)))
+
+	expect_false(is.null(s$dictionary$encoding$gender))
+	expect_false(is.null(s$dictionary$encoding$useless_more))
+	expect_equal(length(s$dictionary$encoding$useless_more), 5)
+
+})
+
+
+test_that("samples: automatic creation of a missing dictionary", {
+
+	# create a useless dataframe without weight 
+	df <- data.frame(	gender=sample(1:2, size=100, replace=TRUE),
+						useless_more=sample(1:5, size=100, replace=TRUE)
+						)
+	s <- create_sample(data=df)
+
+	expect_false(is.null(s$dictionary$encoding$gender))
+	expect_false(is.null(s$dictionary$encoding$useless_more))
+	expect_equal(length(s$dictionary$encoding$useless_more), 5)
+
+})

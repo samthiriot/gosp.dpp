@@ -63,39 +63,47 @@ print.dpp_result <- function(x,...) {
 #' @param pij the original matching probabilities
 #' @param mix.pij the arbitrated matching probabilities
 #' @param A2l2B the joined population A / links / population B
+#' @param verbose if TRUE, detailed messages are printed
 #'
 #' @return a dataframe with the measured probabilities
 #' 
 #' @author Samuel Thiriot <samuel.thiriot@res-ear.ch>
 #' 
-measure.pij <- function(pop, sample.A, sample.B, pij, mix.pij, A2l2B) {
+measure.pij <- function(pop, sample.A, sample.B, pij, mix.pij, A2l2B, verbose=FALSE) {
 
 
 	hat.nij <- pij$data
 
 	for (cA in colnames(pij$data)) {
 
-		codeA <- sample.A$dictionary$encoding[[pij$Ai]][[cA]]
+		k2v.A <- extract_attributes_values(cA)
 
 		for (cB in rownames(pij$data)) {
 
-			codeB <- sample.B$dictionary$encoding[[pij$Bi]][[cB]]
+			k2v.B <- extract_attributes_values(cB)
 
-			# cat("\tcount how many links connect", pij$Ai, "=", codeA, "(", cA, ") and", pij$Bi, "=", codeB, "(", cB, ")")
+			if (verbose)
+				cat("\tcount how many links connect ", cA, " and ", cB, "\n", sep="")
 
-			colname.A <- pij$Ai
-			if (!(colname.A %in% colnames(A2l2B))) {
-				colname.A <- paste(colname.A,"_A",sep="")
-			}
+			criteriaAraw <- 1:nrow(A2l2B)
+			for (k in names(k2v.A)) {
+				if (!(k %in% colnames(A2l2B))) {
+					k <- paste(k,"_A",sep="")
+				}
+	        	criteriaAraw <- intersect(criteriaAraw, which(A2l2B[k] == k2v.A[[k]]))
+	        }
 
-			colname.B <- pij$Bi
-			if (!(colname.B %in% colnames(A2l2B))) {
-				colname.B <- paste(colname.B,"_B",sep="")
-			}
+			criteriaBraw <- criteriaAraw
+			for (k in names(k2v.B)) {
+				if (!(k %in% colnames(A2l2B))) {
+					k <- paste(k,"_B",sep="")
+				}
+	        	criteriaBraw <- intersect(criteriaBraw, which(A2l2B[k] == k2v.B[[k]]))
+	        }
 
-			criteria <- which( (A2l2B[colname.A] == codeA) & (A2l2B[colname.B] == codeB ) )
-			count <- nrow(A2l2B[criteria,])
-			# cat("\t=>", count, "\n")
+			count <- nrow(A2l2B[criteriaBraw,])
+			if (verbose)
+				cat("\t=>", count, "\n")
 			
 			hat.nij[cB,cA] <- count
 
@@ -157,12 +165,12 @@ measure.ci_fi <- function(target.ni, orig.fi, colname, dico, pop) {
 #' @param dico the dictionary
 #' @param pdn.orig the original expected distributions
 #' @param sample the sample to measure
-#' 
+#' @param verbose detailed messages printed if TRUE
 #' 
 #' @return a list containing the measures
 #' @author Samuel Thiriot <samuel.thiriot@res-ear.ch>
 #' 
-measure.pdn <- function(dico, pdn.orig, sample) {
+measure.pdn <- function(dico, pdn.orig, sample, verbose=FALSE) {
 
 
 	hat.pdn <- pdn.orig$data
@@ -172,9 +180,13 @@ measure.pdn <- function(dico, pdn.orig, sample) {
 		total <- 0
 		for (x in 1:nrow(pdn.orig$data)) {
 			degree <- x-1
-			# cat("\tmeasuring how many entities have",pdn.orig$attributes,"=",codeA,"and current degree=",degree,"")
+
+			if (verbose)
+				cat("\tmeasuring how many entities have",pdn.orig$attributes,"=",codeA,"and current degree=",degree,"")
 			count <- nrow(sample[which( (sample[pdn.orig$attributes]==codeA) & (sample$current.degree==degree) ),])
-			# cat("\t=>", count, "\n")
+			
+			if (verbose)
+				cat("\t=>", count, "\n")
 			hat.pdn[x,codeA] <- count 
 			total <- total + count 
 		}
@@ -226,17 +238,19 @@ merge_links <- function(pop) {
 #' @param sample.A the original sample A
 #' @param sample.B the original sample B
 #' @param pij the target matching probabilities
+#' @param verbose detailed messages are printed if TRUE
 #' 
 #' @return a list containg the measures 
 #' 
 #' @author Samuel Thiriot <samuel.thiriot@res-ear.ch>
 #' 
-measure.population <- function(case, pop, sample.A, sample.B, pij) {
+measure.population <- function(case, pop, sample.A, sample.B, pij, verbose=FALSE) {
 
 	# merge the datasets	
 	A2l2B <- merge_links(pop)
 
-	#cat("total links measured: ", nrow(pop$links),"\n")
+	if (verbose)
+		cat("total links measured: ", nrow(pop$links),"\n")
 
 	res <- list(
 				nL=nrow(A2l2B),
@@ -251,7 +265,7 @@ measure.population <- function(case, pop, sample.A, sample.B, pij) {
 				pdi=measure.pdn(case$inputs$sample.A$dictionary, case$inputs$pdi, pop$A),
 				pdj=measure.pdn(case$inputs$sample.B$dictionary, case$inputs$pdj, pop$B),
 
-				pij=measure.pij(pop, sample.A, sample.B, pij, case$gen$hat.pij, A2l2B)
+				pij=measure.pij(pop, sample.A, sample.B, pij, case$gen$hat.pij, A2l2B, verbose)
 				)
 
 	#print(res)

@@ -27,6 +27,8 @@ NULL
 matching.generate.resize_population <- function(sample, count.required, colname.weight) {
 	# weights.factor <- count.required / weights.available
 	#print(weights.factor)
+
+	#print(count.required)
 	
 	selected <- sample_n(sample, count.required, weight=sample[,colname.weight], replace=TRUE)
 	#print(nrow(selected))
@@ -35,9 +37,44 @@ matching.generate.resize_population <- function(sample, count.required, colname.
 	selected[,names(selected) != colname.weight]
 }
 
-matching.generate.copy_population <- function(n, select.colname, sample) {
+#' Extracts attribute values from a string
+#'
+#' From a string link "att1=v1,att2=v2",
+#' returns a named list containing names "att1" and "att2"
+#' and values "v1" and "v2". An error (\link{stop}) is raised
+#' if the string is malformed.
+#'
+#' @param name the string to decode. 
+#' 
+#' @return a named list with attribute as key and value for each  
+#'
+extract_attributes_values <- function(name) { 
 
-    #cat("copying population based on attribute '",select.colname,"' with ",n,"\n")
+	kv <- unlist(strsplit(name,","))
+	
+	if (length(kv) < 1) {
+		stop("the name should not be empty but was'",name,"'")
+	}
+
+	k2v <- strsplit(kv,"=")
+
+	# check the validity (we expect pairs !)
+	if (!all(lapply(k2v,length)==2)) {
+		stop("invalid name ",name,"; we expect a scheme like att1=v1,att2=vx")
+	}
+
+	k <- unlist(lapply(k2v,'[',1))
+	v <- unlist(lapply(k2v,'[',2))
+
+	# return as a named list 
+	setNames(v,k)
+}
+
+matching.generate.copy_population <- function(n, sample, verbose=FALSE) {
+
+	if (verbose)
+    	cat("copying population based on attributes '",paste(names(n),collapse=","),"' with ",
+    		paste(n,collapse=","),"\n",sep="")
     
     target <- sample$sample[FALSE,] 	# empty dataframe with the same properties
 
@@ -45,26 +82,27 @@ matching.generate.copy_population <- function(n, select.colname, sample) {
 
         count.required <- n[name]
 
-        #cat("* copying", count.required, " having ",select.colname,"=",name,"\n")
+      #   if (verbose)
+    		# cat("\tcopying ", count.required, " having ",name,"\n",sep="")
+        
+        k2v <- extract_attributes_values(name)
+        #print(k2v)
 
-        code <- sample$dictionary$encoding[[select.colname]][[name]] # .table
-        
-        #cat("* copying", count.required, " having ",select.colname,"=",code,"\n")
-        
-        if (is.null(code)) {
-            stop(paste("was unable to find the encoded value for ",select.colname,"=",name,sep=""))
+        # accumulate the conditions on each key / value
+        selected_ids <- 1:nrow(sample$sample) 
+        for (k in names(k2v)) {
+        	selected_ids <- intersect(selected_ids, which(sample$sample[k] == k2v[[k]]))
         }
-        
-        # TODO do not copy weight
-        #cols <- (colnames(sample$sample) %in% c(sample$dictionary$colname.weight))
-		#print(cols_without_weight)
-        available <- sample$sample[which(sample$sample[select.colname] == code),]
 
+        # identify the subpart of the population having these values
+        available <- sample$sample[selected_ids,]
+        
 		count.available <- nrow(available)
 		weights.available <- sum(available[,sample$dictionary$colname.weight])
 
-		# cat("should copy ", count.required, " individuals for ", select.colname, "=", code, "(for",name,") ",
-		# 			"and found ",count.available, " individuals with weights summing to ", weights.available,"\n")
+		if (verbose)
+			cat("\tshould copy ", count.required, " individuals for ", name,
+					" and found ",count.available, " individuals with weights summing to ", weights.available,"\n",sep="")
 
 		toAdd <- matching.generate.resize_population(available, count.required, sample$dictionary$colname.weight)
 
@@ -79,6 +117,7 @@ matching.generate.copy_population <- function(n, select.colname, sample) {
 	target
 }
 
+
 #' Adds a target degree column to a population 
 #' based on the distribution of contigency for degrees passed as a parameter.
 #'
@@ -86,11 +125,11 @@ matching.generate.copy_population <- function(n, select.colname, sample) {
 #' @param pop the population to which the column will be added to
 #' @param n the expected contigencies (used as a control)
 #' @param ndx the contigencies for each degree
-#' @param colname the name of the column on which the degrees depend on
+#' @param verbose if TRUE, detailed messages are printed
 #'
 #' @author Samuel Thiriot <samuel.thiriot@res-ear.ch> 
 #'
-matching.generate.add_degree <- function(samp, pop, n, ndx, colname) {
+matching.generate.add_degree <- function(samp, pop, n, ndx, verbose) {
 
 	# we have to reweight the distribution of degrees
 	# TODO do that earlier at discretisation tile
@@ -103,21 +142,26 @@ matching.generate.add_degree <- function(samp, pop, n, ndx, colname) {
 
 	# for each different value  
 	#  colnames(pdi$data)
-	for (name in names(samp$dictionary$encoding[[colname]])) {
+	for (name in names(ndx)) {
 
-		code <- samp$dictionary$encoding[[colname]][[name]]
+		k2v <- extract_attributes_values(name)
 		
 		totalForDegree <- 0
 		lastDegreeNonNull <- 0
 
 		for (degree in 0:(nrow(ndx)-1)) {
 
-			count.required <- ndx[degree+1,make.names(name)]
+			count.required <- ndx[degree+1,name]
 			totalForDegree <- totalForDegree + count.required*degree
 
-			criteriaRaw <- which( (pop[colname] == code) & is.na(pop["target.degree"]) )
-			
-			# cat("set target degree", degree, "for", count.required, "over", length(criteriaRaw), "having", colname, "=", code, "(",name,")\n")
+			# accumulate selection criteria: write set of attributes, and also no defined degree
+			criteriaRaw <- which( is.na(pop["target.degree"]) )
+			for (k in names(k2v)) {
+	        	criteriaRaw <- intersect(criteriaRaw, which(pop[k] == k2v[[k]]))
+	        }
+
+			if (verbose)
+				cat("\tset target degree ", degree, " for ", count.required, " over ", length(criteriaRaw), " having ", name,"\n", sep="")
 			
 			if (count.required == 0) {
 				next 
@@ -141,10 +185,11 @@ matching.generate.add_degree <- function(samp, pop, n, ndx, colname) {
 			warning(paste("oops, not created enough slots here:",totalForDegree," for ",n[name]," expected; ",
 					"defining the last ",length(criteriaRaw), "to degree ",lastDegreeNonNull,"\n",sep=""))
 
-			criteriaRaw <- which( (pop[colname] == code) & is.na(pop["target.degree"]) )
+			# TODO ???
+			# criteriaRaw <- which( (pop[colname] == code) & is.na(pop["target.degree"]) )
 			
-			pop[criteriaRaw,"target.degree"] <- lastDegreeNonNull
-	
+			# pop[criteriaRaw,"target.degree"] <- lastDegreeNonNull
+		
 		}
 		
 	}
@@ -170,15 +215,17 @@ matching.generate.add_degree <- function(samp, pop, n, ndx, colname) {
 #' @param case the case resolved by the \code{\link{matching.arbitrate}} function. 
 #' @param sample.A the sample to use as population A 
 #' @param sample.B the sample to use as population B
+#' @param verbose displays detailed messages if TRUE
 #' @return the generated population
 #' 
 #' @export 
 #'
 #' @author Samuel Thiriot <samuel.thiriot@res-ear.ch> 
 #'
-matching.generate <- function(case, sample.A, sample.B) {
+matching.generate <- function(case, sample.A, sample.B, verbose=FALSE) {
 
-    # cat("starting generation\n")
+	if (verbose)
+    	cat("starting generation\n")
 
 	# copy the individuals required for A
 	targetA <- sample.A$sample[FALSE,] 	# empty with the same properties
@@ -187,8 +234,8 @@ matching.generate <- function(case, sample.A, sample.B) {
 	nnj <- case$gen$hat.cj 
 
 	# copy individuals
-	targetA <- matching.generate.copy_population(n=nni, select.colname=case$inputs$pij$Ai, sample=sample.A)
-	targetB <- matching.generate.copy_population(n=nnj, select.colname=case$inputs$pij$Bi, sample=sample.B)
+	targetA <- matching.generate.copy_population(n=nni, sample=sample.A, verbose=verbose)
+	targetB <- matching.generate.copy_population(n=nnj, sample=sample.B, verbose=verbose)
 
     # cat("creating ids...\n")
 	# create unique ids (unique at the level of both populations)
@@ -204,29 +251,38 @@ matching.generate <- function(case, sample.A, sample.B) {
 	# remove the weight columns (which have no meaning here anymore)
     # TODO !!!
 
-    # cat("\nadding target degrees...\n")
+    if (verbose)
+    	cat("\nadding target degrees for population A...\n")
 	# add columns for target degree 
-	targetA <- matching.generate.add_degree(sample.A, targetA, case$gen$hat.ni, case$gen$hat.ndi, case$inputs$pdi$attributes)
-	targetB <- matching.generate.add_degree(sample.B, targetB, case$gen$hat.nj, case$gen$hat.ndj, case$inputs$pdj$attributes)
+	targetA <- matching.generate.add_degree(sample.A, targetA, case$gen$hat.ni, case$gen$hat.ndi, verbose=verbose)
+	
+	if (verbose)
+    	cat("\nadding target degrees for population B...\n")
+	targetB <- matching.generate.add_degree(sample.B, targetB, case$gen$hat.nj, case$gen$hat.ndj, verbose=verbose)
 	
     # add columns for obtained degrees (0 for now)
 	targetA$current.degree <- rep.int(0, nrow(targetA))
 	targetB$current.degree <- rep.int(0, nrow(targetB))
 
-    # cat("\nmatching A and B to create total",case$gen$hat.nL,"links...\n")
+    if (verbose)
+    	cat("\nmatching A and B to create total",case$gen$hat.nL,"links...\n")
 
 	# match them 
 	for (cA in colnames(case$gen$hat.nij)) {
 
-		codeA <- sample.A$dictionary$encoding[[case$inputs$pij$Ai]][[cA]]
+		k2v.A <- extract_attributes_values(cA)
+		#codeA <- sample.A$dictionary$encoding[[case$inputs$pij$Ai]][[cA]]
 
 		for (cB in rownames(case$gen$hat.nij)) {
 
-			codeB <- sample.B$dictionary$encoding[[case$inputs$pij$Bi]][[cB]]
+			k2v.B <- extract_attributes_values(cB)
+
+			#codeB <- sample.B$dictionary$encoding[[case$inputs$pij$Bi]][[cB]]
 
 			count.required <- case$gen$hat.nij[cB,cA] 
 
-			# cat("should create", count.required, "links for A:\t", case$inputs$pij$Ai, "=", cA, "\tand B:\t",  case$inputs$pij$Bi, "=", cB, "\n")
+			if (verbose)
+				cat("\tshould create", count.required, "links for A:\t", cA, "\tand B:\t", cB, "\n")
 
 			pass.remaining <- 1
 
@@ -240,8 +296,15 @@ matching.generate <- function(case, sample.A, sample.B) {
 
 				#print(cat("should find ", count.required, "for ", case$inputs$pij$Ai, "=", cA, "and", cB))
 
-				criteriaAraw <- which( (targetA[case$inputs$pij$Ai] == codeA) & (targetA$current.degree < targetA$target.degree) )
-				criteriaBraw <- which( (targetB[case$inputs$pij$Bi] == codeB) & (targetB$current.degree < targetB$target.degree) )
+				criteriaAraw <- which( targetA$current.degree < targetA$target.degree )
+				for (k in names(k2v.A)) {
+		        	criteriaAraw <- intersect(criteriaAraw, which(targetA[k] == k2v.A[[k]]))
+		        }
+
+				criteriaBraw <- which( targetB$current.degree < targetB$target.degree )
+				for (k in names(k2v.B)) {
+		        	criteriaBraw <- intersect(criteriaBraw, which(targetB[k] == k2v.B[[k]]))
+		        }
 				
 				available.degree.A <- max(targetA[criteriaAraw,"target.degree"] - targetA[criteriaAraw,"current.degree"])
 				available.degree.B <- max(targetB[criteriaBraw,"target.degree"] - targetB[criteriaBraw,"current.degree"])

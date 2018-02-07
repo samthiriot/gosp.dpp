@@ -56,23 +56,27 @@ create_sample <- function(data, encoding=NULL, weight.colname=NULL) {
     # if no encoding is provided, then create one with a direct mapping
     if (is.null(encoding)) {
         encoding <- list()
-        for (name in colnames(data)) {
+    }
+    for (name in colnames(data)) {
 
-            uniques <- unique(data[,name])
-            if (
-                # skip when columns have a huge cardinality,
-                # as they might be ids, weights... which don't require a dictionnary
-                (length(uniques) < nrow(data))
-                # don't create a dictionary for weights
-                && (name != weight.colname)
-                ) {
-                
-                    values <- sort(uniques)
-                    keys <- as.character(values)
-                    encoding[[name]] <- setNames(values, keys)        
-            }
+        uniques <- unique(data[,name])
+        if (
+            # skip the columns already defined
+            is.null(encoding[[name]])
+            # skip when columns have a huge cardinality,
+            # as they might be ids, weights... which don't require a dictionnary
+            && (length(uniques) < nrow(data))
+            # don't create a dictionary for weights
+            && (name != weight.colname)
+            ) {
+            
+                values <- sort(uniques)
+                keys <- as.character(values)
+                encoding[[name]] <- setNames(values, keys)        
 
+                message("no dictionary provided for the column ", name, " of the sample; creating a dictionary ",paste(encoding[[name]],collapse=","))
         }
+
     }
 
     # ensure the inputs are consistent

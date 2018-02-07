@@ -34,7 +34,11 @@ test_that("resolution with nA, phi.A, delta.B, phi.B and nB", {
 	
 	case.prepared <- matching.prepare(cas1$sample.A, cas1$sample.B, cas1$pdi, cas1$pdj, cas1$pij)
 
-	disc <- matching.arbitrate(case.prepared, nA=50000,nB=40000, nu.A=0, phi.A=0, delta.A=1, gamma=1, delta.B=0, phi.B=0, nu.B=0)
+	disc <- matching.arbitrate(case.prepared, 
+							nA=50000,nB=40000, 
+							nu.A=0, phi.A=0, delta.A=1, gamma=1, delta.B=0, phi.B=0, nu.B=0,
+							verbose=FALSE
+							)
 
 	expect_is(disc, "dpp_resolved")
 
@@ -49,7 +53,7 @@ test_that("resolution with nA, phi.A, delta.B, phi.B and nB", {
   	# TODO finish this block and reuse it on every test
   	# the actual generation is long and uses memory and CPU; so we avoid it on CRAN
   	skip_on_cran()
-  	case <- matching.generate(disc, cas1$sample.A, cas1$sample.B)
+  	case <- matching.generate(disc, cas1$sample.A, cas1$sample.B, verbose=FALSE)
 
   	expect_equal(nrow(case$pop$A), 50000)
   	expect_equal(nrow(case$pop$B), 40000)
@@ -236,11 +240,11 @@ test_that("constraints: pdi with zero (p(di=0)=1.0)", {
 	cas1.zero.di <- cas1 
 	cas1.zero.di$pdi <- create_degree_probabilities_table(
 								probabilities=data.frame(
-				                    'small'=c(0.2, 0.8, 0, 0, 0),
-				                    'medium'=c(1.0, 0.0, 0.0, 0, 0),
-				                    'large'=c(0.05, 0.8, 0.1, 0.05, 0)
+				                    'surface=small'=c(0.2, 0.8, 0, 0, 0),
+				                    'surface=medium'=c(1.0, 0.0, 0.0, 0, 0),
+				                    'surface=large'=c(0.05, 0.8, 0.1, 0.05, 0)
 				                    ), 
-								attributes.names=cas1$pdi$attributes
+								attributes.names="surface"
 								)
 
 	case.prepared <- matching.prepare(cas1.zero.di$sample.A, cas1.zero.di$sample.B, cas1.zero.di$pdi, cas1.zero.di$pdj, cas1.zero.di$pij)
@@ -270,10 +274,10 @@ test_that("constraints: pdj with zero (p(dj=0)=1.0)", {
 	cas1.zero.dj <- cas1 
 	cas1.zero.dj$pdj <- create_degree_probabilities_table(
 			                probabilities=data.frame(
-			                    '1 person'=c(0, 1),
-			                    '2 persons'=c(0, 1),
-			                    '3 persons'=c(1, 0),
-			                    '4 and more'=c(0, 1)
+			                    'size=1 person'=c(0, 1),
+			                    'size=2 persons'=c(0, 1),
+			                    'size=3 persons'=c(1, 0),
+			                    'size=4 and more'=c(0, 1)
 			                    ),
 			                attributes.names=c("size")
 			                )
