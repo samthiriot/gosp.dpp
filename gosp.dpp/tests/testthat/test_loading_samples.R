@@ -7,6 +7,71 @@ library(gosp.dpp)
 context("tests on loading samples")
 
 
+test_that("samples: detection of one attribute for a pdi", {
+
+	pdi <- create_degree_probabilities_table(
+                probabilities=data.frame(
+                    'surface=1'=c(0.2, 0.8, 0, 0, 0),
+                    'surface=2'=c(0.15, 0.8, 0.05, 0, 0),
+                    'surface=3'=c(0.05, 0.8, 0.1, 0.05, 0),
+                    check.names=FALSE
+                    )
+                )
+	
+	# standard checks
+	expect_is(pdi, "dpp_degree_cpt")
+
+	# we should now have a weight column 
+	expect_equivalent(pdi$attributes, c("surface"))
+
+})
+
+
+test_that("samples: detection of several attributes for a pdi", {
+
+	pdi <- create_degree_probabilities_table(
+                probabilities=data.frame(
+                    'surface=1,other=1'=c(0.2, 0.8, 0, 0, 0),
+                    'surface=2,other=1'=c(0.15, 0.8, 0.05, 0, 0),
+                    'surface=3,other=1'=c(0.05, 0.8, 0.1, 0.05, 0),
+                    check.names=FALSE
+                    )
+                )
+	
+	# standard checks
+	expect_is(pdi, "dpp_degree_cpt")
+
+	# we should now have a weight column 
+	expect_equivalent(pdi$attributes, c("surface","other"))
+
+})
+
+
+test_that("samples: error when malformed attributes for a pdi", {
+
+   	expect_error(do.call(
+   		create_degree_probabilities_table,
+   		list(data.frame(
+                    'surface=1,other1'=c(0.2, 0.8, 0, 0, 0),
+                    'surface=2,other=1'=c(0.15, 0.8, 0.05, 0, 0),
+                    'surface=3,other=1'=c(0.05, 0.8, 0.1, 0.05, 0),
+                    check.names=FALSE
+                    ))),
+   		"invalid name.*")
+
+   	expect_error(do.call(
+   		create_degree_probabilities_table,
+   		list(data.frame(
+                    'surface=1'=c(0.2, 0.8, 0, 0, 0),
+                    'surface=2,other=1'=c(0.15, 0.8, 0.05, 0, 0),
+                    'surface=3,other=1'=c(0.05, 0.8, 0.1, 0.05, 0),
+                    check.names=FALSE
+                    ))),
+   		"all the column names should contain.*")
+
+})
+
+
 test_that("samples: load sample with weights and dictionary", {
 
 	# create a useless dataframe without weight 

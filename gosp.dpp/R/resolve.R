@@ -1521,7 +1521,7 @@ matching.arbitrate <- function(case,
             ")")
     } 
 
-    detect.problems(sol, case)
+    detect.problems(sol, case, verbose=verbose)
 
     if (verbose) {
         cat("\ncase solved.\n")

@@ -37,38 +37,6 @@ matching.generate.resize_population <- function(sample, count.required, colname.
 	selected[,names(selected) != colname.weight]
 }
 
-#' Extracts attribute values from a string
-#'
-#' From a string link "att1=v1,att2=v2",
-#' returns a named list containing names "att1" and "att2"
-#' and values "v1" and "v2". An error (\link{stop}) is raised
-#' if the string is malformed.
-#'
-#' @param name the string to decode. 
-#' 
-#' @return a named list with attribute as key and value for each  
-#'
-extract_attributes_values <- function(name) { 
-
-	kv <- unlist(strsplit(name,","))
-	
-	if (length(kv) < 1) {
-		stop("the name should not be empty but was'",name,"'")
-	}
-
-	k2v <- strsplit(kv,"=")
-
-	# check the validity (we expect pairs !)
-	if (!all(lapply(k2v,length)==2)) {
-		stop("invalid name ",name,"; we expect a scheme like att1=v1,att2=vx")
-	}
-
-	k <- unlist(lapply(k2v,'[',1))
-	v <- unlist(lapply(k2v,'[',2))
-
-	# return as a named list 
-	setNames(v,k)
-}
 
 matching.generate.copy_population <- function(n, sample, verbose=FALSE) {
 
@@ -77,13 +45,14 @@ matching.generate.copy_population <- function(n, sample, verbose=FALSE) {
     		paste(n,collapse=","),"\n",sep="")
     
     target <- sample$sample[FALSE,] 	# empty dataframe with the same properties
+    colnames(target) <- colnames(sample$sample)
 
 	for (name in names(n)) {
 
         count.required <- n[name]
 
-      #   if (verbose)
-    		# cat("\tcopying ", count.required, " having ",name,"\n",sep="")
+      	if (verbose)
+    		cat("\tcopying ", count.required, " having ",name,"\n",sep="")
         
         k2v <- extract_attributes_values(name)
         #print(k2v)

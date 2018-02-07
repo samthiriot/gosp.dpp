@@ -5,38 +5,33 @@
 #' each modality of this variable in the sample
 #' 
 #' @param sample the sample to measure
-#' @param group.colname the name of the column to check
+#' @param strs the vector of strings containing the variable names and modalities to be measured
 #' 
 #' @return a vector containing the contigencies 
 #'  
-measure_contigencies <- function(sample, group.colname) {
- 
-    res <- list()
-    #total <- 0
-    for(i in 1:nrow(sample$sample)) {
-        v = toString(sample$sample[i,group.colname])
+measure_contigencies <- function(sample, strs) {
 
-        if (is.null(res[[v]])) {
-            res[v] <- sample$sample[i,sample$dictionary$colname.weight]
-        } else {
-            res[[v]] <- res[[v]] + sample$sample[i,sample$dictionary$colname.weight]
-        }
-        #total <- total + 1
-    }
-
-    # normalize
-    #for (k in names(res)) {
-    #    res[[k]] <- res[[k]]/total
-    #}
+    ci <- list()
     
-    # order into a vector
-    ci <- c() 
-    for (code in names(sample$dictionary$encoding[[group.colname]])) {
-        idx <- sample$dictionary$encoding[[group.colname]][[code]]
-        ci <- c(ci, res[[toString(idx)]])
+    for (str in strs) {
+
+        # parse the key and value (variable and modality) to be measured
+
+        k2v <- extract_attributes_values(str)
+
+        # identify which lines are relevant 
+        selected_ids <- 1:nrow(sample$sample) 
+        for (k in names(k2v)) {
+            selected_ids <- intersect(selected_ids, which(sample$sample[k] == k2v[[k]]))
+        }
+
+        # sum the weights there
+        sum_weights <- sum(sample$sample[selected_ids,sample$dictionary$colname.weight])
+        ci[[str]] <- sum_weights
+
     }
 
-    ci
+    unlist(ci)
 }
 
 
@@ -74,6 +69,29 @@ assess.min.pd <- function(orig.pd) {
 }
 
 
+#' Extracts the list of modalities per variable
+#'
+#' From a list of strings, extracts the modalities possible 
+#' for each variable.
+#' 
+#' @param strs a list of strings
+#' 
+#' @return a named list with for each name (variable) contains the vector of modalities
+#' 
+list_variabes_modalities <- function(strs) {
+
+    idx2k2v <- lapply(strs,extract_attributes_values)
+
+    res <- list()
+    for (name in unique(unlist(lapply(idx2k2v, names)))) {
+
+        res[[name]] <- unlist(lapply(idx2k2v, "[[", name))
+    }
+
+    res
+    
+}
+
 #' Prepares a case for Direct Probabilistic Peering
 #'
 #' Prepares a case based on two samples and two sets of probabilities.
@@ -98,6 +116,52 @@ assess.min.pd <- function(orig.pd) {
 #'
 matching.prepare <- function(sample.A, sample.B, pdi, pdj, pij) {
 
+    # do we have the right types ? 
+    if ( (class(sample.A)!="dpp_sample") || (class(sample.B)!="dpp_sample")) {
+        stop("sample.A and sample.B should be created using the function create_sample. See ?create_sample .")
+    }
+    if ( (class(pdi)!="dpp_degree_cpt") || (class(pdi)!="dpp_degree_cpt")) {
+        stop("pdi and pdj should be created using the function create_degree_probabilities_table. See ?create_degree_probabilities_table .")
+    }
+    if (class(pij) != "dpp_matching_probas") {
+        stop("pij should be created using the function create_matching_probabilities_table. See ?create_matching_probabilities_table")
+    }
+
+    # ensure everything is consistent 
+
+    # ... the list of attributes tackled on sample.A, pdi and colname(pij) should be consistent 
+    if (all.equal(pdi$attributes, pij$Ai) != TRUE) {
+        stop("the attributes and values defined in pdi (",paste(pdi$attributes,collapse=","),") ",
+            "should be the same as the columns of pij (", paste(pij$Ai,collapse=","), ").")
+    }
+    if (!all(pij$Ai %in% colnames(sample.A$sample))) {
+         stop("the Ai attributes defined pdi and pij ",
+            "(",paste(pij$Ai,collapse=","),")",
+            " should be present in the sample of A (",
+            paste(colnames(sample.A$sample),collapse=","),").")
+    }
+    if (!all.equal(pdj$attributes, pij$Bi)) {
+        stop("the attributes and values defined in pdj (",paste(pdj$attributes,collapse=","),") ",
+            "should be the same as the rows of pij (", paste(pij$Bi,collapse=","), ").")
+    }
+    if (!all(pij$Bi %in% colnames(sample.B$sample))) {
+        stop("the Bj attributes defined pdj and pij ",
+            "(",paste(pij$Bi,collapse=","),")",
+            " should be present in the sample of B (",
+            paste(colnames(sample.B$sample),collapse=","),").")
+    }
+
+    # ... for sure the list of indices should be the very same 
+    if (!identical(colnames(pdi$data),colnames(pij$data))) {
+        stop("the variables and modalities for pdi and pij should be exactly the same")
+    }
+    if (!identical(colnames(pdj$data),rownames(pij$data))) {
+        stop("the variables and modalities for pdj and pij should be exactly the same")
+    }
+
+    # ... the list of values for Ai should be covered everywhere. 
+    list_variabes_modalities(colnames(pdi$data))
+
     inputs <- list(
                 pdi=pdi, 
                 pdj=pdj,
@@ -106,15 +170,14 @@ matching.prepare <- function(sample.A, sample.B, pdi, pdj, pij) {
                 sample.B=list(dictionary=sample.B$dictionary)
                 )
 
-  
     # store as inputs
     
     inputs$pij <- pij
     
     # analyze sample frequencies
     # ... compute frequencies fi    
-    inputs$ci <- measure_contigencies(sample.A, pdi$attributes)
-    inputs$cj <- measure_contigencies(sample.B, pdj$attributes)
+    inputs$ci <- measure_contigencies(sample.A, colnames(pdi$data))
+    inputs$cj <- measure_contigencies(sample.B, colnames(pdj$data))
     
     # analyze degrees
     # ... compute average degrees

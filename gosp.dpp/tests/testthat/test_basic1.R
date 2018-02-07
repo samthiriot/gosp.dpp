@@ -45,8 +45,8 @@ test_that("resolution with nA, phi.A, delta.B, phi.B and nB", {
 	expect_equal(50000, disc$gen$hat.nA)
 	expect_equal(40000, disc$gen$hat.nB)
 	
-	expect_equal(case.prepared$stats$fi, unname(disc$gen$hat.fi), tolerance=1e-5)
-	expect_equal(case.prepared$stats$fj, unname(disc$gen$hat.fj), tolerance=1e-5)
+	expect_equal(case.prepared$stats$fi, disc$gen$hat.fi, tolerance=1e-5)
+	expect_equal(case.prepared$stats$fj, disc$gen$hat.fj, tolerance=1e-5)
 
 	expect_equal(case.prepared$inputs$pdj$data, disc$gen$hat.pdj, tolerance=1e-5)
   
@@ -81,8 +81,8 @@ test_that("constraints: nA, phi.A, phi.B", {
 
 	expect_equal(50000, disc$gen$hat.nA)
 	
-	expect_equal(case.prepared$stats$fi, unname(disc$gen$hat.fi), tolerance=1e-5)
-	expect_equal(case.prepared$stats$fj, unname(disc$gen$hat.fj), tolerance=1e-5)
+	expect_equal(case.prepared$stats$fi, disc$gen$hat.fi, tolerance=1e-5)
+	expect_equal(case.prepared$stats$fj, disc$gen$hat.fj, tolerance=1e-5)
 	
   
 })
@@ -98,8 +98,8 @@ test_that("constraints: nA, phi.A, delta.B, phi.B, nu.B", {
 
 	expect_equal(50000, disc$gen$hat.nA)
 	
-	expect_equal(case.prepared$stats$fi, unname(disc$gen$hat.fi), tolerance=1e-5)
-	expect_equal(case.prepared$stats$fj, unname(disc$gen$hat.fj), tolerance=1e-5)
+	expect_equal(case.prepared$stats$fi, disc$gen$hat.fi, tolerance=1e-5)
+	expect_equal(case.prepared$stats$fj, disc$gen$hat.fj, tolerance=1e-5)
 	
   
 })
@@ -115,8 +115,8 @@ test_that("constraints: phi.A,phi.B, nu.B", {
 
 	expect_equal(40000, disc$gen$hat.nB)
 	
-	expect_equal(case.prepared$stats$fi, unname(disc$gen$hat.fi), tolerance=1e-5)
-	expect_equal(case.prepared$stats$fj, unname(disc$gen$hat.fj), tolerance=1e-5)
+	expect_equal(case.prepared$stats$fi, disc$gen$hat.fi, tolerance=1e-5)
+	expect_equal(case.prepared$stats$fj, disc$gen$hat.fj, tolerance=1e-5)
 	
 })
 
@@ -130,8 +130,8 @@ test_that("constraints: phi.A, phi.B, nu.B", {
 
 	expect_equal(40000, disc$gen$hat.nB)
 	
-	expect_equal(case.prepared$stats$fi, unname(disc$gen$hat.fi), tolerance=1e-5)
-	expect_equal(case.prepared$stats$fj, unname(disc$gen$hat.fj), tolerance=1e-5)
+	expect_equal(case.prepared$stats$fi, disc$gen$hat.fi, tolerance=1e-5)
+	expect_equal(case.prepared$stats$fj, disc$gen$hat.fj, tolerance=1e-5)
 	
 })
 
@@ -145,7 +145,7 @@ test_that("constraints: phi.A, delta.A (free on matching and B)", {
 
 	expect_equal(50000, disc$gen$hat.nA)
 	
-	expect_equal(case.prepared$stats$fi, unname(disc$gen$hat.fi), tolerance=1e-5)
+	expect_equal(case.prepared$stats$fi, disc$gen$hat.fi, tolerance=1e-5)
 	expect_equal(case.prepared$stats$pdi, unname(disc$gen$hat.pdi$data), tolerance=1e-5)
 	
 })
@@ -165,7 +165,7 @@ test_that("constraints: phi.A, gamma (free on A and B)", {
 	expect_false(is.null(disc$gen$hat.nB))
 	expect_false(is.null(disc$gen$hat.di))
 	
-	expect_equal(case.prepared$stats$fi, unname(disc$gen$hat.fi), tolerance=1e-5)
+	expect_equal(case.prepared$stats$fi, disc$gen$hat.fi, tolerance=1e-5)
 	expect_equal(as.matrix(cas1$pij$data), disc$gen$hat.pij, tolerance=1e-5)
 	
 })
@@ -187,8 +187,8 @@ test_that("constraints: nothing (totally free - long chain)", {
 
 	# TODO expect nA and nB inbetween
 
-	expect_equal(case.prepared$stats$fi, unname(disc$gen$hat.fi), tolerance=1e-5)
-	expect_equal(case.prepared$stats$fj, unname(disc$gen$hat.fj), tolerance=1e-5)
+	expect_equal(case.prepared$stats$fi, disc$gen$hat.fi, tolerance=1e-5)
+	expect_equal(case.prepared$stats$fj, disc$gen$hat.fj, tolerance=1e-5)
 	
   	expect_equal(case.prepared$inputs$di, disc$gen$hat.di, tolerance=1e-5)
 	expect_equal(case.prepared$inputs$dj, unname(disc$gen$hat.dj), tolerance=1e-5)
@@ -240,11 +240,11 @@ test_that("constraints: pdi with zero (p(di=0)=1.0)", {
 	cas1.zero.di <- cas1 
 	cas1.zero.di$pdi <- create_degree_probabilities_table(
 								probabilities=data.frame(
-				                    'surface=small'=c(0.2, 0.8, 0, 0, 0),
-				                    'surface=medium'=c(1.0, 0.0, 0.0, 0, 0),
-				                    'surface=large'=c(0.05, 0.8, 0.1, 0.05, 0)
-				                    ), 
-								attributes.names="surface"
+				                    'surface=1'=c(0.2, 0.8, 0, 0, 0),
+				                    'surface=2'=c(1.0, 0.0, 0.0, 0, 0),
+				                    'surface=3'=c(0.05, 0.8, 0.1, 0.05, 0),
+									check.names=FALSE
+				                    )
 								)
 
 	case.prepared <- matching.prepare(cas1.zero.di$sample.A, cas1.zero.di$sample.B, cas1.zero.di$pdi, cas1.zero.di$pdj, cas1.zero.di$pij)
@@ -274,12 +274,12 @@ test_that("constraints: pdj with zero (p(dj=0)=1.0)", {
 	cas1.zero.dj <- cas1 
 	cas1.zero.dj$pdj <- create_degree_probabilities_table(
 			                probabilities=data.frame(
-			                    'size=1 person'=c(0, 1),
-			                    'size=2 persons'=c(0, 1),
-			                    'size=3 persons'=c(1, 0),
-			                    'size=4 and more'=c(0, 1)
-			                    ),
-			                attributes.names=c("size")
+			                    'size=1'=c(0, 1),
+			                    'size=2'=c(0, 1),
+			                    'size=3'=c(1, 0),
+			                    'size=4'=c(0, 1),
+								check.names=FALSE
+								)
 			                )
 
 	case.prepared <- matching.prepare(cas1.zero.dj$sample.A, cas1.zero.dj$sample.B, cas1.zero.dj$pdi, cas1.zero.dj$pdj, cas1.zero.dj$pij)

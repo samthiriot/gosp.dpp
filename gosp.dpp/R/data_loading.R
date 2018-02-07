@@ -3,6 +3,40 @@
 # expected by the rest of the library.
 #
 
+
+#' Extracts attribute values from a string
+#'
+#' From a string link "att1=v1,att2=v2",
+#' returns a named list containing names "att1" and "att2"
+#' and values "v1" and "v2". An error (\link{stop}) is raised
+#' if the string is malformed.
+#'
+#' @param name the string to decode. 
+#' 
+#' @return a named list with attribute as key and value for each  
+#'
+extract_attributes_values <- function(name) { 
+
+    kv <- unlist(strsplit(name,","))
+    
+    if (length(kv) < 1) {
+        stop("the name should not be empty but was'",name,"'")
+    }
+
+    k2v <- strsplit(kv,"=")
+
+    # check the validity (we expect pairs !)
+    if (!all(lapply(k2v,length)==2)) {
+        stop("invalid name ",name,"; we expect a scheme like att1=v1,att2=vx")
+    }
+
+    k <- unlist(lapply(k2v,'[',1))
+    v <- unlist(lapply(k2v,'[',2))
+
+    # return as a named list 
+    setNames(v,k)
+}
+
 #' Creates a sample organized for dpp manipulation. 
 #' 
 #' The resulting object contains the sample and a dictionary of data. 
@@ -16,8 +50,8 @@
 #' @examples 
 #' # to read a CSV file as a sample
 #' f <- system.file("extdata", "logements.csv", package = "gosp.dpp")
-#' m <- read.csv(f, sep=";", dec=",")
-#' df <- as.data.frame(m)
+#' m <- read.csv(f, sep=";", dec=",", check.names=FALSE)
+#' df <- as.data.frame(m, check.names=FALSE)
 #' dictionary <- list('surface'=list('small'=1, 'medium'=2, 'large'=3))
 #' create_sample(data=df, encoding=dictionary, weight.colname="weight")
 #' 
@@ -123,11 +157,11 @@ create_sample <- function(data, encoding=NULL, weight.colname=NULL) {
 #' @author Samuel Thiriot <samuel.thiriot@res-ear.ch>
 #' 
 print.dpp_sample <- function(x, ...) {
-    cat("Sample containing", nrow(x$sample), "elements ")
+    cat("Sample containing ", nrow(x$sample), " elements ",sep="")
 
-    cat("having ",length(x$dictionary$encoding),"columns:",names(x$dictionary$encoding))
+    cat("having ",length(x$dictionary$encoding),"columns:",paste(names(x$dictionary$encoding),collapse=","),sep="")
     
-    cat(" (weight column:",x$dictionary$colname.weight,")\n")
+    cat(" (weight column:",x$dictionary$colname.weight,")\n",sep="")
 }
 
 # TODO manage multiple attributes
@@ -135,23 +169,23 @@ print.dpp_sample <- function(x, ...) {
 #' Creates a table storing probabilities for degrees
 #' 
 #' @param probabilities a data frame containing the probabilities 
-#' @param attributes.names the vector of the attributes refered to in the probabilities
 #' 
 #' @examples
 #' # create a table describing degrees depending to size; the bigger the size, the highest the degree
 #' p <- data.frame(
-#'                  'small'=c(0.2, 0.8, 0, 0, 0),
-#'                  'medium'=c(0.15, 0.8, 0.05, 0, 0),
-#'                  'large'=c(0.05, 0.8, 0.1, 0.05, 0)
+#'                  'size=0'=c(0.2, 0.8, 0, 0, 0),
+#'                  'size=1'=c(0.15, 0.8, 0.05, 0, 0),
+#'                  'size=2'=c(0.05, 0.8, 0.1, 0.05, 0),
+#'                  check.names=FALSE
 #'                  )
-#' create_degree_probabilities_table(probabilities=p, attributes.names=c("size"))
+#' create_degree_probabilities_table(probabilities=p)
 #' 
 #' 
 #' @export
 #' 
 #' @author Samuel Thiriot <samuel.thiriot@res-ear.ch>
 #' 
-create_degree_probabilities_table <- function(probabilities, attributes.names) {
+create_degree_probabilities_table <- function(probabilities) {
 
     # check inputs
     if (!is.data.frame(probabilities)) {
@@ -160,14 +194,27 @@ create_degree_probabilities_table <- function(probabilities, attributes.names) {
 
     # ensure the given colnames(cas1$pdi)
     for (name in colnames(probabilities)) {
+
+        # ensure probabilities sum to 1
         if (abs(sum(probabilities[,name]) - 1.0) >= 0.0000000001) {
             stop(paste("invalid probabilities for ", name, 
                 ": should sum to 1 but sums to ", 
                 sum(probabilities[,name]), sep=""))
         }
+
     }
 
+    idx2k2v <- lapply(colnames(probabilities),extract_attributes_values)
+
+    # do all the parameters have the same length of attributes ?
+    if (length(unique(lapply(idx2k2v, length))) != 1) {
+        stop("all the column names should contain the same count of attributes")
+    }
+    
     # TODO check attributes !
+    
+    # list the attribute names concerned by the table
+    attributes.names <- unique(unlist(lapply(idx2k2v, names)))
 
     # forge the result 
     res <- list(
@@ -189,7 +236,7 @@ create_degree_probabilities_table <- function(probabilities, attributes.names) {
 #' @author Samuel Thiriot <samuel.thiriot@res-ear.ch>
 #' 
 print.dpp_degree_cpt <- function(x, ...) {
-    cat("distribution of degrees depending to attributes '", x$attributes,"':\n")
+    cat("distribution of degrees depending to attributes '", x$attributes,"':\n",sep="")
     print(x$data)
 }
 
@@ -200,21 +247,18 @@ print.dpp_degree_cpt <- function(x, ...) {
 #' 
 #' 
 #' @param data a data frame containing matching probabilities
-#' @param Ai the list of attributes related to population A
-#' @param Bi the list of attributes related to population B
 #' @return a matching probability table ready to be used for usage with \code{\link{matching.prepare}}
 #' 
 #' @examples
 #' 
 #' cas1.pij <- create_matching_probabilities_table(
-#'                data=data.frame(
-#'                    'small'=c(0.2, 0.1, 0.05, 0.025),
-#'                    'medium'=c(0.0375, 0.125, 0.1, 0.05),
-#'                    'large'=c(0.0125, 0.025, 0.1, 0.175),
-#'                    row.names=c("1 person", "2 persons", "3 persons", "4 and more")
-#'                    ),
-#'                Ai=c("surface"),
-#'                Bi=c("size")
+#'                data.frame(
+#'                    'surface=1'=c(0.2, 0.1, 0.05, 0.025),
+#'                    'surface=2'=c(0.0375, 0.125, 0.1, 0.05),
+#'                    'surface=3'=c(0.0125, 0.025, 0.1, 0.175),
+#'                    row.names=c("size=1", "size=2", "size=3", "size=4"),
+#'                    check.names=FALSE
+#'                    )
 #'                )
 #' print(cas1.pij)
 #'
@@ -222,16 +266,35 @@ print.dpp_degree_cpt <- function(x, ...) {
 #' 
 #' @author Samuel Thiriot <samuel.thiriot@res-ear.ch>
 #' 
-create_matching_probabilities_table <- function(data, Ai, Bi) {
+create_matching_probabilities_table <- function(data) {
 
     # check inputs
     if (!is.data.frame(data)) {
         stop("data should be a data frame")
     }
 
+    # create list of Ai
+    Ai.idx2k2v <- lapply(colnames(data),extract_attributes_values)
+    # do all the parameters have the same length of attributes ?
+    if (length(unique(lapply(Ai.idx2k2v, length))) != 1) {
+        stop("all the column names should contain the same count of attributes")
+    }
+    # list the attribute names concerned by the table
+    Ai <- unique(unlist(lapply(Ai.idx2k2v, names)))
+
+
+    # create list of Bj
+    Bj.idx2k2v <- lapply(rownames(data),extract_attributes_values)
+    # do all the parameters have the same length of attributes ?
+    if (length(unique(lapply(Bj.idx2k2v, length))) != 1) {
+        stop("all the row names should contain the same count of attributes")
+    }
+    # list the attribute names concerned by the table
+    Bj <- unique(unlist(lapply(Bj.idx2k2v, names)))
+
     # TODO check input
 
-    res <- list(data=data, Ai=Ai,Bi=Bi)
+    res <- list(data=data, Ai=Ai,Bi=Bj)
     class(res) <- "dpp_matching_probas"
 
     res
@@ -247,6 +310,6 @@ create_matching_probabilities_table <- function(data, Ai, Bi) {
 #' @author Samuel Thiriot <samuel.thiriot@res-ear.ch>
 #' 
 print.dpp_matching_probas <- function(x, ...) {
-    cat("matching probabilities given '", x$Ai,"' and '",x$Bi,"':\n")
+    cat("matching probabilities given '", x$Ai,"' and '",x$Bi,"':\n",sep="")
     print(x$data)
 }
