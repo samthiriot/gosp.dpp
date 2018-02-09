@@ -75,7 +75,10 @@ test_that("constraints: nA, phi.A, phi.B", {
 	
 	case.prepared <- matching.prepare(cas1$sample.A, cas1$sample.B, cas1$pdi, cas1$pdj, cas1$pij)
 
-	disc <- matching.arbitrate(case.prepared, nA=50000,nB=40000, nu.A=0, phi.A=0, delta.A=1, gamma=1, delta.B=1, phi.B=0, nu.B=1)
+	disc <- matching.arbitrate(case.prepared, 
+							nA=50000,nB=40000, 
+							nu.A=0, phi.A=0, delta.A=1, gamma=1, delta.B=1, phi.B=0, nu.B=1,
+							verbose=FALSE)
 
 	expect_is(disc, "dpp_resolved")
 
@@ -203,9 +206,9 @@ context("tests on case 1 with small sizes")
 	for (factor in c(5000,
 		#2000,
 		1000,500,333,
-		#300,
+		300,
 		200,101,100
-		#,50
+		,50
 		)) {
 
 		nA <- 5*factor
@@ -222,8 +225,14 @@ context("tests on case 1 with small sizes")
 
 			expect_is(disc, "dpp_resolved")
 
-			expect_equal(nA, disc$gen$hat.nA)
-			expect_equal(nB, disc$gen$hat.nB)
+			# we are quiet tolerant here: 1% 
+			expect_equal(nA, disc$gen$hat.nA, tolerance=0.01*nA)
+			expect_equal(nB, disc$gen$hat.nB, tolerance=0.01*nB)
+
+			# very tolerant...
+			expect_equal(case.prepared$stats$fj, disc$gen$hat.fj, tolerance=1e-2)
+			expect_equal(case.prepared$stats$pdj, unname(disc$gen$hat.pdj$data), tolerance=1e-5)
+
 		
 		})
 	}

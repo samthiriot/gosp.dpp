@@ -47,19 +47,20 @@ test_that("resolution with nA, phi.A, delta.B, phi.B and nB", {
 						dwellings_households$pdi, 
 						dwellings_households$pdj, 
 						dwellings_households$pij)
+	factor <- 1
 
 	disc <- matching.arbitrate(case.prepared, 
-						nA=50000*5,nB=40000*5, 
+						nA=50000*factor,nB=40000*factor, 
 						nu.A=0, phi.A=0, delta.A=1, gamma=1, delta.B=0, phi.B=0, nu.B=0,
 						verbose=FALSE)
 
 	expect_is(disc, "dpp_resolved")
 
-	expect_equal(disc$gen$hat.nA, 50000*5)
-	expect_equal(disc$gen$hat.nB, 40000*5)
+	expect_equal(disc$gen$hat.nA, 50000*factor)
+	expect_equal(disc$gen$hat.nB, 40000*factor)
 	
-	expect_equal(case.prepared$stats$fi, disc$gen$hat.fi, tolerance=1e-5)
-	expect_equal(case.prepared$stats$fj, disc$gen$hat.fj, tolerance=1e-5)
+	expect_equal(case.prepared$stats$fi, disc$gen$hat.fi, tolerance=3e-5)
+	expect_equal(case.prepared$stats$fj, disc$gen$hat.fj, tolerance=3e-5)
 
 	expect_equal(case.prepared$inputs$pdj$data, disc$gen$hat.pdj, tolerance=1e-5)
   
@@ -68,8 +69,8 @@ test_that("resolution with nA, phi.A, delta.B, phi.B and nB", {
   	skip_on_cran()
   	case <- matching.generate(disc, dwellings_households$sample.A, dwellings_households$sample.B, verbose=FALSE)
 
-  	expect_equal(nrow(case$pop$A), 50000*5)
-  	expect_equal(nrow(case$pop$B), 40000*5)
+  	expect_equal(nrow(case$pop$A), 50000*factor)
+  	expect_equal(nrow(case$pop$B), 40000*factor)
 
   	# ensure the weight column in not present
   	expect_false(cas1$sample.A$dictionary$colname.weight %in% colnames(case$pop$A))

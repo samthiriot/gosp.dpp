@@ -189,12 +189,13 @@ update_degree_distribution <- function(pdx, dx) {
 #' (basically solves rounding issues for this specific case)
 #'
 #' @param pdn the contigencies of degrees
-#' @param nn the expected totals that should be reached
+#' @param nn the expected total degree (ni) that should be reached
+#' @param cn the expected total count (ci) that should be reached
 #' @param verbose print detailed information during the process
 #'
 #' @author Samuel Thiriot <samuel.thiriot@res-ear.ch> 
 #' 
-rectify.degree.counts <- function(pdn, nn, verbose=FALSE) {
+rectify.degree.counts <- function(pdn, nn, cn, verbose=FALSE) {
 
     # if (verbose) {
     #     cat("should rectify\n") 
@@ -203,6 +204,8 @@ rectify.degree.counts <- function(pdn, nn, verbose=FALSE) {
     #     print(nn)
     # }
     for (col in 1:ncol(pdn)) {
+
+
         total.current <- sum(pdn[,col]*0:(nrow(pdn)-1))
         total.expected <- nn[col]
 
@@ -248,6 +251,18 @@ rectify.degree.counts <- function(pdn, nn, verbose=FALSE) {
 
     }
 
+    # adapt the cn s we did not checked until now
+    to.add <- unname(cn) - unname(colSums(pdn))
+    if (!all(to.add == 0) && (sum(to.add) == 0)) {
+        
+        # we can solve the problem by playing on the first raw (the one which induces no degree)
+        pdn[1,] <- pdn[1,] + to.add
+
+        # nota: this solution might lead to inconsistent result; 
+        # typically if degree 0 is impossible, we are adding negative values here ! 
+        # it will be checked later. 
+    } 
+
     # ensure we did it well, that is we achieve to reach the expected result
     if (!all.equal(unname(colSums(pdn*0:(nrow(pdn)-1))), unname(nn))) {
         stop("was unable to fix the rounding of degree distributions ",
@@ -257,6 +272,14 @@ rectify.degree.counts <- function(pdn, nn, verbose=FALSE) {
             paste(nn, collapse=",")
             )
     }
+
+    if ((all.equal(unname(cn), unname(colSums(pdn))) != TRUE) || any(pdn[1,] < 0)) {
+        stop("was unable to fix the rounding of degree distributions ",
+            "so the total count ", paste(unname(colSums(pdn)), collapse=","),
+            " matches ",
+            paste(unname(cn), collapse=",")
+            )
+    } 
     
 
     pdn
@@ -649,23 +672,142 @@ propagate.direct <- function(sol,case, verbose=FALSE, indent=1) {
             changed <- TRUE
         }
 
-        # pdi, ci -> ndi
+        # pdi -> di
         if ( 
-            ("hat.pdi" %in% names(sol)) && ("hat.ci" %in% names(sol)) && (!"hat.ndi" %in% names(sol))
+            ("hat.pdi" %in% names(sol)) && (!"hat.di" %in% names(sol))
             ) {
-            
-            sol <- info.rule("hat.pdi, hat.ci -> hat.ndi", sol, verbose=verbose, indent=indent+1)
-            sol$hat.ndi <- round_sum(t(t(sol$hat.pdi) * sol$hat.ci))
-            sol$hat.ndi <- rectify.degree.counts(sol$hat.ndi, sol$hat.ni)   
+            sol <- info.rule("hat.pdi -> hat.di", sol, verbose=verbose, indent=indent+1)
+            sol$hat.di <- colSums(sol$hat.pdi*(0:(nrow(sol$hat.pdi)-1)))
             changed <- TRUE
         }
         if ( 
-            ("hat.pdj" %in% names(sol)) && ("hat.cj" %in% names(sol)) && (!"hat.ndj" %in% names(sol))
+            ("hat.pdj" %in% names(sol)) && (!"hat.dj" %in% names(sol))
+            ) {
+            sol <- info.rule("hat.pdj -> hat.dj", sol, verbose=verbose, indent=indent+1)
+            sol$hat.dj <- colSums(sol$hat.pdj*(0:(nrow(sol$hat.pdj)-1)))
+            changed <- TRUE
+        }
+
+        # ndi -> ci
+        if ( 
+            ("hat.ndi" %in% names(sol)) && (!"hat.ci" %in% names(sol))
+            ) {
+            sol <- info.rule("hat.ndi -> hat.ci", sol, verbose=verbose, indent=indent+1)
+            sol$hat.ci <- colSums(sol$hat.ndi)
+            changed <- TRUE
+        }
+        if ( 
+            ("hat.ndj" %in% names(sol)) && (!"hat.cj" %in% names(sol))
+            ) {
+            sol <- info.rule("hat.ndj -> hat.cj", sol, verbose=verbose, indent=indent+1)
+            sol$hat.cj <- colSums(sol$hat.ndj)
+            changed <- TRUE
+        }
+
+
+        # pdi, ci -> ndi
+        if ( 
+            all(c("hat.pdi", "hat.ci", "hat.ni") %in% names(sol)) && (!"hat.ndi" %in% names(sol))
+            ) {
+
+            sol <- info.rule("hat.pdi, hat.ci -> hat.ndi", sol, verbose=verbose, indent=indent+1)
+            # print(sol$hat.pdi)
+            sol$hat.ndi <- round_sum(t(t(sol$hat.pdi) * sol$hat.ci))
+            sol$hat.ndi <- rectify.degree.counts(sol$hat.ndi, sol$hat.ni, sol$hat.ci)
+            
+            # update pdi after rounding (when divisible, else we keep the theorical version)
+            indices <- which(sol$hat.ci!=0)
+            sol$hat.pdi[indices] <- t(t(sol$hat.ndi[indices]) / sol$hat.ci[indices])
+
+            # update our past knowledge according to rounding
+
+
+            if ("hat.di" %in% names(sol)) {
+                sol$hat.di <- colSums(sol$hat.pdi * (0:(nrow(sol$hat.pdi)-1)))
+            }
+
+
+            
+            # if ("hat.fi" %in% names(sol)) {
+            #     novel.hat.fi <- sol$hat.ci / sum(sol$hat.ci)
+            #     if ()
+            # }
+
+            if (verbose) {
+                #cat(rep("\t",times=indent+1),"-> X hat.ci\n",sep="")
+                #cat(rep("\t",times=indent+1),"-> X hat.fi\n",sep="")
+                #cat(rep("\t",times=indent+1),"-> X hat.di\n",sep="")
+                #cat(rep("\t",times=indent+1),"-> X hat.nA\n",sep="")
+            }
+
+            # invalidate our past knowledge :-)
+            #sol$hat.ci <- NULL
+            #sol$hat.fi <- NULL
+            #sol$hat.di <- NULL
+            #sol$hat.nA <- NULL
+
+            # print(sol$hat.pdi)
+            # rectify the other elemnts (rounding patching)
+            # print("=>=>=>")
+            # print(sol$hat.ndi)
+
+            # print(sol$hat.ndi * (0:(nrow(sol$hat.ndi)-1)))
+
+            # print("=> hat.di")
+            # print(sol$hat.di)
+            # if ("hat.ci" %in% names(sol))
+            #     sol$hat.ci <- colSums(sol$hat.ndi)
+
+
+            # if ("hat.pdi" %in% names(sol))
+            #     sol$hat.pdi <- sol$hat.ndi/colSums(sol$hat.ndi)
+            
+            # print("\nBEFORE")
+            # print(sol$hat.di)
+            
+            # print(sol$hat.pdi)
+            # print(sol$hat.di)
+            changed <- TRUE
+        }
+        if ( 
+            all(c("hat.pdj", "hat.cj", "hat.nj") %in% names(sol)) && (!"hat.ndj" %in% names(sol))
             ) {
             
             sol <- info.rule("hat.pdj, hat.cj -> hat.ndj", sol, verbose=verbose, indent=indent+1)
             sol$hat.ndj <- round_sum(t(t(sol$hat.pdj) * sol$hat.cj))
-            sol$hat.ndj <- rectify.degree.counts(sol$hat.ndj, sol$hat.nj)   
+            sol$hat.ndj <- rectify.degree.counts(sol$hat.ndj, sol$hat.nj, sol$hat.cj)   
+
+            # update pdi after rounding (when divisible, else we keep the theorical version)
+            indices <- which(sol$hat.cj!=0)
+            sol$hat.pdj[indices] <- as.data.frame(
+                                        t(t(sol$hat.ndj[indices]) / sol$hat.cj[indices]),
+                                        optional=FALSE)
+
+
+            # update our past knowledge according to rounding
+            if ("hat.dj" %in% names(sol)) {
+                sol$hat.dj <- colSums(sol$hat.pdj * (0:(nrow(sol$hat.pdj)-1)))
+            }
+
+
+            
+            #  if (verbose) {
+            #     cat(rep("\t",times=indent+1),"-> X hat.cj\n",sep="")
+            #     cat(rep("\t",times=indent+1),"-> X hat.fj\n",sep="")
+            #     cat(rep("\t",times=indent+1),"-> X hat.dj\n",sep="")
+            #     cat(rep("\t",times=indent+1),"-> X hat.nB\n",sep="")
+            # }
+
+            # # invalidate our past knowledge :-)
+            # sol$hat.cj <- NULL
+            # sol$hat.fj <- NULL
+            # sol$hat.dj <- NULL
+            # sol$hat.nB <- NULL
+
+            # rectify the other elemnts (rounding patching)
+            # sol$hat.cj <- colSums(sol$hat.ndj)
+            # sol$hat.fj <- sol$hat.cj / sum(sol$hat.cj)
+            
             changed <- TRUE
         }
     
@@ -724,9 +866,9 @@ propagate.direct <- function(sol,case, verbose=FALSE, indent=1) {
 #' @param verbose if TRUE, assertion errors will be displayed in the console
 #' @return 1 in case of error else 0
 #' 
-assert.equal <- function(v1,v2,msg, verbose=FALSE, indent=3) {
+assert.equal <- function(v1,v2,msg, verbose=FALSE, indent=3, tolerance=1.5e-8) {
 
-    if (!identical(v1,v2) && !(all.equal(v1,v2)==TRUE)) {  # && ((length(v1) > 1) & sum((v1-v2)^2) > 0)
+    if (!identical(v1,v2) && !(all.equal(v1,v2,tolerance=tolerance)==TRUE)) {  # && ((length(v1) > 1) & sum((v1-v2)^2) > 0)
 
         if (verbose) {
             
@@ -778,10 +920,18 @@ detect.problems <- function(sol, case, fail=TRUE, verbose=FALSE, indent=1) {
 
     # nA = sum(ni)
     if (!is.null(sol$hat.nA) && !is.null(sol$hat.ci)) {
-        problems <- problems + assert.equal(sol$hat.nA, sum(sol$hat.ci), "hat.nA = sum(hat.ci)", verbose=verbose, indent=indent+1)
+        problems <- problems + assert.equal(
+                                    sol$hat.nA, sum(sol$hat.ci), 
+                                    "hat.nA = sum(hat.ci)", 
+                                    verbose=verbose, 
+                                    indent=indent+1)
     }
     if (!is.null(sol$hat.nB) && !is.null(sol$hat.cj)) {
-        problems <- problems + assert.equal(sol$hat.nB, sum(sol$hat.cj), "hat.nB = sum(hat.cj)", verbose=verbose, indent=indent+1)
+        problems <- problems + assert.equal(
+                                    sol$hat.nB, sum(sol$hat.cj), 
+                                    "hat.nB = sum(hat.cj)", 
+                                    verbose=verbose, 
+                                    indent=indent+1)
     }
 
     # ni / nA = fi 
@@ -789,94 +939,128 @@ detect.problems <- function(sol, case, fail=TRUE, verbose=FALSE, indent=1) {
         problems <- problems + assert.equal(
                                         as.vector(sol$hat.ci/sol$hat.nA), 
                                         as.vector(sol$hat.fi), 
-                                        "hat.ci/hat.nA = hat.fi", verbose=verbose, indent=indent+1)
+                                        "hat.ci/hat.nA = hat.fi", 
+                                        verbose=verbose, indent=indent+1, tolerance=1)
     }
     if (!is.null(sol$hat.nB) && !is.null(sol$hat.cj) && !is.null(sol$hat.fj)) {
         problems <- problems + assert.equal(
                                         as.vector(sol$hat.cj/sol$hat.nB), 
                                         as.vector(sol$hat.fj), 
-                                        "hat.cj/hat.nB = hat.fj", verbose=verbose, indent=indent+1)
+                                        "hat.cj/hat.nB = hat.fj", 
+                                        verbose=verbose, indent=indent+1, tolerance=1)
     }  
 
     # sum(fi) = 1
     if (!is.null(sol$hat.fi)) {
-        problems <- problems + assert.equal(1, sum(sol$hat.fi), "sum(hat.fi)=1", verbose=verbose, indent=indent+1)
+        problems <- problems + assert.equal(
+                                        1, sum(sol$hat.fi), 
+                                        "sum(hat.fi)=1", 
+                                        verbose=verbose, indent=indent+1)
     }
     if (!is.null(sol$hat.fj)) {
-        problems <- problems + assert.equal(1, sum(sol$hat.fj), "sum(hat.fj)=1", verbose=verbose, indent=indent+1)
+        problems <- problems + assert.equal(
+                                        1, sum(sol$hat.fj), 
+                                        "sum(hat.fj)=1", 
+                                        verbose=verbose, indent=indent+1)
     }
 
     # ni = ci*di
     if (!is.null(sol$hat.ci) && !is.null(sol$hat.di) && !is.null(sol$hat.ni)) {
         problems <- problems + assert.equal(
-                                    as.vector(sol$hat.ci*sol$hat.di), 
                                     as.vector(sol$hat.ni), 
+                                    as.vector(sol$hat.ci*sol$hat.di), 
                                     "hat.ni = hat.ci*hat.di", 
-                                    verbose=verbose, indent=indent+1)
+                                    verbose=verbose, indent=indent+1,
+                                    tolerance=1)
     }
     if (!is.null(sol$hat.cj) && !is.null(sol$hat.dj) && !is.null(sol$hat.nj)) {
         problems <- problems + assert.equal(
-                                    as.vector(sol$hat.cj*sol$hat.dj), 
                                     as.vector(sol$hat.nj), 
+                                    as.vector(sol$hat.cj*sol$hat.dj), 
                                     "hat.nj = hat.cj*hat.dj", 
-                                    verbose=verbose, indent=indent+1)
+                                    verbose=verbose, indent=indent+1,
+                                    tolerance=1)
     }
 
     # nL = sum(ni)
     if (!is.null(sol$hat.nL) && !is.null(sol$hat.ni)) {
-        problems <- problems + assert.equal(sol$hat.nL, sum(sol$hat.ni), "hat.nL = sum(hat.ni)", verbose=verbose, indent=indent+1)
+        problems <- problems + assert.equal(
+                                        sol$hat.nL, sum(sol$hat.ni), 
+                                        "hat.nL = sum(hat.ni)", 
+                                        verbose=verbose, indent=indent+1)
     }
     if (!is.null(sol$hat.nL) && !is.null(sol$hat.nj)) {
-        problems <- problems + assert.equal(sol$hat.nL, sum(sol$hat.nj), "hat.nL = sum(hat.nj)", verbose=verbose, indent=indent+1)
+        problems <- problems + assert.equal(
+                                        sol$hat.nL, sum(sol$hat.nj), 
+                                        "hat.nL = sum(hat.nj)", 
+                                        verbose=verbose, indent=indent+1)
     }
 
     # nL = sum(nij)
     if (!is.null(sol$hat.nL) && !is.null(sol$hat.nij)) {
-        problems <- problems + assert.equal(sol$hat.nL, sum(sol$hat.nij), "hat.nL = sum(hat.nij)", verbose=verbose, indent=indent+1)
+        problems <- problems + assert.equal(
+                                        sol$hat.nL, sum(sol$hat.nij), 
+                                        "hat.nL = sum(hat.nij)", 
+                                        verbose=verbose, indent=indent+1)
     }
 
     # sum(hat.pij) = 1
     if (!is.null(sol$hat.pij)) {
-        problems <- problems + assert.equal(1, sum(sol$hat.pij), "sum(hat.pij) = 1", verbose=verbose, indent=indent+1)
+        problems <- problems + assert.equal(
+                                        1, sum(sol$hat.pij), 
+                                        "sum(hat.pij) = 1", 
+                                        verbose=verbose, indent=indent+1)
     }
 
     # hat.pij = hat.nij/sum(hat.nij)
     if (!is.null(sol$hat.nij) && !is.null(sol$hat.pij)) {
-        problems <- problems + assert.equal(sol$hat.nij/sum(sol$hat.nij), sol$hat.pij, "hat.pij = hat.nij/sum(hat.nij)", verbose=verbose, indent=indent+1)
+        problems <- problems + assert.equal(
+                                        sol$hat.nij/sum(sol$hat.nij), sol$hat.pij, 
+                                        "hat.pij = hat.nij/sum(hat.nij)", 
+                                        verbose=verbose, indent=indent+1)
     }
     
     # colSum(hat.nij) = hat.ni 
     if (!is.null(sol$hat.nij) && !is.null(sol$hat.ni)) {
-        problems <- problems + assert.equal(as.vector(colSums(sol$hat.nij)), as.vector(sol$hat.ni), "hat.ni = colSums(hat.nij)", verbose=verbose, indent=indent+1)
+        problems <- problems + assert.equal(
+                                        as.vector(colSums(sol$hat.nij)), as.vector(sol$hat.ni), 
+                                        "hat.ni = colSums(hat.nij)", 
+                                        verbose=verbose, indent=indent+1)
     }
     if (!is.null(sol$hat.nij) && !is.null(sol$hat.nj)) {
-        problems <- problems + assert.equal(as.vector(rowSums(sol$hat.nij)), as.vector(sol$hat.nj), "hat.nj = rowSums(hat.nij)", verbose=verbose, indent=indent+1)
+        problems <- problems + assert.equal(
+                                        as.vector(rowSums(sol$hat.nij)), as.vector(sol$hat.nj), 
+                                        "hat.nj = rowSums(hat.nij)", 
+                                        verbose=verbose, indent=indent+1)
     }
 
+    # TODO TODO TODO reactivate ???
     # vsum(pdi) = 1
-    if (!is.null(sol$hat.pdi)) {
-        for (i in 1:ncol(sol$hat.pdi)) {
-            problems <- problems + assert.equal(1, sum(sol$hat.pdi[,i]), paste("sum(hat.pdi[",i,"])=1",sep=""), verbose=verbose, indent=indent+1)       
-        }
-    } 
-    if (!is.null(sol$hat.pdj)) {
-        for (i in 1:ncol(sol$hat.pdj)) {
-            problems <- problems + assert.equal(1, sum(sol$hat.pdj[,i]), paste("sum(hat.pdj[",i,"])=1",sep=""), verbose=verbose, indent=indent+1)       
-        }
-    } 
+    # if (!is.null(sol$hat.pdi)) {
+    #     for (i in 1:ncol(sol$hat.pdi)) {
+    #         problems <- problems + assert.equal(1, sum(sol$hat.pdi[,i]), paste("sum(hat.pdi[",i,"])=1",sep=""), verbose=verbose, indent=indent+1)       
+    #     }
+    # } 
+    # if (!is.null(sol$hat.pdj)) {
+    #     for (i in 1:ncol(sol$hat.pdj)) {
+    #         problems <- problems + assert.equal(1, sum(sol$hat.pdj[,i]), paste("sum(hat.pdj[",i,"])=1",sep=""), verbose=verbose, indent=indent+1)       
+    #     }
+    # } 
 
     # sum(hat.ndi) = hat.ci 
     if (!is.null(sol$hat.ndi) && !is.null(sol$hat.ci)) {
         problems <- problems + assert.equal(
                                         as.vector(sol$hat.ci), 
                                         as.vector(colSums(sol$hat.ndi)), 
-                                        "hat.ci = sum(hat.ndi)", verbose=verbose, indent=indent+1)  
+                                        "hat.ci = sum(hat.ndi)", 
+                                        verbose=verbose, indent=indent+1)  
     }    
     if (!is.null(sol$hat.ndj) && !is.null(sol$hat.cj)) {
         problems <- problems + assert.equal(
                                         as.vector(sol$hat.cj), 
                                         as.vector(colSums(sol$hat.ndj)), 
-                                        "hat.cj = sum(hat.ndj)", verbose=verbose, indent=indent+1)  
+                                        "hat.cj = sum(hat.ndj)", 
+                                        verbose=verbose, indent=indent+1)  
     }    
 
     # sum(hat.ndi * n) = hat.ni
@@ -884,13 +1068,15 @@ detect.problems <- function(sol, case, fail=TRUE, verbose=FALSE, indent=1) {
         problems <- problems + assert.equal(
                                 as.vector(colSums(sol$hat.ndi * 0:(nrow(sol$hat.ndi)-1))), 
                                 as.vector(sol$hat.ni), 
-                                "hat.ni = sum( n * ndi[n])", verbose=verbose, indent=indent+1)  
+                                "hat.ni = sum( n * ndi[n])", 
+                                verbose=verbose, indent=indent+1)  
     }
     if (!is.null(sol$hat.ndj) && !is.null(sol$hat.nj)) {
         problems <- problems + assert.equal(
                                 as.vector(colSums(sol$hat.ndj * 0:(nrow(sol$hat.ndj)-1))), 
                                 as.vector(sol$hat.nj), 
-                                "hat.nj = sum( n * ndj[n])", verbose=verbose, indent=indent+1)  
+                                "hat.nj = sum( n * ndj[n])", 
+                                verbose=verbose, indent=indent+1)  
     }
 
     # TODO ? min max di dj
@@ -899,22 +1085,26 @@ detect.problems <- function(sol, case, fail=TRUE, verbose=FALSE, indent=1) {
         problems <- problems + assert.equal(
                                 FALSE, 
                                 any(sol$hat.di < case$inputs$min.di), 
-                                "hat.di >= min.di", verbose=verbose, indent=indent+1)     
+                                "hat.di >= min.di", 
+                                verbose=verbose, indent=indent+1)     
         problems <- problems + assert.equal(
                                 FALSE, 
                                 any(sol$hat.di > case$inputs$max.di), 
-                                "hat.di <= max.di", verbose=verbose, indent=indent+1)     
+                                "hat.di <= max.di", 
+                                verbose=verbose, indent=indent+1)     
     }
     if (!is.null(sol$hat.dj)) {
         #print("TESTING DJ", verbose=verbose
         problems <- problems + assert.equal(
                                 FALSE, 
                                 any(sol$hat.dj < case$inputs$min.dj), 
-                                "hat.dj >= min.dj", verbose=verbose, indent=indent+1)     
+                                "hat.dj >= min.dj", 
+                                verbose=verbose, indent=indent+1)     
         problems <- problems + assert.equal(
                                 FALSE, 
                                 any(sol$hat.dj > case$inputs$max.dj), 
-                                "hat.dj <= max.dj", verbose=verbose, indent=indent+1)     
+                                "hat.dj <= max.dj", 
+                                verbose=verbose, indent=indent+1)     
     }
 
     if (verbose) {
@@ -1230,9 +1420,11 @@ resolve.missing.chain <- function(sol, chain, case,
             cumulated.errors[i] <- sum(errors * weights)
             
         }
-        cat("\t\t\t\tsolution (",i,") =>", cumulated.errors,"\n")
+        if (verbose)
+            cat("\t\t\t\tsolution (",i,") =>", cumulated.errors,"\n")
         best.solution <- which.min(cumulated.errors)
-        cat("\t\t\t\t=> will keep solution ",best.solution," which is the one with the lowest weighted error\n",sep="")
+        if (verbose)
+            cat("\t\t\t\t=> will keep solution ",best.solution," which is the one with the lowest weighted error\n",sep="")
         res <- solutions[[best.solution]]$sol
         #print(names(solutions[[best.solution]]$sol))
     }
@@ -1267,10 +1459,15 @@ resolve.missing.chain <- function(sol, chain, case,
 #' 
 #' @author Samuel Thiriot <samuel.thiriot@res-ear.ch>
 #' 
-resolve <- function(sol, case, nA, nB, nu.A, phi.A, delta.A, nu.B, phi.B, delta.B, gamma, verbose=FALSE) {
+resolve <- function(sol, case, 
+                        nA, nB, 
+                        nu.A, phi.A, delta.A, 
+                        gamma,
+                        nu.B, phi.B, delta.B,  
+                        verbose=FALSE) {
 
     # direct propagation of what we know
-    sol.tmp <- propagate.direct(sol,case,verbose=verbose)
+    sol.tmp <- propagate.direct(sol, case, verbose=verbose)
 
     # if (verbose) {
     #     cat("resolving the case based on known: ",paste(names(sol.tmp),collapse=","),"\n",sep="")
