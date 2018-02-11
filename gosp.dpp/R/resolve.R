@@ -579,10 +579,8 @@ propagate.direct <- function(sol,case, verbose=FALSE, indent=1) {
         }
 
         # fi * pi -> di  
-        # WTF ???? is that even valid ???
         if ( 
             ("hat.pi" %in% names(sol)) && ("hat.fi" %in% names(sol)) && (!"hat.di" %in% names(sol))
-            #&& (!"hat.ci" %in% names(sol)
             ) {
             sol$hat.di <- nan_to_zeros(sol$hat.pi / sol$hat.fi)
             # fix potential NaNs due to di=0 by their native di counterparts (they do not matter anyway)
@@ -598,20 +596,16 @@ propagate.direct <- function(sol,case, verbose=FALSE, indent=1) {
             }
             sol$hat.di <- sol$hat.di * factor
             
-            # print("et donc")
-            #  print(sol$hat.di)
-            #  print(normalise(sol$hat.di * sol$hat.fi))
-            #  print(sol$hat.pi)
             changed <- TRUE
         }
 
-        # TODO patch for NA
         if ( 
             ("hat.pj" %in% names(sol)) && ("hat.fj" %in% names(sol)) &&  (!"hat.dj" %in% names(sol))
             ) {
             sol$hat.dj <- nan_to_zeros(sol$hat.pj / sol$hat.fj)
             
             sol <- info.rule("hat.pj, hat.fj -> hat.dj", sol, verbose=verbose, indent=indent+1)
+
             # in factor we might change it of a factor, only the ratio matters
             factor <- 1
             if (any(sol$hat.dj > case$inputs$max.dj)) {
@@ -720,53 +714,10 @@ propagate.direct <- function(sol,case, verbose=FALSE, indent=1) {
             sol$hat.pdi[indices] <- t(t(sol$hat.ndi[indices]) / sol$hat.ci[indices])
 
             # update our past knowledge according to rounding
-
-
             if ("hat.di" %in% names(sol)) {
                 sol$hat.di <- colSums(sol$hat.pdi * (0:(nrow(sol$hat.pdi)-1)))
             }
 
-
-            
-            # if ("hat.fi" %in% names(sol)) {
-            #     novel.hat.fi <- sol$hat.ci / sum(sol$hat.ci)
-            #     if ()
-            # }
-
-            if (verbose) {
-                #cat(rep("\t",times=indent+1),"-> X hat.ci\n",sep="")
-                #cat(rep("\t",times=indent+1),"-> X hat.fi\n",sep="")
-                #cat(rep("\t",times=indent+1),"-> X hat.di\n",sep="")
-                #cat(rep("\t",times=indent+1),"-> X hat.nA\n",sep="")
-            }
-
-            # invalidate our past knowledge :-)
-            #sol$hat.ci <- NULL
-            #sol$hat.fi <- NULL
-            #sol$hat.di <- NULL
-            #sol$hat.nA <- NULL
-
-            # print(sol$hat.pdi)
-            # rectify the other elemnts (rounding patching)
-            # print("=>=>=>")
-            # print(sol$hat.ndi)
-
-            # print(sol$hat.ndi * (0:(nrow(sol$hat.ndi)-1)))
-
-            # print("=> hat.di")
-            # print(sol$hat.di)
-            # if ("hat.ci" %in% names(sol))
-            #     sol$hat.ci <- colSums(sol$hat.ndi)
-
-
-            # if ("hat.pdi" %in% names(sol))
-            #     sol$hat.pdi <- sol$hat.ndi/colSums(sol$hat.ndi)
-            
-            # print("\nBEFORE")
-            # print(sol$hat.di)
-            
-            # print(sol$hat.pdi)
-            # print(sol$hat.di)
             changed <- TRUE
         }
         if ( 
@@ -783,31 +734,11 @@ propagate.direct <- function(sol,case, verbose=FALSE, indent=1) {
                                         t(t(sol$hat.ndj[indices]) / sol$hat.cj[indices]),
                                         optional=FALSE)
 
-
             # update our past knowledge according to rounding
             if ("hat.dj" %in% names(sol)) {
                 sol$hat.dj <- colSums(sol$hat.pdj * (0:(nrow(sol$hat.pdj)-1)))
             }
 
-
-            
-            #  if (verbose) {
-            #     cat(rep("\t",times=indent+1),"-> X hat.cj\n",sep="")
-            #     cat(rep("\t",times=indent+1),"-> X hat.fj\n",sep="")
-            #     cat(rep("\t",times=indent+1),"-> X hat.dj\n",sep="")
-            #     cat(rep("\t",times=indent+1),"-> X hat.nB\n",sep="")
-            # }
-
-            # # invalidate our past knowledge :-)
-            # sol$hat.cj <- NULL
-            # sol$hat.fj <- NULL
-            # sol$hat.dj <- NULL
-            # sol$hat.nB <- NULL
-
-            # rectify the other elemnts (rounding patching)
-            # sol$hat.cj <- colSums(sol$hat.ndj)
-            # sol$hat.fj <- sol$hat.cj / sum(sol$hat.cj)
-            
             changed <- TRUE
         }
     
