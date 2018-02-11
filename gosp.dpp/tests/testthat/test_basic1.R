@@ -294,7 +294,7 @@ test_that("constraints: pdj with zero (p(dj=0)=1.0)", {
 	disc <- matching.arbitrate(case.prepared, 
 		nA=50000, nB=40000, 
 		nu.A=0, phi.A=0, delta.A=0, gamma=0, delta.B=0, phi.B=1, nu.B=1,
-		verbose=TRUE
+		verbose=FALSE
 		)
 	
 	expect_is(disc, "dpp_resolved")
