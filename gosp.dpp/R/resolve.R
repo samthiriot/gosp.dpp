@@ -811,6 +811,7 @@ propagate.direct <- function(sol,case, verbose=FALSE, indent=1) {
 #' @param msg the message to display in case of failure
 #' @param indent the indentation (count of tabs) for verbose display
 #' @param verbose if TRUE, assertion errors will be displayed in the console
+#' @param tolerance the numeric tolerance to define two numeric are equal
 #' @return 1 in case of error else 0
 #' 
 assert.equal <- function(v1,v2,msg, verbose=FALSE, indent=3, tolerance=1.5e-8) {

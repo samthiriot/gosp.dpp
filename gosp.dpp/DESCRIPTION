@@ -1,7 +1,7 @@
 Package: gosp.dpp
 Type: Package
 Title: Peering of entities to generate structured synthetic populations 
-Version: 0.6.0
+Version: 0.6.1
 Date: 2018-02-01
 Author: Samuel Thiriot
 Maintainer: Samuel Thiriot <samuel.thiriot@res-ear.ch>
