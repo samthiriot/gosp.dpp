@@ -278,8 +278,6 @@ test_that("constraints: pdi with zero (p(di=0)=1.0)", {
 
 test_that("constraints: pdj with zero (p(dj=0)=1.0)", {
 	
-	skip("yet to be implemented")
-
 	cas1.zero.dj <- cas1 
 	cas1.zero.dj$pdj <- create_degree_probabilities_table(
 			                probabilities=data.frame(

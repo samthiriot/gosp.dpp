@@ -17,7 +17,7 @@ round_sum.numeric <- function(x) {
     y <- floor(x)
     indices <- tail(order(x-y), round(sum(x)) - sum(y))
     y[indices] <- y[indices] + 1
-y
+    y
 }
 
 round_sum.matrix <- function(m) {
@@ -197,20 +197,16 @@ update_degree_distribution <- function(pdx, dx) {
 #' 
 rectify.degree.counts <- function(pdn, nn, cn, verbose=FALSE) {
 
-    # if (verbose) {
-    #     cat("should rectify\n") 
-    #     print(pdn)
-    #     cat("to reach\n")
-    #     print(nn)
-    # }
+    if (verbose) {
+        cat("should rectify\n") 
+        print(pdn)
+        cat("to reach\n")
+        print(nn)
+    }
     for (col in 1:ncol(pdn)) {
-
 
         total.current <- sum(pdn[,col]*0:(nrow(pdn)-1))
         total.expected <- nn[col]
-
-        #print(pdn)
-        #print(nn)
 
         if (total.current > total.expected) {
             to.remove <- total.current - total.expected
@@ -264,10 +260,14 @@ rectify.degree.counts <- function(pdn, nn, cn, verbose=FALSE) {
     } 
 
     # ensure we did it well, that is we achieve to reach the expected result
-    if (!all.equal(unname(colSums(pdn*0:(nrow(pdn)-1))), unname(nn))) {
+    if (all.equal(
+                unname(colSums(pdn*(0:(nrow(pdn)-1)))), 
+                unname(nn)
+                ) != TRUE) {
+
         stop("was unable to fix the rounding of degree distributions ",
-            "so the total degrees ",
-            paste(compute_average_degree(pdn), collapse=","),
+            "so the total slots ",
+            paste(unname(colSums(pdn*(0:(nrow(pdn)-1)))), collapse=","),
             " sums up to ",
             paste(nn, collapse=",")
             )
@@ -303,13 +303,28 @@ normalise <- function(df) {
 #' Replaces NaN by zeros. Used when we might divide 0 
 #' by 0 and know the result should be 0.
 #' 
-#' @param vv a vector or list
-#' @return the same vector without NaNs
+#' @param x a vector, list or matrix
+#' @param ... ignored
+#' @return the same type without NaNs
 #'
-nan_to_zeros <- function(vv) {
-    vv[which(is.nan(vv))] <- 0
-    vv
+nan_to_zeros <- function (x, ...) {
+   UseMethod("nan_to_zeros", x)
+ }
+
+nan_to_zeros.list <- function (x, ...) {
+    x[which(is.nan(x))] <- 0
+    x
+ }
+nan_to_zeros.numeric <- nan_to_zeros.list
+
+nan_to_zeros.matrix <- function (x, ...) {
+    for (i in 1:ncol(x)) {
+        x[,i] <- nan_to_zeros(x[,i])
+    }
+    x
 }
+nan_to_zeros.data.frame <- nan_to_zeros.matrix
+
 
 #' Replaces Infinite by zeros
 #' 
@@ -454,14 +469,14 @@ propagate.direct <- function(sol,case, verbose=FALSE, indent=1) {
             ("hat.ni" %in% names(sol)) #&& ("hat.pij" %in% names(sol)) 
             && (!"hat.nij" %in% names(sol))
             ) {
-            sol$hat.nij <- t(sol$hat.ni * t(case$inputs$pij$data) / colSums(case$inputs$pij$data))
+            pij <- if ("hat.pij" %in% names(sol)) sol$hat.pij else case$inputs$pij$data
+            sol$hat.nij <- nan_to_zeros( t(sol$hat.ni * t(pij) / colSums(pij)) )
             # round per column (to keep the sums consistent)
             for (i in 1:ncol(sol$hat.nij)) {
                 sol$hat.nij[,i] <- round_sum(sol$hat.nij[,i])
             }
             # adapt th based on rounded values
             sol$hat.pij <- sol$hat.nij / sum(sol$hat.nij)
-
             sol <- info.rule("hat.ni -> hat.nij, hat.pij", sol, verbose=verbose, indent=indent+1)
             changed <- TRUE
         }
@@ -469,7 +484,8 @@ propagate.direct <- function(sol,case, verbose=FALSE, indent=1) {
             ("hat.nj" %in% names(sol)) #&& ("hat.pij" %in% names(sol)) 
             && (!"hat.nij" %in% names(sol))
             ) {
-            sol$hat.nij <- sol$hat.nj * case$inputs$pij$data / rowSums(case$inputs$pij$data)
+            pij <- if ("hat.pij" %in% names(sol)) sol$hat.pij else case$inputs$pij$data
+            sol$hat.nij <- nan_to_zeros( sol$hat.nj * pij / rowSums(pij) )
             # round per line (to keep the sums consistent)
             for (i in 1:nrow(sol$hat.nij)) {
                 sol$hat.nij[i,] <- round_sum(sol$hat.nij[i,])
@@ -506,10 +522,10 @@ propagate.direct <- function(sol,case, verbose=FALSE, indent=1) {
             # ... yet we might just assume it might be any other value
             # let's say we try to keep its relative frequency.             
             fi_for_missing <- if ("hat.fi" %in% names(sol)) sol$hat.fi else case$stats$fi
-            indices_not_inf <- which(!is.infinite(candidate_ci))
+            indices_not_inf <- which((!is.infinite(candidate_ci)) && (!is.nan(candidate_ci)))
             average_ratio <- mean(candidate_ci[indices_not_inf] / fi_for_missing[indices_not_inf])
-            candidate_ci[which(is.infinite(candidate_ci))] <- fi_for_missing[which(is.infinite(candidate_ci))] * average_ratio
-
+            indices_wrong <- which(is.infinite(candidate_ci) | is.nan(candidate_ci))
+            candidate_ci[indices_wrong] <- fi_for_missing[indices_wrong] * average_ratio
             sol$hat.ci <- round_sum(candidate_ci)
             sol$hat.di[indices_not_inf] <- sol$hat.ni[indices_not_inf] / sol$hat.ci[indices_not_inf]
             sol <- info.rule("hat.ni, hat.di -> hat.ci", sol, verbose=verbose, indent=indent+1)
@@ -524,10 +540,10 @@ propagate.direct <- function(sol,case, verbose=FALSE, indent=1) {
             # ... yet we might just assume it might be any other value
             # let's say we try to keep its relative frequency.             
             fj_for_missing <- if ("hat.fj" %in% names(sol)) sol$hat.fj else case$stats$fj
-            indices_not_inf <- which(!is.infinite(candidate_cj))
+            indices_not_inf <- which((!is.infinite(candidate_cj)) && (!is.nan(candidate_cj)))
             average_ratio <- mean(candidate_cj[indices_not_inf] / fj_for_missing[indices_not_inf])
-            candidate_cj[which(is.infinite(candidate_cj))] <- fj_for_missing[which(is.infinite(candidate_cj))] * average_ratio
-
+            indices_wrong <- which(is.infinite(candidate_cj) | is.nan(candidate_cj))
+            candidate_cj[indices_wrong] <- fj_for_missing[indices_wrong] * average_ratio
             sol$hat.cj <- round_sum(candidate_cj)
             sol$hat.dj[indices_not_inf] <- sol$hat.nj[indices_not_inf] / sol$hat.cj[indices_not_inf]
             sol <- info.rule("hat.nj, hat.dj -> hat.cj", sol, verbose=verbose, indent=indent+1)            
@@ -707,7 +723,7 @@ propagate.direct <- function(sol,case, verbose=FALSE, indent=1) {
             sol <- info.rule("hat.pdi, hat.ci -> hat.ndi", sol, verbose=verbose, indent=indent+1)
             # print(sol$hat.pdi)
             sol$hat.ndi <- round_sum(t(t(sol$hat.pdi) * sol$hat.ci))
-            sol$hat.ndi <- rectify.degree.counts(sol$hat.ndi, sol$hat.ni, sol$hat.ci)
+            sol$hat.ndi <- rectify.degree.counts(sol$hat.ndi, sol$hat.ni, sol$hat.ci, verbose=FALSE)
             
             # update pdi after rounding (when divisible, else we keep the theorical version)
             indices <- which(sol$hat.ci!=0)
@@ -726,7 +742,7 @@ propagate.direct <- function(sol,case, verbose=FALSE, indent=1) {
             
             sol <- info.rule("hat.pdj, hat.cj -> hat.ndj", sol, verbose=verbose, indent=indent+1)
             sol$hat.ndj <- round_sum(t(t(sol$hat.pdj) * sol$hat.cj))
-            sol$hat.ndj <- rectify.degree.counts(sol$hat.ndj, sol$hat.nj, sol$hat.cj)   
+            sol$hat.ndj <- rectify.degree.counts(sol$hat.ndj, sol$hat.nj, sol$hat.cj, verbose=FALSE)   
 
             # update pdi after rounding (when divisible, else we keep the theorical version)
             indices <- which(sol$hat.cj!=0)
@@ -1608,6 +1624,8 @@ matching.arbitrate <- function(case,
     case$masks$mask.fj.all <- as.integer(rowSums(case$masks$mask.pij.all) > 0)
     case$masks$mask.di.all <- case$masks$mask.di * case$masks$mask.fi.all
     case$masks$mask.dj.all <- case$masks$mask.dj * case$masks$mask.fj.all
+
+    #print(case$masks)
 
     if (verbose) 
         cat("\nstarting the resolution of the case\n")
