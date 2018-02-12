@@ -982,18 +982,25 @@ detect.problems <- function(sol, case, fail=TRUE, verbose=FALSE, indent=1) {
                                         verbose=verbose, indent=indent+1)
     }
 
-    # TODO TODO TODO reactivate ???
     # vsum(pdi) = 1
-    # if (!is.null(sol$hat.pdi)) {
-    #     for (i in 1:ncol(sol$hat.pdi)) {
-    #         problems <- problems + assert.equal(1, sum(sol$hat.pdi[,i]), paste("sum(hat.pdi[",i,"])=1",sep=""), verbose=verbose, indent=indent+1)       
-    #     }
-    # } 
-    # if (!is.null(sol$hat.pdj)) {
-    #     for (i in 1:ncol(sol$hat.pdj)) {
-    #         problems <- problems + assert.equal(1, sum(sol$hat.pdj[,i]), paste("sum(hat.pdj[",i,"])=1",sep=""), verbose=verbose, indent=indent+1)       
-    #     }
-    # } 
+    if (!is.null(sol$hat.pdi)) {
+        for (i in 1:ncol(sol$hat.pdi)) {
+            problems <- problems + assert.equal(
+                                        1, 
+                                        sum(sol$hat.pdi[,i]), 
+                                        paste("sum(hat.pdi[",i,"])=1",sep=""), 
+                                        verbose=verbose, indent=indent+1)       
+        }
+    } 
+    if (!is.null(sol$hat.pdj)) {
+        for (i in 1:ncol(sol$hat.pdj)) {
+            problems <- problems + assert.equal(
+                                        1, 
+                                        sum(sol$hat.pdj[,i]), 
+                                        paste("sum(hat.pdj[",i,"])=1",sep=""), 
+                                        verbose=verbose, indent=indent+1)       
+        }
+    } 
 
     # sum(hat.ndi) = hat.ci 
     if (!is.null(sol$hat.ndi) && !is.null(sol$hat.ci)) {
@@ -1236,26 +1243,6 @@ resolve.missing.chain <- function(sol, chain, case,
         explored$investigated.var.name <- hypothesis_name
         explored$hypothesis <- setdiff(chain,tested_variables)
 
-        # let's add the hypothesis we know all the other ones
-        # for (other.var.hat.name in setdiff(chain,c(var.hat.name))) {
-
-        #     var.name <- substr(other.var.hat.name, 5, nchar(other.var.hat.name))
-
-        #     cat("start with the hypothesis", other.var.hat.name, "=", var.name, "\n")
-
-        #     # TODO
-        #     if (other.var.hat.name == "hat.di") { sol.hyp[[other.var.hat.name]] <- case$inputs$di }
-        #     else if (other.var.hat.name == "hat.dj") { sol.hyp[[other.var.hat.name]] <- case$inputs$dj }
-        #     else if (other.var.hat.name == "hat.fi") { sol.hyp[[other.var.hat.name]] <- case$stats$fi }
-        #     else if (other.var.hat.name == "hat.fj") { sol.hyp[[other.var.hat.name]] <- case$stats$fj }
-        #     else if (other.var.hat.name == "hat.pij") { sol.hyp[[other.var.hat.name]] <- case$inputs$pij$data }
-        #     else if (other.var.hat.name == "hat.nA") { sol.hyp[[other.var.hat.name]] <- nA }
-        #     else if (other.var.hat.name == "hat.nB") { sol.hyp[[other.var.hat.name]] <- nB }
-
-        #     else { cat("/!\\ cannot create such an hypothesis\n") }
-
-        # }
-
         for (var.hat.name in tested_variables) {
 
             if (var.hat.name == "hat.di") { sol.hyp[[var.hat.name]] <- case$inputs$di * case$masks$mask.di.all }
@@ -1291,27 +1278,14 @@ resolve.missing.chain <- function(sol, chain, case,
                     })     
         
         # so know we have an estimation
-        #candidate.sol <- sol.hyp[[var.hat.name]]
-        #explored$value <- candidate.sol
-
         if (!is.null(sol.hyp)) {
             if (!all(chain %in% names(sol.hyp))) {
                 # we cannot infer anything from this hypothesis; let's ignore it
                 if (verbose) {
-                    cat("\t\t\twe cannot infer all the required variables.\n")
+                    cat("\t\t\tthese hypothesis do not enable the resolution of all the variables.\n")
                 }
             } else {
                 
-                #print(sol.hyp[[var.hat.name]])
-
-
-                # let's come back to the original problem
-                #sol.hyp <- sol
-                # add our solution
-                #sol.hyp[[var.hat.name]] <- candidate.sol
-                # propagate on this basis
-                #sol.hyp <- propagate.direct(sol.hyp, case)
-
                 # do we achieve to solve the problem on this basis ?
                 nb.problems <- detect.problems(sol.hyp, case, fail=FALSE, verbose=verbose, indent=3)
 
@@ -1324,7 +1298,6 @@ resolve.missing.chain <- function(sol, chain, case,
                     if (verbose) {
                         cat("\t\t\twe found a valid solution which provides: ", paste.known(sol.hyp),"\n")
                     }
-                    #print(sol.hyp)
                     sol.hyp <- quantify.errors(sol.hyp, case, nA, nB)
                     explored$sol <- sol.hyp
                     solutions[[length(solutions)+1]] <- explored
@@ -1350,11 +1323,7 @@ resolve.missing.chain <- function(sol, chain, case,
         if (verbose)
             cat("\t\tfound ",length(solutions)," solutions, we have to select the best according to weights\n")
 
-        # TODO pls 
-        #print("TODO select the best? a mix ?")
-        
         # create a vector with errors
-
         val.or.0 <- function(x) {
             if (is.null(x)) {
                 return(0)
@@ -1456,16 +1425,6 @@ resolve <- function(sol, case,
     # direct propagation of what we know
     sol.tmp <- propagate.direct(sol, case, verbose=verbose)
 
-    # if (verbose) {
-    #     cat("resolving the case based on known: ",paste(names(sol.tmp),collapse=","),"\n",sep="")
-    # }
-
-    # detect what to solve 
-
-    #complete <- c("hat.nA", "hat.fi", "hat.ni", "hat.di", "hat.pij", "hat.nij", "hat.dj", "hat.fj", "hat", "mse.di", "mse.pij","mse.dj","mse.fj","err.nB")
-
-    #chain.p <- c("hat.fi", "hat.di", "hat.pij", "hat.dj", "hat.fj")
-
     missing.chains <- detect.missing.chains(sol.tmp)
     while (length(missing.chains) > 0) {
 
@@ -1484,8 +1443,6 @@ resolve <- function(sol, case,
             missing.chains <- detect.missing.chains(sol.tmp)
         }
 
-        #cat("still ",length(missing.chains)," missing\n")
-        #print(missing.chains)
     }
 
 
@@ -1689,15 +1646,15 @@ matching.arbitrate <- function(case,
     
 
     sol <- list()
-    if (nu.A == 0)  { sol$hat.nA <- nA }
-    if (phi.A == 0) { sol$hat.fi <- normalise(case$stats$fi * case$masks$mask.fi.all) }
+    if (nu.A == 0)  {   sol$hat.nA <- nA }
+    if (phi.A == 0) {   sol$hat.fi <- normalise(case$stats$fi * case$masks$mask.fi.all) }
     if (delta.A == 0) { sol$hat.di <- case$inputs$di * case$masks$mask.di.all }
 
-    if (nu.B == 0) { sol$hat.nB <- nB }
-    if (phi.B == 0) { sol$hat.fj <- normalise(case$stats$fj * case$masks$mask.fj.all) }
+    if (nu.B == 0) {    sol$hat.nB <- nB }
+    if (phi.B == 0) {   sol$hat.fj <- normalise(case$stats$fj * case$masks$mask.fj.all) }
     if (delta.B == 0) { sol$hat.dj <- case$inputs$dj * case$masks$mask.dj.all }
 
-    if (gamma == 0) { sol$hat.pij <- normalise(case$inputs$pij$data * case$masks$mask.pij.all) }
+    if (gamma == 0) {   sol$hat.pij <- normalise(case$inputs$pij$data * case$masks$mask.pij.all) }
 
     if (verbose) {
         cat("\taccording to user weights, we already know: ",paste(names(sol),collapse=","),"\n",sep="")
@@ -1708,6 +1665,7 @@ matching.arbitrate <- function(case,
 
     sol <- resolve(sol, case, nA, nB, nu.A, phi.A, delta.A, nu.B, phi.B, delta.B, gamma, verbose=verbose)
 
+    # ensure all the variables found a solution during the process
      if (!all(c(
             "hat.pdi","hat.pdj",
             "hat.ci","hat.cj",
