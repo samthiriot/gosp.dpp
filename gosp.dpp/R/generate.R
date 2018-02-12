@@ -13,7 +13,6 @@ NULL
 #'
 #' The actual sampling is entirely delegated to the \link{dplyr}{sample_n} function.
 #' 
-#' TODO ensure it is able to load exactly the same entities  
 #'
 #' @param sample the sample to use for loading 
 #' @param count.required the count of entities expected as a result 
@@ -100,11 +99,6 @@ matching.generate.copy_population <- function(n, sample, verbose=FALSE) {
 #'
 matching.generate.add_degree <- function(samp, pop, n, ndx, verbose) {
 
-	# we have to reweight the distribution of degrees
-	# TODO do that earlier at discretisation tile
-
-    # cat("adding degress based on ndx", "\n")
-    # print(ndx)
 
 	# add the column with NA
 	pop$target.degree <- rep.int(NA, nrow(pop))
@@ -154,11 +148,6 @@ matching.generate.add_degree <- function(samp, pop, n, ndx, verbose) {
 			warning(paste("oops, not created enough slots here:",totalForDegree," for ",n[name]," expected; ",
 					"defining the last ",length(criteriaRaw), "to degree ",lastDegreeNonNull,"\n",sep=""))
 
-			# TODO ???
-			# criteriaRaw <- which( (pop[colname] == code) & is.na(pop["target.degree"]) )
-			
-			# pop[criteriaRaw,"target.degree"] <- lastDegreeNonNull
-		
 		}
 		
 	}
@@ -217,9 +206,6 @@ matching.generate <- function(case, sample.A, sample.B, verbose=FALSE) {
 			id.B=c()
 			)
 
-	# remove the weight columns (which have no meaning here anymore)
-    # TODO !!!
-
     if (verbose)
     	cat("\nadding target degrees for population A...\n")
 	# add columns for target degree 
@@ -240,13 +226,10 @@ matching.generate <- function(case, sample.A, sample.B, verbose=FALSE) {
 	for (cA in colnames(case$gen$hat.nij)) {
 
 		k2v.A <- extract_attributes_values(cA)
-		#codeA <- sample.A$dictionary$encoding[[case$inputs$pij$Ai]][[cA]]
-
+		
 		for (cB in rownames(case$gen$hat.nij)) {
 
 			k2v.B <- extract_attributes_values(cB)
-
-			#codeB <- sample.B$dictionary$encoding[[case$inputs$pij$Bi]][[cB]]
 
 			count.required <- case$gen$hat.nij[cB,cA] 
 
@@ -263,8 +246,6 @@ matching.generate <- function(case, sample.A, sample.B, verbose=FALSE) {
 
 				pass.remaining <- pass.remaining - 1
 
-				#print(cat("should find ", count.required, "for ", case$inputs$pij$Ai, "=", cA, "and", cB))
-
 				criteriaAraw <- which( targetA$current.degree < targetA$target.degree )
 				for (k in names(k2v.A)) {
 		        	criteriaAraw <- intersect(criteriaAraw, which(targetA[k] == k2v.A[[k]]))
@@ -278,31 +259,14 @@ matching.generate <- function(case, sample.A, sample.B, verbose=FALSE) {
 				available.degree.A <- max(targetA[criteriaAraw,"target.degree"] - targetA[criteriaAraw,"current.degree"])
 				available.degree.B <- max(targetB[criteriaBraw,"target.degree"] - targetB[criteriaBraw,"current.degree"])
 
-				#print(cat("\tavailable degree A", available.degree.A, "available.degree.B", available.degree.B))
-
 				# first pass for largely connectable ones
-				if (available.degree.A > 1) {
-					#print("\tdoing a pass for high degree availability (A) first")
+				if ( (available.degree.A > 1) | (available.degree.B > 1) ) {
 					pass.remaining <- 1
-					
-					#criteriaAraw <- which( (targetA[case$inputs$pij$Ai] == codeA) & (targetA$current.degree+1 < targetA$target.degree) )
-					
-				}
-				if (available.degree.B > 1) {
-					#print("\tdoing a pass for high degree availability (B) first")
-					pass.remaining <- 1
-		
-					#criteriaBraw <- which( (targetB[case$inputs$pij$Bi] == codeB) & (targetB$current.degree+1 < targetB$target.degree) )		
 				}
 
 				count.found <- min(length(criteriaAraw), length(criteriaBraw), count.required)
 
-				# TODO keep it ???
-				#print(targetA[criteriaAraw,"target.degree"]-targetA[criteriaAraw,"current.degree"])
-				# cat("\tfound", length(criteriaAraw), "in A and", length(criteriaBraw), "in B")
-				# cat("\t=> creating", count.found, "links\n")
-				
-				criteriaA <- sample(criteriaAraw, count.found) #, prob=targetA[criteriaAraw,"target.degree"]-targetA[criteriaAraw,"current.degree"]
+				criteriaA <- sample(criteriaAraw, count.found)
 				criteriaB <- sample(criteriaBraw, count.found)
 
 				# add the links
@@ -310,50 +274,17 @@ matching.generate <- function(case, sample.A, sample.B, verbose=FALSE) {
 				links.toadd.B <- c(links.toadd.B, targetB[criteriaB,"id.B"])
 
 				# update the degree
-
-				#print(head(targetA[criteriaA,"current.degree"], n=50))
 				targetA[criteriaA,"current.degree"] <- targetA[criteriaA,"current.degree"] + 1
-				#print(head(targetA[criteriaA,"current.degree"], n=50))
-
 				targetB[criteriaB,"current.degree"] <- targetB[criteriaB,"current.degree"] + 1
-
-				#print(targetA[criteriaA,"current.degree"])
 
 				count.required <- count.required - count.found
 			}
 
 
 			if ( count.required > 0)  {
-
 				warning(paste("\t/!\\ failed to create ", count.required," link(s) ",
 						"for ",case$inputs$pij$Ai, "=", cA, 
 						"\tand B:\t",  case$inputs$pij$Bi, "=", cB,"\n",sep=""))
-
-				# for debugging purpose
-				# should not be necessary anymore as there is no generation error possibility anymore.
-
-				# if (count.required > 1) {
-				# 	# TODO for pop B ?
-				# 	criteriaAllAvailable <- which(targetA$current.degree < targetA$target.degree)
-				# 	actualCount <- sum(targetA[criteriaAllAvailable,"target.degree"]-targetA[criteriaAllAvailable,"current.degree"])
-
-				# 	actualCountUs <- sum(targetA[criteriaAraw,"target.degree"]-targetA[criteriaAraw,"current.degree"])
-
-
-				# 	cat("not enough individuals found in the population A ", actualCountUs," to fullfill the demand ", count.required,
-				# 				". We created ", nni[cA], " entities for", sum(case$gen$hat.nij[,cA]), " required for matching" )
-				# 	cat("we were supposed to match based on ")
-				# 	print(case$gen$hat.nij)
-				# 	cat("with degrees being ")
-				# 	print(nni)
-
-				# 	cat("this total of slots are available:",actualCount)
-
-				# 	cat("but only this total of slots are available for us:",actualCountUs)
-
-				# 	print("population A is currently")
-				# 	print(head(targetA[criteriaAraw,], n=100))
-				# }
 			}
 
 			links.toadd <- data.frame(
@@ -366,14 +297,7 @@ matching.generate <- function(case, sample.A, sample.B, verbose=FALSE) {
 
 	}
 
-	# compute degree (?)
-
-	# print("should add links A")
-	#print(links)
-
-
 	# add a column for current degree
-
 	res <- case
 	res$pop <- list(A=targetA, B=targetB, links=links)
     class(res$pop) <- "dpp_population" 

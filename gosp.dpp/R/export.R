@@ -13,8 +13,7 @@
 #' @export
 #'
 #' @examples
-#' # TODO loading of pop
-#' # load the igraph library
+#'
 #' library(igraph)
 #' # generate a population based on sample case 1
 #' data(cas1)
@@ -46,10 +45,7 @@
 #' # ... view all attributes
 #' vertex_attr(g)
 #'
-#' # detect communities 
-#' # TODO !
-#'
-# @describeIn as.igraph exports a generation result as an igraph graph
+# TODO keep ? remove ? @describeIn as.igraph exports a generation result as an igraph graph
 #'
 #' @importFrom igraph graph_from_edgelist 
 #' @importFrom igraph set_vertex_attr

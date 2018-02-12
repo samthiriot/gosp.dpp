@@ -51,8 +51,6 @@ print.dpp_result <- function(x,...) {
     print(x$measure)
 }
 
-# TODO clearup that !
-#
 #' Measures the matching probabilities from a generated population
 #'
 #' Measures the matching probabilities from a generation result. 
@@ -113,8 +111,6 @@ measure.pij <- function(pop, sample.A, sample.B, pij, mix.pij, A2l2B, verbose=FA
 
     hat.pij <- hat.nij / nrow(pop$links)
 	
-    #print(pij$data-hat.pij)
-
 	list( 
 			hat.nij=hat.nij, 
 			hat.pij=hat.pij, 
@@ -142,7 +138,6 @@ measure.ci_fi <- function(target.ni, orig.fi, colname, dico, pop) {
 
     hat.ni <- c()
     for (codeA in dico$encoding[[colname]]) {
-        #codeA <- dico$encoding[[colname]][[cA]]
         hat.ni <- c(hat.ni, nrow(pop[which(pop[colname]==codeA),]))
     }
 
@@ -190,10 +185,7 @@ measure.pdn <- function(dico, pdn.orig, sample, verbose=FALSE) {
 			hat.pdn[x,codeA] <- count 
 			total <- total + count 
 		}
-		# print(hat.pdn[,codeA])
 		hat.pdn[,codeA] <- hat.pdn[,codeA] / total 
-		# print(hat.pdn[,codeA])
-		
 	}
 
 	list(
@@ -225,7 +217,6 @@ merge_links <- function(pop) {
 	A2l2B
 }
 
-# TODO a given class ?
 #' Measures the characteristics of a generated population
 #'
 #' Measures the characteristics of a generated population:
@@ -255,20 +246,14 @@ measure.population <- function(case, pop, sample.A, sample.B, pij, verbose=FALSE
 	res <- list(
 				nL=nrow(A2l2B),
 				
-				#ni=measure.ni_pi(case$gen$ni, case$stats$pi, case$gen$hat.pi, case$inputs$pij$Ai, case$inputs$sample.A$dictionary, A2l2B),
-				#nj=measure.ni_pi(case$gen$nj, case$stats$pj, case$gen$hat.pj, case$inputs$pij$Bi, case$inputs$sample.B$dictionary, A2l2B),
-				
                 fi=measure.ci_fi(case$gen$hat.ni, case$stats$fi, case$inputs$pij$Ai, case$inputs$sample.A$dictionary, pop$A),
                 fj=measure.ci_fi(case$gen$hat.nj, case$stats$fj, case$inputs$pij$Bi, case$inputs$sample.B$dictionary, pop$B),
                 
-				# TODO add mix
 				pdi=measure.pdn(case$inputs$sample.A$dictionary, case$inputs$pdi, pop$A),
 				pdj=measure.pdn(case$inputs$sample.B$dictionary, case$inputs$pdj, pop$B),
 
 				pij=measure.pij(pop, sample.A, sample.B, pij, case$gen$hat.pij, A2l2B, verbose)
 				)
-
-	#print(res)
 
 	res
 

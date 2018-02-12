@@ -379,10 +379,7 @@ propagate.direct <- function(sol,case, verbose=FALSE, indent=1) {
     if (is.null(sol$inference)) {
         sol$inference <- list()
     }
-    # TODO mask
-    # TODO normalize
 
-    # TODO should detect when info are not coherent (case if too many zeros !)
     while (TRUE) {
 
         changed <- FALSE
@@ -464,9 +461,9 @@ propagate.direct <- function(sol,case, verbose=FALSE, indent=1) {
             changed <- TRUE
         }
 
-        # TODO probably not true !!!
+        # based on ni and pij (either defined, or from inputs)
         if ( 
-            ("hat.ni" %in% names(sol)) #&& ("hat.pij" %in% names(sol)) 
+            ("hat.ni" %in% names(sol))
             && (!"hat.nij" %in% names(sol))
             ) {
             pij <- if ("hat.pij" %in% names(sol)) sol$hat.pij else case$inputs$pij$data
@@ -481,7 +478,7 @@ propagate.direct <- function(sol,case, verbose=FALSE, indent=1) {
             changed <- TRUE
         }
         if ( 
-            ("hat.nj" %in% names(sol)) #&& ("hat.pij" %in% names(sol)) 
+            ("hat.nj" %in% names(sol))
             && (!"hat.nij" %in% names(sol))
             ) {
             pij <- if ("hat.pij" %in% names(sol)) sol$hat.pij else case$inputs$pij$data
@@ -1034,9 +1031,7 @@ detect.problems <- function(sol, case, fail=TRUE, verbose=FALSE, indent=1) {
                                 verbose=verbose, indent=indent+1)  
     }
 
-    # TODO ? min max di dj
     if (!is.null(sol$hat.di)) {
-        #print("TESTING DI", verbose=verbose
         problems <- problems + assert.equal(
                                 FALSE, 
                                 any(sol$hat.di < case$inputs$min.di), 
@@ -1049,7 +1044,6 @@ detect.problems <- function(sol, case, fail=TRUE, verbose=FALSE, indent=1) {
                                 verbose=verbose, indent=indent+1)     
     }
     if (!is.null(sol$hat.dj)) {
-        #print("TESTING DJ", verbose=verbose
         problems <- problems + assert.equal(
                                 FALSE, 
                                 any(sol$hat.dj < case$inputs$min.dj), 
