@@ -1513,38 +1513,47 @@ quantify.errors <- function(sol, case, nA, nB) {
     # MSE fi
     if (!is.null(sol$hat.fi)) {
        sol$mse.fi <- mean( ( sol$hat.fi - case$stats$fi)^2  )
+       sol$rmse.fi <- sqrt(sol$mse.fi)
     }
     if (!is.null(sol$hat.fj)) {
         sol$mse.fj <- mean( ( sol$hat.fj - case$stats$fj)^2  )
+        sol$rmse.fj <- sqrt(sol$mse.fj)
     }
 
     # MSE di
     if (!is.null(sol$hat.di)) {
         sol$mse.di <- mean( ( sol$hat.di - case$inputs$di)^2  )
+        sol$rmse.di <- sqrt(sol$mse.di)
     }
     if (!is.null(sol$hat.dj)) {
         sol$mse.dj <- mean( ( sol$hat.dj - case$inputs$dj)^2  )
+        sol$rmse.dj <- sqrt(sol$mse.dj)
     }
 
     # MSE pdi 
     if (!is.null(sol$hat.pdi)) {
         sol$mse.pdi <- mean( ( sol$hat.pdi - case$inputs$pdi$data)^2  )
+        sol$rmse.pdi <- sqrt(sol$mse.pdi)
     }
     if (!is.null(sol$hat.pdj)) {
         sol$mse.pdj <- mean( ( sol$hat.pdj - case$inputs$pdj$data)^2  )
+        sol$rmse.pdj <- sqrt(sol$mse.pdj)
     }
 
     # MSE pij
     if (!is.null(sol$hat.pij)) {
         sol$mse.pij <- mean( ( sol$hat.pij - case$inputs$pij$data )^2  )
+        sol$rmse.pij <- sqrt(sol$mse.pij)
     }
 
     # error n
     if (!is.null(sol$hat.nA)) {
         sol$error.nA <- abs( sol$hat.nA - nA )
+        sol$rmse.nA <- sol$error.nA
     }
     if (!is.null(sol$hat.nB)) {
         sol$error.nB <- abs( sol$hat.nB - nB )
+        sol$rmse.nB <- sol$error.nB
     }
 
     sol
@@ -1762,8 +1771,8 @@ print.dpp_resolved <- function(x,...) {
     }
     disperr <- function(name,x) {
         subname <- substr(name,5,nchar(name))
-        msename <- paste("mse.",subname,sep="")
-        cat("$",name," [MSE ",x$gen[[msename]],"]:\n",sep="")
+        msename <- paste("rmse.",subname,sep="")
+        cat("$",name," [RMSE ",x$gen[[msename]],"]:\n",sep="")
         print(x$gen[[name]])
         cat("\n")
     }

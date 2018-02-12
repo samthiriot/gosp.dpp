@@ -190,6 +190,8 @@ test_that("constraints: A free (case 1)", {
 							nu.A=1, phi.A=1, delta.A=1, gamma=1, delta.B=0, phi.B=0, nu.B=0, 
 							verbose=FALSE)
 
+	print(disc)
+	
 	expect_is(disc, "dpp_resolved")
 
 	expect_false(is.null(disc$gen$hat.nA))
