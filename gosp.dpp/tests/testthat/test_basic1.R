@@ -181,7 +181,7 @@ test_that("constraints: phi.A, gamma (free on A and B)", {
 context("tests on case 1 with the exploration of several hypothesis")
 
 
-test_that("constraints: A free (case 1)", {
+test_that("constraints: A free (case 1) with equal weights", {
 	
 	case.prepared <- matching.prepare(cas1$sample.A, cas1$sample.B, cas1$pdi, cas1$pdj, cas1$pij)
 
@@ -190,8 +190,8 @@ test_that("constraints: A free (case 1)", {
 							nu.A=1, phi.A=1, delta.A=1, gamma=1, delta.B=0, phi.B=0, nu.B=0, 
 							verbose=FALSE)
 
-	print(disc)
-	
+	#print(disc)
+
 	expect_is(disc, "dpp_resolved")
 
 	expect_false(is.null(disc$gen$hat.nA))
@@ -205,10 +205,64 @@ test_that("constraints: A free (case 1)", {
 	expect_false(is.null(disc$gen$hat.ndi))
 	expect_false(is.null(disc$gen$hat.ndj))
 
-	expect_equal(case.prepared$stats$fj, disc$gen$hat.fj, tolerance=1e-5)
-	expect_equal(unname(case.prepared$inputs$dj), unname(disc$gen$hat.dj), tolerance=1e-5)
+	# based on how the algo is defined and how the resolution is weighted,
+	# we expect the selected solution to be one with hat.fi=fi and hat.di=di
+	expect_equal(case.prepared$stats$fi, disc$gen$hat.fi, tolerance=1e-5)
+	expect_equal(case.prepared$stats$pdi, unname(disc$gen$hat.pdi$data), tolerance=1e-5)
 	
+	# we know these elements are wrong:
+	# ... the error has to be transfered into hat.pij
+	expect_false(all(TRUE==all.equal(cas1$pij$data, disc$gen$hat.pij, tolerance=1e-5)))
+
+	# this has to be because the weight = 0
+	expect_equal(unname(case.prepared$inputs$dj), unname(disc$gen$hat.dj), tolerance=1e-5)
+	expect_equal(case.prepared$stats$fj, disc$gen$hat.fj, tolerance=1e-5)
+	expect_equal(40000, disc$gen$hat.nB, tolerance=1)
+
 })
+
+
+test_that("constraints: A free (case 1) weighting nu.A", {
+	
+	case.prepared <- matching.prepare(cas1$sample.A, cas1$sample.B, cas1$pdi, cas1$pdj, cas1$pij)
+
+	disc <- matching.arbitrate(case.prepared, 
+							nA=50000,nB=40000, 
+							nu.A=1, phi.A=10, delta.A=10, gamma=10, delta.B=0, phi.B=0, nu.B=0, 
+							verbose=FALSE)
+
+	#print(disc)
+
+	expect_is(disc, "dpp_resolved")
+
+	expect_false(is.null(disc$gen$hat.nA))
+	expect_false(is.null(disc$gen$hat.nB))
+	expect_false(is.null(disc$gen$hat.di))
+	expect_false(is.null(disc$gen$hat.dj))
+	expect_false(is.null(disc$gen$hat.ci))
+	expect_false(is.null(disc$gen$hat.cj))
+	expect_false(is.null(disc$gen$hat.pij))
+	expect_false(is.null(disc$gen$hat.nij))
+	expect_false(is.null(disc$gen$hat.ndi))
+	expect_false(is.null(disc$gen$hat.ndj))
+
+	# based on how the algo is defined and how the resolution is weighted,
+	# we expect the selected solution to be one with hat.nA=nA, hat.fi=fi 
+	expect_equal(case.prepared$stats$fi, disc$gen$hat.fi, tolerance=1e-5)
+	expect_equal(50000, disc$gen$hat.nA, tolerance=1)
+	# also pdi is respected, as a side effect (fi is respected, and pij is free, so pdi can be preserved)
+	expect_equal(case.prepared$stats$pdi, unname(disc$gen$hat.pdi$data), tolerance=1e-5)
+
+	# this cannot be true, the error has to be reported into di and pij
+	expect_false(all(TRUE == all.equal(cas1$pij$data, disc$gen$hat.pij, tolerance=1e-5)))
+
+	# this has to be because the weight = 0
+	expect_equal(unname(case.prepared$inputs$dj), unname(disc$gen$hat.dj), tolerance=1e-5)
+	expect_equal(case.prepared$stats$fj, disc$gen$hat.fj, tolerance=1e-5)
+	expect_equal(40000, disc$gen$hat.nB, tolerance=1)
+
+})
+
 
 test_that("constraints: nothing (totally free - long chain)", {
 	

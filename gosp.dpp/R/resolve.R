@@ -1059,7 +1059,7 @@ detect.problems <- function(sol, case, fail=TRUE, verbose=FALSE, indent=1) {
         if (problems > 0) {
             cat(rep("\t",times=indent),"=> the solution is NOT consistent: ",problems," problems detected\n", sep="")
         } else {
-            cat(rep("\t",times=indent),"=> the solution is consistent\n")
+            cat(rep("\t",times=indent),"=> the solution is consistent\n", sep="")
         }
     }
     if (fail && (problems > 0)) {
@@ -1372,20 +1372,22 @@ resolve.missing.chain <- function(sol, chain, case,
             # print(names(s$sol))
 
             errors <- c(
-                        val.or.0(s$sol$error.nA), 
-                        val.or.0(s$sol$mse.fi), 
-                        val.or.0(s$sol$mse.di), 
-                        val.or.0(s$sol$mse.pij), 
-                        val.or.0(s$sol$mse.dj), 
-                        val.or.0(s$sol$mse.fj), 
-                        val.or.0(s$sol$error.nB)
+                        val.or.0(s$sol$nrmse.nA), 
+                        val.or.0(s$sol$nrmse.fi), 
+                        val.or.0(s$sol$nrmse.di), 
+                        val.or.0(s$sol$nrmse.pij), 
+                        val.or.0(s$sol$nrmse.dj), 
+                        val.or.0(s$sol$nrmse.fj), 
+                        val.or.0(s$sol$nrmse.nB)
                         )
 
+            indices_weights_not_null <- which(weights != 0)
+
             # print("errors for this sol")
-            # print(errors)
+            # print(errors[indices_weights_not_null])
             # print("weighted")
-            # print(errors * weights)
-            cumulated.errors[i] <- sum(errors * weights)
+            # print(errors[indices_weights_not_null] / weights[indices_weights_not_null])
+            cumulated.errors[i] <- sum(errors[indices_weights_not_null] / weights[indices_weights_not_null])
             
         }
         if (verbose)
@@ -1512,48 +1514,56 @@ quantify.errors <- function(sol, case, nA, nB) {
     # measure errors
     # MSE fi
     if (!is.null(sol$hat.fi)) {
-       sol$mse.fi <- mean( ( sol$hat.fi - case$stats$fi)^2  )
-       sol$rmse.fi <- sqrt(sol$mse.fi)
+        sol$mse.fi <- mean( ( sol$hat.fi - case$stats$fi)^2  )
+        sol$rmse.fi <- sqrt(sol$mse.fi)
+        sol$nrmse.fi <- sol$rmse.fi
     }
     if (!is.null(sol$hat.fj)) {
         sol$mse.fj <- mean( ( sol$hat.fj - case$stats$fj)^2  )
         sol$rmse.fj <- sqrt(sol$mse.fj)
+        sol$nrmse.fj <- sol$rmse.fj
     }
 
     # MSE di
     if (!is.null(sol$hat.di)) {
         sol$mse.di <- mean( ( sol$hat.di - case$inputs$di)^2  )
         sol$rmse.di <- sqrt(sol$mse.di)
+        sol$nrmse.di <- sol$rmse.di
     }
     if (!is.null(sol$hat.dj)) {
         sol$mse.dj <- mean( ( sol$hat.dj - case$inputs$dj)^2  )
         sol$rmse.dj <- sqrt(sol$mse.dj)
+        sol$nrmse.dj <- sol$rmse.dj
     }
 
     # MSE pdi 
     if (!is.null(sol$hat.pdi)) {
         sol$mse.pdi <- mean( ( sol$hat.pdi - case$inputs$pdi$data)^2  )
         sol$rmse.pdi <- sqrt(sol$mse.pdi)
+        sol$nrmse.pdi <- sol$rmse.pdi
     }
     if (!is.null(sol$hat.pdj)) {
         sol$mse.pdj <- mean( ( sol$hat.pdj - case$inputs$pdj$data)^2  )
         sol$rmse.pdj <- sqrt(sol$mse.pdj)
+        sol$nrmse.pdj <- sol$rmse.pdj
     }
 
     # MSE pij
     if (!is.null(sol$hat.pij)) {
         sol$mse.pij <- mean( ( sol$hat.pij - case$inputs$pij$data )^2  )
         sol$rmse.pij <- sqrt(sol$mse.pij)
+        sol$nrmse.pij <- sol$rmse.pij
     }
 
     # error n
     if (!is.null(sol$hat.nA)) {
         sol$error.nA <- abs( sol$hat.nA - nA )
         sol$rmse.nA <- sol$error.nA
+        sol$nrmse.nA <- sol$rmse.nA / max(sol$hat.nA, nA)
     }
     if (!is.null(sol$hat.nB)) {
         sol$error.nB <- abs( sol$hat.nB - nB )
-        sol$rmse.nB <- sol$error.nB
+        sol$rmse.nB <- sol$error.nB / max(sol$hat.nB, nB)
     }
 
     sol
@@ -1777,7 +1787,7 @@ print.dpp_resolved <- function(x,...) {
         cat("\n")
     }
 
-    cat("$hat.nA: ",x$gen$hat.nA," [err ",x$gen$error.nA,"]\n",sep="")
+    cat("$hat.nA: ",x$gen$hat.nA," [err ",x$gen$error.nA,"]\n\n",sep="")
 
     disperr("hat.fi",x)
     disp("hat.ci",x)
