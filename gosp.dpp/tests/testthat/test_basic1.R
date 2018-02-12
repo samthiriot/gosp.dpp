@@ -95,7 +95,10 @@ test_that("constraints: nA, phi.A, delta.B, phi.B, nu.B", {
 	
 	case.prepared <- matching.prepare(cas1$sample.A, cas1$sample.B, cas1$pdi, cas1$pdj, cas1$pij)
 
-	disc <- matching.arbitrate(case.prepared, nA=50000,nB=40000, nu.A=0, phi.A=0, delta.A=1, gamma=1, delta.B=0, phi.B=0, nu.B=0)
+	disc <- matching.arbitrate(case.prepared, 
+								nA=50000, nB=40000, 
+								nu.A=0, phi.A=0, delta.A=1, gamma=1, delta.B=0, phi.B=0, nu.B=0
+								)
 
 	expect_is(disc, "dpp_resolved")
 
@@ -112,7 +115,10 @@ test_that("constraints: phi.A,phi.B, nu.B", {
 	
 	case.prepared <- matching.prepare(cas1$sample.A, cas1$sample.B, cas1$pdi, cas1$pdj, cas1$pij)
 
-	disc <- matching.arbitrate(case.prepared, nA=50000,nB=40000, nu.A=1, phi.A=0, delta.A=1, gamma=1, delta.B=1, phi.B=0, nu.B=0)
+	disc <- matching.arbitrate(case.prepared, 
+								nA=50000, nB=40000, 
+								nu.A=1, phi.A=0, delta.A=1, gamma=1, delta.B=1, phi.B=0, nu.B=0
+								)
 
 	expect_is(disc, "dpp_resolved")
 
@@ -127,7 +133,10 @@ test_that("constraints: phi.A, phi.B, nu.B", {
 	
 	case.prepared <- matching.prepare(cas1$sample.A, cas1$sample.B, cas1$pdi, cas1$pdj, cas1$pij)
 
-	disc <- matching.arbitrate(case.prepared, nA=50000,nB=40000, nu.A=1, phi.A=0, delta.A=1, gamma=1, delta.B=1, phi.B=0, nu.B=0)
+	disc <- matching.arbitrate(case.prepared, 
+								nA=50000, nB=40000, 
+								nu.A=1, phi.A=0, delta.A=1, gamma=1, delta.B=1, phi.B=0, nu.B=0
+								)
 
 	expect_is(disc, "dpp_resolved")
 
@@ -142,7 +151,10 @@ test_that("constraints: phi.A, delta.A (free on matching and B)", {
 	
 	case.prepared <- matching.prepare(cas1$sample.A, cas1$sample.B, cas1$pdi, cas1$pdj, cas1$pij)
 
-	disc <- matching.arbitrate(case.prepared, nA=50000, nB=40000, nu.A=0, phi.A=0, delta.A=0, gamma=1, delta.B=1, phi.B=1, nu.B=1)
+	disc <- matching.arbitrate(case.prepared, 
+								nA= 50000, nB=40000, 
+								nu.A=0, phi.A=0, delta.A=0, gamma=1, delta.B=1, phi.B=1, nu.B=1
+								)
 
 	expect_is(disc, "dpp_resolved")
 
@@ -360,9 +372,6 @@ test_that("constraints: pdi with zero (p(di=0)=1.0)", {
 	expect_false(is.null(disc$gen$hat.nB))
 	expect_false(is.null(disc$gen$hat.di))
 	
-	#expect_equal(case.prepared$stats$fi, unname(disc$gen$hat.fi), tolerance=1e-5)
-	#expect_equal(as.matrix(cas1.zero.di$pij$data), disc$gen$hat.pij, tolerance=1e-5)
-	
 })
 
 
@@ -393,10 +402,41 @@ test_that("constraints: pdj with zero (p(dj=0)=1.0)", {
 	expect_false(is.null(disc$gen$hat.nB))
 	expect_false(is.null(disc$gen$hat.di))
 	
-	#expect_equal(case.prepared$stats$fi, unname(disc$gen$hat.fi), tolerance=1e-5)
-	#expect_equal(as.matrix(cas1.zero.di$pij$data), disc$gen$hat.pij, tolerance=1e-5)
+})
+
+test_that("constraints: pij with zero", {
+	
+	# in the example case, replace one of the matching probabilities by a zero
+	cas1.zero.dj <- cas1
+	cas1.zero.dj$pij <- create_matching_probabilities_table(
+                data.frame(
+                    'surface=1'=c(0.2, 0.1, 0.05, 0.025),
+                    'surface=2'=c(0.0375, 0.125, 0.0, 0.05),
+                    'surface=3'=c(0.0125, 0.025, 0.2, 0.175),
+                    row.names=c("size=1", "size=2", "size=3", "size=4"),
+                    check.names=FALSE
+                    )
+                )
+
+	case.prepared <- matching.prepare(cas1.zero.dj$sample.A, cas1.zero.dj$sample.B, cas1.zero.dj$pdi, cas1.zero.dj$pdj, cas1.zero.dj$pij)
+
+	disc <- matching.arbitrate(case.prepared, 
+		nA=50000, nB=40000, 
+		nu.A=0, phi.A=0, delta.A=0, gamma=1, delta.B=0, phi.B=1, nu.B=1,
+		verbose=FALSE
+		)
+
+	#print(disc)
+	
+	expect_is(disc, "dpp_resolved")
+
+	expect_equal(0, disc$gen$hat.pij["size=3","surface=2"])
+	expect_false(is.null(disc$gen$hat.nA))
+	expect_false(is.null(disc$gen$hat.nB))
+	expect_false(is.null(disc$gen$hat.di))
 	
 })
+
 
 context("tests on case 1 with expected failures")
 
