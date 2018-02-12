@@ -16,7 +16,7 @@ dwellings_households$sample.A <- gosp.dpp::create_sample(
                             dec=",",
                             check.names=FALSE
                             ),
-                        check.names=FALSE
+                        check.names=FALSE   
                         ),
                 encoding = list(
                         'surface'=list(

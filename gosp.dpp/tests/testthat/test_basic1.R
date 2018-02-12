@@ -174,28 +174,62 @@ test_that("constraints: phi.A, gamma (free on A and B)", {
 })
 
 
+
 # LONG CHAINS
 # test the resolution of long chains for which several hypothesis have to be piled to be solved.
 
+context("tests on case 1 with the exploration of several hypothesis")
 
-test_that("constraints: nothing (totally free - long chain)", {
+
+test_that("constraints: A free (case 1)", {
 	
-	skip("not yet ready")
-
 	case.prepared <- matching.prepare(cas1$sample.A, cas1$sample.B, cas1$pdi, cas1$pdj, cas1$pij)
 
-	disc <- matching.arbitrate(case.prepared, nA=50000,nB=40000, nu.A=1, phi.A=1, delta.A=1, gamma=1, delta.B=1, phi.B=1, nu.B=1)
+	disc <- matching.arbitrate(case.prepared, 
+							nA=50000,nB=40000, 
+							nu.A=1, phi.A=1, delta.A=1, gamma=1, delta.B=0, phi.B=0, nu.B=0, 
+							verbose=FALSE)
 
 	expect_is(disc, "dpp_resolved")
 
-	# TODO expect nA and nB inbetween
+	expect_false(is.null(disc$gen$hat.nA))
+	expect_false(is.null(disc$gen$hat.nB))
+	expect_false(is.null(disc$gen$hat.di))
+	expect_false(is.null(disc$gen$hat.dj))
+	expect_false(is.null(disc$gen$hat.ci))
+	expect_false(is.null(disc$gen$hat.cj))
+	expect_false(is.null(disc$gen$hat.pij))
+	expect_false(is.null(disc$gen$hat.nij))
+	expect_false(is.null(disc$gen$hat.ndi))
+	expect_false(is.null(disc$gen$hat.ndj))
 
-	expect_equal(case.prepared$stats$fi, disc$gen$hat.fi, tolerance=1e-5)
 	expect_equal(case.prepared$stats$fj, disc$gen$hat.fj, tolerance=1e-5)
+	expect_equal(unname(case.prepared$inputs$dj), unname(disc$gen$hat.dj), tolerance=1e-5)
 	
-  	expect_equal(case.prepared$inputs$di, disc$gen$hat.di, tolerance=1e-5)
-	expect_equal(case.prepared$inputs$dj, unname(disc$gen$hat.dj), tolerance=1e-5)
+})
+
+test_that("constraints: nothing (totally free - long chain)", {
 	
+	case.prepared <- matching.prepare(cas1$sample.A, cas1$sample.B, cas1$pdi, cas1$pdj, cas1$pij)
+
+	disc <- matching.arbitrate(case.prepared, 
+							nA=50000,nB=40000, 
+							nu.A=1, phi.A=1, delta.A=1, gamma=1, delta.B=1, phi.B=1, nu.B=1,
+							verbose=FALSE)
+
+	expect_is(disc, "dpp_resolved")
+
+	expect_false(is.null(disc$gen$hat.nA))
+	expect_false(is.null(disc$gen$hat.nB))
+	expect_false(is.null(disc$gen$hat.di))
+	expect_false(is.null(disc$gen$hat.dj))
+	expect_false(is.null(disc$gen$hat.ci))
+	expect_false(is.null(disc$gen$hat.cj))
+	expect_false(is.null(disc$gen$hat.pij))
+	expect_false(is.null(disc$gen$hat.nij))
+	expect_false(is.null(disc$gen$hat.ndi))
+	expect_false(is.null(disc$gen$hat.ndj))
+
 })
 
 # SMALL COUNTS
