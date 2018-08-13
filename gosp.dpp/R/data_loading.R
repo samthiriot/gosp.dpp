@@ -159,7 +159,7 @@ create_sample <- function(data, encoding=NULL, weight.colname=NULL) {
 print.dpp_sample <- function(x, ...) {
     cat("Sample containing ", nrow(x$sample), " elements ",sep="")
 
-    cat("having ",length(x$dictionary$encoding),"columns:",paste(names(x$dictionary$encoding),collapse=","),sep="")
+    cat("having ",length(x$dictionary$encoding)," columns:",paste(names(x$dictionary$encoding),collapse=","),sep="")
     
     cat(" (weight column:",x$dictionary$colname.weight,")\n",sep="")
 }
