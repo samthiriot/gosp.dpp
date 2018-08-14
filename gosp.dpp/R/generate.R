@@ -182,6 +182,9 @@ matching.generate.add_degree <- function(samp, pop, n, ndx, verbose) {
 #'
 matching.generate <- function(case, sample.A, sample.B, verbose=FALSE) {
 
+	if (class(case) != "dpp_resolved") 
+		stop("case should be the result of a solving by matching.solve")
+
 	if (verbose)
     	cat("starting generation\n")
 

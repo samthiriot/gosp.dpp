@@ -1514,7 +1514,8 @@ quantify.errors <- function(sol, case, nA, nB) {
     }
     if (!is.null(sol$hat.nB)) {
         sol$error.nB <- abs( sol$hat.nB - nB )
-        sol$rmse.nB <- sol$error.nB / max(sol$hat.nB, nB)
+        sol$rmse.nB <- sol$error.nB
+        sol$nrmse.nB <- sol$rmse.nB / max(sol$hat.nB, nB)
     }
 
     sol
@@ -1615,7 +1616,9 @@ matching.arbitrate <- function(case,
                                 delta.B, phi.B, nu.B, 
                                 verbose = FALSE) {
 
-    
+    if (class(case) != "dpp_prepared") 
+        stop("case should be the result of a preparation of data by matching.prepare")
+
     mixx <- list()
 
     # start with masks
