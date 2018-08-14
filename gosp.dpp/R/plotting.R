@@ -120,7 +120,7 @@ plot.unconstrained <- function(sp, sampleA, sampleB, nameA="A", nameB="B") {
 #' @examples 
 #' data(cas1)
 #' case.prepared <- matching.prepare(cas1$sample.A, cas1$sample.B, cas1$pdi, cas1$pdj, cas1$pij)
-#' disc <- matching.arbitrate(case.prepared, nA=50000, nB=40000, nu.A=1, phi.A=0, 
+#' disc <- matching.solve(case.prepared, nA=50000, nB=40000, nu.A=1, phi.A=0, 
 #'                            delta.A=0, gamma=0, delta.B=0, phi.B=0, nu.B=1, verbose=TRUE)
 #' sp <- matching.generate(case=disc, sample.A=cas1$sample.A, sample.B=cas1$sample.B, verbose=TRUE)
 #' plot(sp, cas1$sample.A$sample, cas1$sample.B$sample, "dwellings", "households")

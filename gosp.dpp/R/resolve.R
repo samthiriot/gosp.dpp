@@ -1595,7 +1595,7 @@ ensure.form <- function(sol, case) {
 #' # prepare the case  
 #' case.prepared <- matching.prepare(cas1$sample.A, cas1$sample.B, cas1$pdi, cas1$pdj, cas1$pij)
 #' # resolve tbe case
-#' disc <- matching.arbitrate(case.prepared, 
+#' disc <- matching.solve(case.prepared, 
 #'                     nA=50000,nB=40000, 
 #'                     nu.A=0, phi.A=0, delta.A=1, 
 #'                     gamma=1, 
@@ -1609,7 +1609,7 @@ ensure.form <- function(sol, case) {
 #' 
 #' @author Samuel Thiriot <samuel.thiriot@res-ear.ch> 
 #'
-matching.arbitrate <- function(case, 
+matching.solve <- function(case, 
                                 nA, nB, 
                                 nu.A, phi.A, delta.A, 
                                 gamma, 

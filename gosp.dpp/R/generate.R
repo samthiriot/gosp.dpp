@@ -170,7 +170,7 @@ matching.generate.add_degree <- function(samp, pop, n, ndx, verbose) {
 #' the adds degrees to them, then creates links based on degrees 
 #' and characteristics, before measuring the result.  
 #'
-#' @param case the case resolved by the \code{\link{matching.arbitrate}} function. 
+#' @param case the case resolved by the \code{\link{matching.solve}} function. 
 #' @param sample.A the sample to use as population A 
 #' @param sample.B the sample to use as population B
 #' @param verbose displays detailed messages if TRUE

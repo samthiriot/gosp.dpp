@@ -34,7 +34,7 @@ test_that("resolution with nA, phi.A, delta.B, phi.B and nB", {
 	
 	case.prepared <- matching.prepare(cas1$sample.A, cas1$sample.B, cas1$pdi, cas1$pdj, cas1$pij)
 
-	disc <- matching.arbitrate(case.prepared, 
+	disc <- matching.solve(case.prepared, 
 							nA=50000,nB=40000, 
 							nu.A=0, phi.A=0, delta.A=1, gamma=1, delta.B=0, phi.B=0, nu.B=0,
 							verbose=FALSE
@@ -75,7 +75,7 @@ test_that("constraints: nA, phi.A, phi.B", {
 	
 	case.prepared <- matching.prepare(cas1$sample.A, cas1$sample.B, cas1$pdi, cas1$pdj, cas1$pij)
 
-	disc <- matching.arbitrate(case.prepared, 
+	disc <- matching.solve(case.prepared, 
 							nA=50000,nB=40000, 
 							nu.A=0, phi.A=0, delta.A=1, gamma=1, delta.B=1, phi.B=0, nu.B=1,
 							verbose=FALSE)
@@ -95,7 +95,7 @@ test_that("constraints: nA, phi.A, delta.B, phi.B, nu.B", {
 	
 	case.prepared <- matching.prepare(cas1$sample.A, cas1$sample.B, cas1$pdi, cas1$pdj, cas1$pij)
 
-	disc <- matching.arbitrate(case.prepared, 
+	disc <- matching.solve(case.prepared, 
 								nA=50000, nB=40000, 
 								nu.A=0, phi.A=0, delta.A=1, gamma=1, delta.B=0, phi.B=0, nu.B=0
 								)
@@ -115,7 +115,7 @@ test_that("constraints: phi.A,phi.B, nu.B", {
 	
 	case.prepared <- matching.prepare(cas1$sample.A, cas1$sample.B, cas1$pdi, cas1$pdj, cas1$pij)
 
-	disc <- matching.arbitrate(case.prepared, 
+	disc <- matching.solve(case.prepared, 
 								nA=50000, nB=40000, 
 								nu.A=1, phi.A=0, delta.A=1, gamma=1, delta.B=1, phi.B=0, nu.B=0
 								)
@@ -133,7 +133,7 @@ test_that("constraints: phi.A, phi.B, nu.B", {
 	
 	case.prepared <- matching.prepare(cas1$sample.A, cas1$sample.B, cas1$pdi, cas1$pdj, cas1$pij)
 
-	disc <- matching.arbitrate(case.prepared, 
+	disc <- matching.solve(case.prepared, 
 								nA=50000, nB=40000, 
 								nu.A=1, phi.A=0, delta.A=1, gamma=1, delta.B=1, phi.B=0, nu.B=0
 								)
@@ -151,7 +151,7 @@ test_that("constraints: phi.A, delta.A (free on matching and B)", {
 	
 	case.prepared <- matching.prepare(cas1$sample.A, cas1$sample.B, cas1$pdi, cas1$pdj, cas1$pij)
 
-	disc <- matching.arbitrate(case.prepared, 
+	disc <- matching.solve(case.prepared, 
 								nA= 50000, nB=40000, 
 								nu.A=0, phi.A=0, delta.A=0, gamma=1, delta.B=1, phi.B=1, nu.B=1
 								)
@@ -169,7 +169,7 @@ test_that("constraints: phi.A, gamma (free on A and B)", {
 	
 	case.prepared <- matching.prepare(cas1$sample.A, cas1$sample.B, cas1$pdi, cas1$pdj, cas1$pij)
 
-	disc <- matching.arbitrate(case.prepared, 
+	disc <- matching.solve(case.prepared, 
 		nA=50000, nB=40000, 
 		nu.A=1, phi.A=0, delta.A=1, gamma=0, delta.B=1, phi.B=1, nu.B=1
 		)
@@ -197,7 +197,7 @@ test_that("constraints: A free (case 1) with equal weights", {
 	
 	case.prepared <- matching.prepare(cas1$sample.A, cas1$sample.B, cas1$pdi, cas1$pdj, cas1$pij)
 
-	disc <- matching.arbitrate(case.prepared, 
+	disc <- matching.solve(case.prepared, 
 							nA=50000,nB=40000, 
 							nu.A=1, phi.A=1, delta.A=1, gamma=1, delta.B=0, phi.B=0, nu.B=0, 
 							verbose=FALSE)
@@ -238,7 +238,7 @@ test_that("constraints: A free (case 1) weighting nu.A", {
 	
 	case.prepared <- matching.prepare(cas1$sample.A, cas1$sample.B, cas1$pdi, cas1$pdj, cas1$pij)
 
-	disc <- matching.arbitrate(case.prepared, 
+	disc <- matching.solve(case.prepared, 
 							nA=50000,nB=40000, 
 							nu.A=1, phi.A=10, delta.A=10, gamma=10, delta.B=0, phi.B=0, nu.B=0, 
 							verbose=FALSE)
@@ -280,7 +280,7 @@ test_that("constraints: nothing (totally free - long chain)", {
 	
 	case.prepared <- matching.prepare(cas1$sample.A, cas1$sample.B, cas1$pdi, cas1$pdj, cas1$pij)
 
-	disc <- matching.arbitrate(case.prepared, 
+	disc <- matching.solve(case.prepared, 
 							nA=50000,nB=40000, 
 							nu.A=1, phi.A=1, delta.A=1, gamma=1, delta.B=1, phi.B=1, nu.B=1,
 							verbose=FALSE)
@@ -320,7 +320,7 @@ context("tests on case 1 with small sizes")
 				
 			#cat("test with size nA=",nA," and nB=",nB,"\n",sep="")
 
-			disc <- matching.arbitrate(case.prepared, 
+			disc <- matching.solve(case.prepared, 
 										nA=nA,nB=nB, 
 										nu.A=0, phi.A=1, delta.A=1, gamma=1, delta.B=0, phi.B=0, nu.B=0,
 										verbose=FALSE)
@@ -360,7 +360,7 @@ test_that("constraints: pdi with zero (p(di=0)=1.0)", {
 
 	case.prepared <- matching.prepare(cas1.zero.di$sample.A, cas1.zero.di$sample.B, cas1.zero.di$pdi, cas1.zero.di$pdj, cas1.zero.di$pij)
 
-	disc <- matching.arbitrate(case.prepared, 
+	disc <- matching.solve(case.prepared, 
 		nA=50000, nB=40000, 
 		nu.A=1, phi.A=0, delta.A=1, gamma=0, delta.B=1, phi.B=1, nu.B=1,
 		verbose=FALSE
@@ -390,7 +390,7 @@ test_that("constraints: pdj with zero (p(dj=0)=1.0)", {
 
 	case.prepared <- matching.prepare(cas1.zero.dj$sample.A, cas1.zero.dj$sample.B, cas1.zero.dj$pdi, cas1.zero.dj$pdj, cas1.zero.dj$pij)
 
-	disc <- matching.arbitrate(case.prepared, 
+	disc <- matching.solve(case.prepared, 
 		nA=50000, nB=40000, 
 		nu.A=0, phi.A=0, delta.A=0, gamma=0, delta.B=0, phi.B=1, nu.B=1,
 		verbose=FALSE
@@ -420,7 +420,7 @@ test_that("constraints: pij with zero", {
 
 	case.prepared <- matching.prepare(cas1.zero.dj$sample.A, cas1.zero.dj$sample.B, cas1.zero.dj$pdi, cas1.zero.dj$pdj, cas1.zero.dj$pij)
 
-	disc <- matching.arbitrate(case.prepared, 
+	disc <- matching.solve(case.prepared, 
 		nA=50000, nB=40000, 
 		nu.A=0, phi.A=0, delta.A=0, gamma=1, delta.B=0, phi.B=1, nu.B=1,
 		verbose=FALSE
@@ -448,7 +448,7 @@ test_that("constraints: phi.A, gamma (too constrained)", {
 	case.prepared <- matching.prepare(cas1$sample.A, cas1$sample.B, cas1$pdi, cas1$pdj, cas1$pij)
 
    	expect_error(do.call(
-   		matching.arbitrate,
+   		matching.solve,
    		list(case.prepared, nA=50000,nB=40000, nu.A=0, phi.A=0, delta.A=0, gamma=1, delta.B=0, phi.B=0, nu.B=0)),
    		"The case is too constrained to be solved.*")
 	
@@ -459,7 +459,7 @@ test_that("constraints: nu.A, delta.A, gamma, delta.B, phi.B, nu.B (too constrai
 	case.prepared <- matching.prepare(cas1$sample.A, cas1$sample.B, cas1$pdi, cas1$pdj, cas1$pij)
 
    	expect_error(do.call(
-   		matching.arbitrate,
+   		matching.solve,
    		list(case.prepared, nA=50000,nB=40000, nu.A=0, phi.A=1, delta.A=0, gamma=0, delta.B=0, phi.B=0, nu.B=0)),
    		"The case is too constrained to be solved.*")
 	

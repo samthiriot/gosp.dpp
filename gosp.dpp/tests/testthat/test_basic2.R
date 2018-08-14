@@ -49,7 +49,7 @@ test_that("resolution with nA, phi.A, delta.B, phi.B and nB", {
 						dwellings_households$pij)
 	factor <- 1
 
-	disc <- matching.arbitrate(case.prepared, 
+	disc <- matching.solve(case.prepared, 
 						nA=50000*factor,nB=40000*factor, 
 						nu.A=0, phi.A=0, delta.A=1, gamma=1, delta.B=0, phi.B=0, nu.B=0,
 						verbose=FALSE)

@@ -18,7 +18,7 @@
 #' # generate a population based on sample case 1
 #' data(cas1)
 #' case.prepared <- matching.prepare(cas1$sample.A, cas1$sample.B, cas1$pdi, cas1$pdj, cas1$pij)
-#' disc <- matching.arbitrate(case.prepared, 
+#' disc <- matching.solve(case.prepared, 
 #'                     nA=500,nB=400, 
 #'                     nu.A=0, phi.A=0, delta.A=1, 
 #'                     gamma=1, 

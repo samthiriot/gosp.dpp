@@ -104,7 +104,7 @@ list_variabes_modalities <- function(strs) {
 #' @param pdi the distribution of degrees for population A created with \code{\link{create_degree_probabilities_table}}
 #' @param pdj the distribution of degrees for population B created with \code{\link{create_degree_probabilities_table}}
 #' @param pij the matching probabilities created with \code{\link{create_matching_probabilities_table}}
-#' @return a case ready to be arbitrated with \code{\link{matching.arbitrate}}
+#' @return a case ready to be solved with \code{\link{matching.solve}}
 #' 
 #' @examples
 #' data(cas1)

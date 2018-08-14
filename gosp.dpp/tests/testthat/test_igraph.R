@@ -30,7 +30,7 @@ test_that("export a population as an igraph (without attributes)", {
 	case.prepared <- matching.prepare(cas1$sample.A, cas1$sample.B, cas1$pdi, cas1$pdj, cas1$pij)
 
 	# resolve the case
-	disc <- matching.arbitrate(case.prepared, nA=5000,nB=4000, nu.A=0, phi.A=0, delta.A=1, gamma=1, delta.B=0, phi.B=0, nu.B=0)
+	disc <- matching.solve(case.prepared, nA=5000,nB=4000, nu.A=0, phi.A=0, delta.A=1, gamma=1, delta.B=0, phi.B=0, nu.B=0)
 
 	# generate
 	generated <- matching.generate(disc, cas1$sample.A, cas1$sample.B)
@@ -62,7 +62,7 @@ test_that("export a population as an igraph (with attributes)", {
 	case.prepared <- matching.prepare(cas1$sample.A, cas1$sample.B, cas1$pdi, cas1$pdj, cas1$pij)
 
 	# resolve the case
-	disc <- matching.arbitrate(case.prepared, nA=5000,nB=4000, nu.A=0, phi.A=0, delta.A=1, gamma=1, delta.B=0, phi.B=0, nu.B=0)
+	disc <- matching.solve(case.prepared, nA=5000,nB=4000, nu.A=0, phi.A=0, delta.A=1, gamma=1, delta.B=0, phi.B=0, nu.B=0)
 
 	# generate
 	generated <- matching.generate(disc, cas1$sample.A, cas1$sample.B)

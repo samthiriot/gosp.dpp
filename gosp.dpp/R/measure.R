@@ -59,7 +59,7 @@ print.dpp_result <- function(x,...) {
 #' @param sample.A the original sample for population A
 #' @param sample.B the original sample for population B
 #' @param pij the original matching probabilities
-#' @param mix.pij the arbitrated matching probabilities
+#' @param mix.pij the solved matching probabilities
 #' @param A2l2B the joined population A / links / population B
 #' @param verbose if TRUE, detailed messages are printed
 #'
