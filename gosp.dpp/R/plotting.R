@@ -156,7 +156,8 @@ plot.dpp_result <- function(x, sampleA, sampleB, nameA="A", nameB="B", colorRef=
         NRMSE=c(sp$gen$nrmse.nA, sp$gen$nrmse.fi, sp$gen$nrmse.pdi, sp$gen$nrmse.di, sp$gen$nrmse.pij, sp$gen$nrmse.dj, sp$gen$nrmse.pdj, sp$gen$nrmse.fj, sp$gen$nrmse.nB)
         )
     all_errors$error <- factor(all_errors$error, levels=c("nA","fi","pdi","di","pij","dj","pdj","fj","nB"))
-    plot_all_errors <- ggplot(all_errors, aes(factor(error), factor(NRMSE))) + geom_bar(stat="identity", fill=colorSynthetic)
+    plot_all_errors <- ggplot(all_errors, aes(factor(error), factor(NRMSE))) + 
+                        geom_bar(stat="identity", fill=colorSynthetic)
 
     # this scale will be used for various heatmaps    
     scale_gray_blue <- scale_fill_manual(values=c("darkgray","blue"))
@@ -171,7 +172,10 @@ plot.dpp_result <- function(x, sampleA, sampleB, nameA="A", nameB="B", colorRef=
 
     # ggplot(population_sizes, aes(x=type)) + geom_bar(data=parameter, stat="identity", fill=colorRef) 
     # geom_bar(stat="identity", aes(y=parameter, fill=colorRef), position="dodge") +
-    plot_population_sizes <- ggplot(population_sizes, aes(x=factor(type), y=factor(count), fill=factor(state))) + geom_bar(stat="identity", position = 'dodge2') + scale_gray_blue
+    plot_population_sizes <- ggplot(population_sizes, aes(x=factor(type), y=factor(count), fill=factor(state))) + 
+                        geom_bar(stat="identity", position = 'dodge2') + 
+                        scale_gray_blue
+
 
     # compare expected and actual degree
     degrees_A <- data.frame(
@@ -180,7 +184,11 @@ plot.dpp_result <- function(x, sampleA, sampleB, nameA="A", nameB="B", colorRef=
         state=c(rep("theoretical",length(sp$inputs$di)), rep("synthetic",length(sp$gen$hat.di)))
         )
     degrees_A$state <- factor(degrees_A$state, levels=c("theoretical","synthetic"))
-    plot_degrees_A <- ggplot(degrees_A, aes(x=factor(attributes), y=factor(average.degree), fill=factor(state))) + geom_bar(stat="identity", position = 'dodge2') + scale_gray_blue + ylab("average degree") + ggtitle(paste("average degree",nameA))
+    plot_degrees_A <- ggplot(degrees_A, aes(x=factor(attributes), y=factor(average.degree), fill=factor(state))) + 
+                        geom_bar(stat="identity", position = 'dodge2') + 
+                        scale_gray_blue + 
+                        ylab("average degree") + 
+                        ggtitle(paste("average degree",nameA))
 
     degrees_B <- data.frame(
         attributes=c(names(sp$inputs$dj),names(sp$gen$hat.dj)),
@@ -188,7 +196,11 @@ plot.dpp_result <- function(x, sampleA, sampleB, nameA="A", nameB="B", colorRef=
         state=c(rep("theoretical",length(sp$inputs$dj)), rep("synthetic",length(sp$gen$hat.dj)))
         )
     degrees_B$state <- factor(degrees_B$state, levels=c("theoretical","synthetic"))
-    plot_degrees_B <- ggplot(degrees_B, aes(x=factor(attributes), y=factor(average.degree), fill=factor(state))) + geom_bar(stat="identity", position = 'dodge2') + scale_gray_blue + ylab("average degree") + ggtitle(paste("average degree",nameB))
+    plot_degrees_B <- ggplot(degrees_B, aes(x=factor(attributes), y=factor(average.degree), fill=factor(state))) + 
+                        geom_bar(stat="identity", position = 'dodge2') + 
+                        scale_gray_blue + 
+                        ylab("average degree") + 
+                        ggtitle(paste("average degree",nameB))
 
 
     # compare expected and actual frequencies
@@ -198,7 +210,11 @@ plot.dpp_result <- function(x, sampleA, sampleB, nameA="A", nameB="B", colorRef=
         state=c(rep("theoretical",length(sp$stats$fi)), rep("synthetic",length(sp$gen$hat.fi)))
         ) 
     frequencies_A$state <- factor(frequencies_A$state, levels=c("theoretical","synthetic"))
-    plot_frequencies_A <- ggplot(frequencies_A, aes(x=factor(attributes), y=factor(frequency), fill=factor(state))) + geom_bar(stat="identity", position = 'dodge2') + scale_gray_blue + ylab("freq") + ggtitle(paste("frequencies",nameA))
+    plot_frequencies_A <- ggplot(frequencies_A, aes(x=factor(attributes), y=factor(frequency), fill=factor(state))) + 
+                        geom_bar(stat="identity", position = 'dodge2') + 
+                        scale_gray_blue + 
+                        ylab("freq") + 
+                        ggtitle(paste("frequencies",nameA))
 
     frequencies_B <- data.frame(
         attributes=c(names(sp$stats$fj),names(sp$gen$hat.fj)),
@@ -206,7 +222,11 @@ plot.dpp_result <- function(x, sampleA, sampleB, nameA="A", nameB="B", colorRef=
         state=c(rep("theoretical",length(sp$stats$fj)), rep("synthetic",length(sp$gen$hat.fj)))
         ) 
     frequencies_B$state <- factor(frequencies_B$state, levels=c("theoretical","synthetic"))
-    plot_frequencies_B <- ggplot(frequencies_B, aes(x=factor(attributes), y=factor(frequency), fill=factor(state))) + geom_bar(stat="identity", position = 'dodge2') + scale_gray_blue + ylab("freq") + ggtitle(paste("frequencies",nameB))
+    plot_frequencies_B <- ggplot(frequencies_B, aes(x=factor(attributes), y=factor(frequency), fill=factor(state))) + 
+                        geom_bar(stat="identity", position = 'dodge2') + 
+                        scale_gray_blue + 
+                        ylab("freq") + 
+                        ggtitle(paste("frequencies",nameB))
 
 
     heat_map_gradient <- scale_fill_gradient2(limits=c(-1,1)) # , trans="log"
@@ -215,19 +235,29 @@ plot.dpp_result <- function(x, sampleA, sampleB, nameA="A", nameB="B", colorRef=
     diff_pdi <- sp$inputs$pdi$data - sp$gen$hat.pdi
     diff_pdi$degree <- factor(seq(0,nrow(diff_pdi)-1))
     data_hm_pdi <- melt(diff_pdi)
-    plot_pdi <- ggplot(data_hm_pdi, aes(factor(variable), factor(degree))) + geom_tile(aes(fill=value)) + heat_map_gradient + ggtitle(paste("difference degree for",nameA))
+    plot_pdi <- ggplot(data_hm_pdi, aes(factor(variable), factor(degree))) + 
+                        geom_tile(aes(fill=value)) + 
+                        heat_map_gradient + 
+                        ggtitle(paste("difference degree for",nameA))
 
     diff_pdj <- sp$inputs$pdj$data - sp$gen$hat.pdj
     diff_pdj$degree <- factor(seq(0,nrow(diff_pdj)-1))
     data_hm_pdj <- melt(diff_pdj)
-    plot_pdj <- ggplot(data_hm_pdj, aes(factor(variable), factor(degree))) + geom_tile(aes(fill=value)) + heat_map_gradient + ggtitle(paste("difference degree for",nameB))
+    plot_pdj <- ggplot(data_hm_pdj, aes(factor(variable), factor(degree))) + 
+                        geom_tile(aes(fill=value)) + 
+                        heat_map_gradient + 
+                        ggtitle(paste("difference degree for",nameB))
     
     # plot pij
     diff_pij <- sp$inputs$pij$data - sp$gen$hat.pij
     diff_pij$attributesB <- row.names(diff_pij)
     data_hm_pij <- melt(diff_pij)
-    plot_pij <- ggplot(data_hm_pij, aes(factor(variable), factor(attributesB))) + geom_tile(aes(fill=value)) + heat_map_gradient + ggtitle(paste("difference peering"))
+    plot_pij <- ggplot(data_hm_pij, aes(factor(variable), factor(attributesB))) + 
+                        geom_tile(aes(fill=value)) + 
+                        heat_map_gradient + 
+                        ggtitle(paste("difference peering"))
 
+    # actual plot over a grid
     grid.arrange(
         plot_all_relaxation, plot_all_errors, 
         plot_population_sizes, plot_pij,
