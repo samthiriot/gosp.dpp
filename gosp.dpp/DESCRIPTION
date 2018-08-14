@@ -1,8 +1,8 @@
 Package: gosp.dpp
 Type: Package
 Title: Peering of entities to generate structured synthetic populations 
-Version: 0.6.3
-Date: 2018-02-01
+Version: 0.6.4
+Date: 2018-08-14
 Author: Samuel Thiriot
 Maintainer: Samuel Thiriot <samuel.thiriot@res-ear.ch>
 Description: Peering of entities for Synthetic populations, 
@@ -16,7 +16,7 @@ Description: Peering of entities for Synthetic populations,
 	their characteristics. The problem is then solved anatically depending 
 	to user constrainsts, before a direct generation of the links 
 	between the populations.
-Imports: dplyr, igraph, utils, stats, ggplot2, gridExtra
+Imports: dplyr, igraph, utils, stats, reshape2, ggplot2, gridExtra
 Depends: R (>= 2.10)
 Suggests: testthat
 License: GPL-2
