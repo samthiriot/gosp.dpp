@@ -368,7 +368,7 @@ propagate.direct <- function(sol,case, verbose=FALSE, indent=1) {
         if (verbose) { 
             cat(paste(rep("\t",times=indent),collapse=""),name,"\n",sep="")
         }
-        sol$inference[[length(sol$inference)+1]] <- name
+        sol$inference <- list(sol$inference, list(name))
         sol
     } 
 
@@ -1259,8 +1259,8 @@ resolve.missing.chain <- function(sol, chain, case,
         if (is.null(sol.hyp$inference)) {
             sol.hyp$inference <- list()
         }
-        sol.hyp$inference[[length(sol.hyp$inference)+1]] <- paste("hypothesis on ",hypothesis_name,sep="")
-
+        sol.hyp$inference <- list(sol.hyp$inference, list(paste("hypothesis on ",hypothesis_name,sep="")))
+        
         # propagate on this basis
         sol.hyp <- tryCatch({
                         propagate.direct(sol.hyp, case, verbose=verbose, indent=3)
