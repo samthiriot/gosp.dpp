@@ -3,11 +3,12 @@
 
 
 library(gosp.dpp)
-data(cas1)
 
 context("tests on generation with one attribute only (case 1)")
 
 test_that("case 1 properly loaded", {
+
+	data(cas1)
 
 	expect_is(cas1$sample.A, "dpp_sample")
 	expect_is(cas1$sample.B, "dpp_sample")
@@ -22,6 +23,8 @@ test_that("case 1 properly loaded", {
 
 test_that("case 1 preparation", {
 	
+	data(cas1)
+
 	case.prepared <- matching.prepare(cas1$sample.A, cas1$sample.B, cas1$pdi, cas1$pdj, cas1$pij)
 
 	expect_is(case.prepared, "dpp_prepared")
@@ -32,6 +35,8 @@ test_that("case 1 preparation", {
 
 test_that("resolution with nA, phi.A, delta.B, phi.B and nB", {
 	
+	data(cas1)
+
 	case.prepared <- matching.prepare(cas1$sample.A, cas1$sample.B, cas1$pdi, cas1$pdj, cas1$pij)
 
 	disc <- matching.solve(case.prepared, 
@@ -73,6 +78,8 @@ test_that("resolution with nA, phi.A, delta.B, phi.B and nB", {
 
 test_that("constraints: nA, phi.A, phi.B", {
 	
+	data(cas1)
+
 	case.prepared <- matching.prepare(cas1$sample.A, cas1$sample.B, cas1$pdi, cas1$pdj, cas1$pij)
 
 	disc <- matching.solve(case.prepared, 
@@ -93,6 +100,8 @@ test_that("constraints: nA, phi.A, phi.B", {
 
 test_that("constraints: nA, phi.A, delta.B, phi.B, nu.B", {
 	
+	data(cas1)
+
 	case.prepared <- matching.prepare(cas1$sample.A, cas1$sample.B, cas1$pdi, cas1$pdj, cas1$pij)
 
 	disc <- matching.solve(case.prepared, 
@@ -113,6 +122,8 @@ test_that("constraints: nA, phi.A, delta.B, phi.B, nu.B", {
 
 test_that("constraints: phi.A,phi.B, nu.B", {
 	
+	data(cas1)
+
 	case.prepared <- matching.prepare(cas1$sample.A, cas1$sample.B, cas1$pdi, cas1$pdj, cas1$pij)
 
 	disc <- matching.solve(case.prepared, 
@@ -131,6 +142,8 @@ test_that("constraints: phi.A,phi.B, nu.B", {
 
 test_that("constraints: phi.A, phi.B, nu.B", {
 	
+	data(cas1)
+
 	case.prepared <- matching.prepare(cas1$sample.A, cas1$sample.B, cas1$pdi, cas1$pdj, cas1$pij)
 
 	disc <- matching.solve(case.prepared, 
@@ -149,6 +162,8 @@ test_that("constraints: phi.A, phi.B, nu.B", {
 
 test_that("constraints: phi.A, delta.A (free on matching and B)", {
 	
+	data(cas1)
+
 	case.prepared <- matching.prepare(cas1$sample.A, cas1$sample.B, cas1$pdi, cas1$pdj, cas1$pij)
 
 	disc <- matching.solve(case.prepared, 
@@ -167,6 +182,8 @@ test_that("constraints: phi.A, delta.A (free on matching and B)", {
 
 test_that("constraints: phi.A, gamma (free on A and B)", {
 	
+	data(cas1)
+
 	case.prepared <- matching.prepare(cas1$sample.A, cas1$sample.B, cas1$pdi, cas1$pdj, cas1$pij)
 
 	disc <- matching.solve(case.prepared, 
@@ -195,6 +212,8 @@ context("tests on case 1 with the exploration of several hypothesis")
 
 test_that("constraints: A free (case 1) with equal weights", {
 	
+	data(cas1)
+
 	case.prepared <- matching.prepare(cas1$sample.A, cas1$sample.B, cas1$pdi, cas1$pdj, cas1$pij)
 
 	disc <- matching.solve(case.prepared, 
@@ -236,6 +255,8 @@ test_that("constraints: A free (case 1) with equal weights", {
 
 test_that("constraints: A free (case 1) weighting nu.A", {
 	
+	data(cas1)
+
 	case.prepared <- matching.prepare(cas1$sample.A, cas1$sample.B, cas1$pdi, cas1$pdj, cas1$pij)
 
 	disc <- matching.solve(case.prepared, 
@@ -278,6 +299,8 @@ test_that("constraints: A free (case 1) weighting nu.A", {
 
 test_that("constraints: nothing (totally free - long chain)", {
 	
+	data(cas1)
+
 	case.prepared <- matching.prepare(cas1$sample.A, cas1$sample.B, cas1$pdi, cas1$pdj, cas1$pij)
 
 	disc <- matching.solve(case.prepared, 
@@ -304,6 +327,8 @@ test_that("constraints: nothing (totally free - long chain)", {
 context("tests on case 1 with small sizes")
 
 {
+	data(cas1)
+
 	case.prepared <- matching.prepare(cas1$sample.A, cas1$sample.B, cas1$pdi, cas1$pdj, cas1$pij)
 	for (factor in c(5000,
 		#2000,
@@ -348,6 +373,8 @@ context("tests on case 1 with zero cells")
 
 test_that("constraints: pdi with zero (p(di=0)=1.0)", {
 	
+	data(cas1)
+
 	cas1.zero.di <- cas1 
 	cas1.zero.di$pdi <- create_degree_probabilities_table(
 								probabilities=data.frame(
@@ -377,6 +404,8 @@ test_that("constraints: pdi with zero (p(di=0)=1.0)", {
 
 test_that("constraints: pdj with zero (p(dj=0)=1.0)", {
 	
+	data(cas1)
+
 	cas1.zero.dj <- cas1 
 	cas1.zero.dj$pdj <- create_degree_probabilities_table(
 			                probabilities=data.frame(
@@ -406,6 +435,8 @@ test_that("constraints: pdj with zero (p(dj=0)=1.0)", {
 
 test_that("constraints: pij with zero", {
 	
+	data(cas1)
+
 	# in the example case, replace one of the matching probabilities by a zero
 	cas1.zero.dj <- cas1
 	cas1.zero.dj$pij <- create_matching_probabilities_table(
@@ -445,6 +476,8 @@ context("tests on case 1 with expected failures")
 
 test_that("constraints: phi.A, gamma (too constrained)", {
 	
+	data(cas1)
+
 	case.prepared <- matching.prepare(cas1$sample.A, cas1$sample.B, cas1$pdi, cas1$pdj, cas1$pij)
 
    	expect_error(do.call(
@@ -456,6 +489,8 @@ test_that("constraints: phi.A, gamma (too constrained)", {
 
 test_that("constraints: nu.A, delta.A, gamma, delta.B, phi.B, nu.B (too constrained)", {
 	
+	data(cas1)
+
 	case.prepared <- matching.prepare(cas1$sample.A, cas1$sample.B, cas1$pdi, cas1$pdj, cas1$pij)
 
    	expect_error(do.call(
