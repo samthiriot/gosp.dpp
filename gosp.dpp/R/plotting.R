@@ -19,6 +19,9 @@ compute_common_columns <- function(t1, t2) {
     common_cols[common_cols != "id"]
 }
 
+#' @importFrom graphics hist par
+#' @importFrom stats frequency
+#' 
 plot.difference.populations <- function(p1, p2, entitytype="entity?", par=T) {
 
     cols_to_process <- compute_common_columns(p1, p2)
@@ -39,6 +42,7 @@ plot.difference.populations <- function(p1, p2, entitytype="entity?", par=T) {
 
 }
 
+#' @importFrom graphics par
 plot.differences <- function(sp, sampleA, sampleB, nameA="A", nameB="B") {
 
     
@@ -114,14 +118,16 @@ add_linebreaks_attributes <- function(labels) {
 #' Plots all the values controlled by the algorithm, and compares their expected value (passed as data or parameter)
 #' and their actual value (as measured in the resulting synthetic population).
 #' The resulting graphs contain: 
-#' a graph showing the relaxation parameters passed to the solving function; 
-#' a graph showing the Normalized Root Mean Square Error (NRMSE) for the each control variable 
-#' a graph showing the population sizes asked for and generated for populations A and B
-#' a graph showing the difference between the input and observed peering probabilities pij
-#' two graphs showing the initial and observed frequencies of control variables in both populations A and B
-#' two graphs showing the initial and observed average degrees in both populations A and B
-#' two graphs showing the difference between the expected and measured distribution of probability of degrees for both A and B
-#' 
+#' \itemize{
+#'  \item a graph showing the relaxation parameters passed to the solving function; 
+#'  \item a graph showing the Normalized Root Mean Square Error (NRMSE) for the each control variable 
+#'  \item a graph showing the population sizes asked for and generated for populations A and B
+#'  \item a graph showing the difference between the input and observed peering probabilities pij
+#'  \item two graphs showing the initial and observed frequencies of control variables in both populations A and B
+#'  \item two graphs showing the initial and observed average degrees in both populations A and B
+#'  \item two graphs showing the difference between the expected and measured distribution of probability of degrees for both A and B
+#' }
+#'
 #' @param x an object returned by the matching.generate method
 #' @param sampleA the original sample for population A
 #' @param sampleB the original sample for population B
@@ -134,10 +140,10 @@ add_linebreaks_attributes <- function(labels) {
 #' 
 #' @examples 
 #' data(cas1)
-#' case.prepared <- matching.prepare(cas1$sample.A, cas1$sample.B, cas1$pdi, cas1$pdj, cas1$pij)
-#' disc <- matching.solve(case.prepared, nA=50000, nB=40000, nu.A=1, phi.A=0, 
+#' prepared <- matching.prepare(cas1$sample.A, cas1$sample.B, cas1$pdi, cas1$pdj, cas1$pij)
+#' solved <- matching.solve(prepared, nA=50000, nB=40000, nu.A=1, phi.A=0, 
 #'                            delta.A=0, gamma=0, delta.B=0, phi.B=0, nu.B=1, verbose=TRUE)
-#' sp <- matching.generate(case=disc, sample.A=cas1$sample.A, sample.B=cas1$sample.B, verbose=TRUE)
+#' sp <- matching.generate(solved, sample.A=cas1$sample.A, sample.B=cas1$sample.B, verbose=TRUE)
 #' plot(sp, cas1$sample.A$sample, cas1$sample.B$sample, "dwellings", "households")
 #'
 #' @export
