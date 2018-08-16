@@ -106,9 +106,7 @@ test_that("constraints: nA, phi.A, delta.B, phi.B, nu.B", {
 
 	solved <- matching.solve(prepared, 
 								nA=50000, nB=40000, 
-								nu.A=0, phi.A=0, delta.A=1, gamma=1, delta.B=0, phi.B=0, nu.B=0,
-								verbose=TRUE) # TODO remove
-
+								nu.A=0, phi.A=0, delta.A=1, gamma=1, delta.B=0, phi.B=0, nu.B=0)
 	expect_is(solved, "dpp_resolved")
 
 	expect_equal(50000, solved$gen$hat.nA)
@@ -168,7 +166,8 @@ test_that("constraints: phi.A, delta.A (free on matching and B)", {
 
 	solved <- matching.solve(prepared, 
 								nA= 50000, nB=40000, 
-								nu.A=0, phi.A=0, delta.A=0, gamma=1, delta.B=1, phi.B=1, nu.B=1
+								nu.A=0, phi.A=0, delta.A=0, gamma=1, delta.B=1, phi.B=1, nu.B=1,
+								verbose=TRUE
 								)
 
 	expect_is(solved, "dpp_resolved")
