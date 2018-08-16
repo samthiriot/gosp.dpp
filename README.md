@@ -1,7 +1,9 @@
 [![Travis-CI Build Status](https://travis-ci.org/samthiriot/direct-probabilistic-pairing.svg?branch=master)](https://travis-ci.org/samthiriot/direct-probabilistic-pairing)
 
-# direct-probabilistic-pairing
-experiments on generation of structured synthetic populations
+# gosp.dpp 
+
+Generation of Synthetic Populations: Direct Probabilistic Pairing
+
 
 # test the git version 
 
@@ -10,8 +12,6 @@ If you want to test or use the development version, you can clone this repositor
 install the devtools package 
 
     install.packages("devtools")
-	install.packages("dplyr")
-	install.packages("igraph")
 	
 the first time, from the gosp.dpp directory
 
@@ -24,7 +24,7 @@ the first time, from the gosp.dpp directory
 then from the gosp.dpp directory:
 
     library(devtools)
-    devtools::check("gosp.dpp")
+    devtools::check()
 
 
 # more info
