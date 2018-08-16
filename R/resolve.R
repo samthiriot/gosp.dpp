@@ -1292,10 +1292,10 @@ resolve.missing.chain <- function(sol, chain, case,
                     if (verbose) {
                         cat("\t\t\twe found a valid solution which provides: ", paste.known(sol.hyp),"\n")
                     }
-                    sol.hyp <- quantify.errors(sol.hyp, case, nA, nB)
+                    sol.hyp <- quantify.errors(sol.hyp, case, nA, nB, verbose=verbose)
                     if (verbose) {
 
-                        cat(paste("here are the NRMSE errors of this solution: ",
+                        cat(paste("\t\t\there are the NRMSE errors of this solution: ",
                             "nA=",sol.hyp$nrmse.nA,
                             ",fi=",sol.hyp$nrmse.fi, 
                             ",di=",sol.hyp$nrmse.di,
@@ -1373,7 +1373,8 @@ resolve.missing.chain <- function(sol, chain, case,
             cumulated.errors[i] <- sum(errors[indices_weights_not_null] / weights[indices_weights_not_null])
             
             if (verbose)
-                cat(paste("\t\t\tsolution (",i,") => ", errors[indices_weights_not_null], "\t weighted: ",cumulated.errors,"\n",sep=""))
+                cat(paste("\t\t\tsolution (",i,") => ", paste(errors[indices_weights_not_null],collapse="\t"), 
+                    "\t weighted: ",paste(cumulated.errors,collapse="\t"),"\n",sep=""))
         }
 
         best.solutions <- which(cumulated.errors == min(cumulated.errors)) 
@@ -1479,9 +1480,10 @@ resolve <- function(sol, case,
 #' @param case the reference case
 #' @param nA the expected size of population A
 #' @param nB the expected size of population B
+#' @param verbose if TRUE, will display more information (default to FALSE)
 #' @return the solution with additional variables for errors 
 #'  
-quantify.errors <- function(sol, case, nA, nB) {
+quantify.errors <- function(sol, case, nA, nB, verbose=FALSE) {
 
 
     # measure errors
@@ -1523,7 +1525,21 @@ quantify.errors <- function(sol, case, nA, nB) {
 
     # MSE pij
     if (!is.null(sol$hat.pij)) {
-        sol$mse.pij <- mean( ( sol$hat.pij - case$inputs$pij$data )^2  )
+        if (verbose) {
+            print("computing the NRMSE of pij, for hat.pij=")
+            print(sol$hat.pij)
+            print("original being")
+            print(case$inputs$pij$data)
+            print("difference is ")
+            print(sol$hat.pij - case$inputs$pij$data)
+            print("square is")
+            print(( sol$hat.pij - case$inputs$pij$data )^2)
+            print("so mean is ")
+            print(mean.data.frame( ( sol$hat.pij - case$inputs$pij$data )^2  ))
+            print("and thus")
+            print(sqrt(mean.data.frame( ( sol$hat.pij - case$inputs$pij$data )^2  )))
+        }
+        sol$mse.pij <- mean.data.frame( ( sol$hat.pij - case$inputs$pij$data )^2  )
         sol$rmse.pij <- sqrt(sol$mse.pij)
         sol$nrmse.pij <- sol$rmse.pij
     }
@@ -1582,6 +1598,27 @@ ensure.form <- function(sol, case) {
     }
 
     sol
+}
+
+#' Computes the mean of all the values inside a dataframe 
+#' 
+#' Sometimes the standard mean() function works on matrices,
+#' but it does not on dataframes. In case the parameter is a dataframe,
+#' the mean will be computed as the sum of all the values divided by the 
+#' count of elements. Else another standard mean will be called.
+#' 
+#' @param x the dataframe 
+#' @param ... additional parameters are quietly ignored
+#' @return a double value 
+#' 
+#' @author Samuel Thiriot <samuel.thiriot@res-ear.ch> 
+#' 
+mean.data.frame <- function(x, ...) {
+
+    if (class(x) != "data.frame") 
+        mean(x)
+    else 
+        sum(x) / (nrow(x) * ncol(x))
 }
 
 #' Solves the equations by arbitrating.
@@ -1707,7 +1744,7 @@ matching.solve <- function(case,
         cat("\ncase solved.\n")
     }
     # measure errors
-    sol <- quantify.errors(sol, case, nA, nB)
+    sol <- quantify.errors(sol, case, nA, nB, verbose=verbose)
 
     # ensure the form is ok
     sol <- ensure.form(sol, case)
