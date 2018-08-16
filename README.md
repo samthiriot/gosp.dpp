@@ -1,3 +1,5 @@
+[![Travis-CI Build Status](https://travis-ci.org/samthiriot/direct-probabilistic-pairing.svg?branch=master)](https://travis-ci.org/samthiriot/direct-probabilistic-pairing)
+
 # direct-probabilistic-pairing
 experiments on generation of structured synthetic populations
 
@@ -19,10 +21,7 @@ the first time, from the gosp.dpp directory
 	source("data-raw/cas1.R")
 	source("data-raw/case2.R")
 
-No !!!
-	devtools::use_data_raw("gosp.dpp")
-
-then from the root of the clone:
+then from the gosp.dpp directory:
 
     library(devtools)
     devtools::check("gosp.dpp")
