@@ -309,12 +309,12 @@ normalise <- function(df) {
 #'
 nan_to_zeros <- function (x, ...) {
    UseMethod("nan_to_zeros", x)
- }
+}  
 
 nan_to_zeros.list <- function (x, ...) {
     x[which(is.nan(x))] <- 0
     x
- }
+}
 nan_to_zeros.numeric <- nan_to_zeros.list
 
 nan_to_zeros.matrix <- function (x, ...) {
@@ -1292,7 +1292,7 @@ resolve.missing.chain <- function(sol, chain, case,
                     if (verbose) {
                         cat("\t\t\twe found a valid solution which provides: ", paste.known(sol.hyp),"\n")
                     }
-                    sol.hyp <- quantify.errors(sol.hyp, case, nA, nB, verbose=verbose)
+                    sol.hyp <- quantify.errors(sol.hyp, case, nA, nB)
                     if (verbose) {
 
                         cat(paste("\t\t\there are the NRMSE errors of this solution: ",
@@ -1480,10 +1480,9 @@ resolve <- function(sol, case,
 #' @param case the reference case
 #' @param nA the expected size of population A
 #' @param nB the expected size of population B
-#' @param verbose if TRUE, will display more information (default to FALSE)
 #' @return the solution with additional variables for errors 
 #'  
-quantify.errors <- function(sol, case, nA, nB, verbose=FALSE) {
+quantify.errors <- function(sol, case, nA, nB) {
 
 
     # measure errors
@@ -1525,20 +1524,20 @@ quantify.errors <- function(sol, case, nA, nB, verbose=FALSE) {
 
     # MSE pij
     if (!is.null(sol$hat.pij)) {
-        if (verbose) {
-            print("computing the NRMSE of pij, for hat.pij=")
-            print(sol$hat.pij)
-            print("original being")
-            print(case$inputs$pij$data)
-            print("difference is ")
-            print(sol$hat.pij - case$inputs$pij$data)
-            print("square is")
-            print(( sol$hat.pij - case$inputs$pij$data )^2)
-            print("so mean is ")
-            print(mean.data.frame( ( sol$hat.pij - case$inputs$pij$data )^2  ))
-            print("and thus")
-            print(sqrt(mean.data.frame( ( sol$hat.pij - case$inputs$pij$data )^2  )))
-        }
+        # if (verbose) {
+        #     print("computing the NRMSE of pij, for hat.pij=")
+        #     print(sol$hat.pij)
+        #     print("original being")
+        #     print(case$inputs$pij$data)
+        #     print("difference is ")
+        #     print(sol$hat.pij - case$inputs$pij$data)
+        #     print("square is")
+        #     print(( sol$hat.pij - case$inputs$pij$data )^2)
+        #     print("so mean is ")
+        #     print(mean.data.frame( ( sol$hat.pij - case$inputs$pij$data )^2  ))
+        #     print("and thus")
+        #     print(sqrt(mean.data.frame( ( sol$hat.pij - case$inputs$pij$data )^2  )))
+        # }
         sol$mse.pij <- mean.data.frame( ( sol$hat.pij - case$inputs$pij$data )^2  )
         sol$rmse.pij <- sqrt(sol$mse.pij)
         sol$nrmse.pij <- sol$rmse.pij
@@ -1744,7 +1743,7 @@ matching.solve <- function(case,
         cat("\ncase solved.\n")
     }
     # measure errors
-    sol <- quantify.errors(sol, case, nA, nB, verbose=verbose)
+    sol <- quantify.errors(sol, case, nA, nB)
 
     # ensure the form is ok
     sol <- ensure.form(sol, case)
