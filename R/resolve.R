@@ -1314,7 +1314,7 @@ resolve.missing.chain <- function(sol, chain, case,
             cat("\t\t\tfound one valid solution\n")
     } else {
 
-        if (verbose) 
+        if (verbose)
             cat("\t\tfound ",length(solutions)," solutions, we have to select the best according to weights\n")
 
         # create a vector with errors
