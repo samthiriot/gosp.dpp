@@ -1314,12 +1314,12 @@ resolve.missing.chain <- function(sol, chain, case,
             cat("\t\t\tfound one valid solution\n")
     } else {
 
-        if (verbose)
+        if (verbose) 
             cat("\t\tfound ",length(solutions)," solutions, we have to select the best according to weights\n")
 
         # create a vector with errors
         val.or.0 <- function(x) {
-            if (is.null(x)) {
+            if (is.null(x) || is.nan(x)) {
                 return(0)
             } else {
                 return(x)
@@ -1352,9 +1352,10 @@ resolve.missing.chain <- function(sol, chain, case,
             # print(errors[indices_weights_not_null] / weights[indices_weights_not_null])
             cumulated.errors[i] <- sum(errors[indices_weights_not_null] / weights[indices_weights_not_null])
             
+            if (verbose)
+                cat("\t\t\tsolution (",i,") =>", cumulated.errors,"\n")
         }
-        if (verbose)
-            cat("\t\t\tsolution (",i,") =>", cumulated.errors,"\n")
+
         best.solutions <- which(cumulated.errors == min(cumulated.errors)) 
         best.solution <- NULL
         if (length(best.solutions) > 1) {
