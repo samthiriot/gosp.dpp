@@ -94,6 +94,21 @@ plot.unconstrained <- function(sp, sampleA, sampleB, nameA="A", nameB="B") {
 
 }
 
+#' Adds line breaks to forge axes labels
+#' 
+#' In case labels refer to several attributes, such as "a=1,b=2", replaces the commas by
+#' carriage returns
+#'
+#' @param labels a vector of strings 
+#' @return a vector of strings
+#' 
+#' @author Samuel Thiriot <samuel.thiriot@res-ear.ch> 
+#' 
+add_linebreaks_attributes <- function(labels) {
+    gsub(",", ",\n", labels)
+}
+
+
 #' Plots a visual synthese of the errors induced by the generation process. 
 #'
 #' Plots all the values controlled by the algorithm, and compares their expected value (passed as data or parameter)
@@ -179,7 +194,7 @@ plot.dpp_result <- function(x, sampleA, sampleB, nameA="A", nameB="B", colorRef=
 
     # compare expected and actual degree
     degrees_A <- data.frame(
-        attributes=c(names(sp$inputs$di),names(sp$gen$hat.di)),
+        attributes=add_linebreaks_attributes(c(names(sp$inputs$di),names(sp$gen$hat.di))),
         average.degree=c(sp$inputs$di,sp$gen$hat.di),
         state=c(rep("theoretical",length(sp$inputs$di)), rep("synthetic",length(sp$gen$hat.di)))
         )
@@ -191,7 +206,7 @@ plot.dpp_result <- function(x, sampleA, sampleB, nameA="A", nameB="B", colorRef=
                         ggtitle(paste("average degree",nameA))
 
     degrees_B <- data.frame(
-        attributes=c(names(sp$inputs$dj),names(sp$gen$hat.dj)),
+        attributes=add_linebreaks_attributes(c(names(sp$inputs$dj),names(sp$gen$hat.dj))),
         average.degree=c(sp$inputs$dj,sp$gen$hat.dj),
         state=c(rep("theoretical",length(sp$inputs$dj)), rep("synthetic",length(sp$gen$hat.dj)))
         )
@@ -205,7 +220,7 @@ plot.dpp_result <- function(x, sampleA, sampleB, nameA="A", nameB="B", colorRef=
 
     # compare expected and actual frequencies
     frequencies_A <- data.frame(
-        attributes=c(names(sp$stats$fi),names(sp$gen$hat.fi)),
+        attributes=add_linebreaks_attributes(c(names(sp$stats$fi),names(sp$gen$hat.fi))),
         frequency=c(sp$stats$fi,sp$gen$hat.fi),
         state=c(rep("theoretical",length(sp$stats$fi)), rep("synthetic",length(sp$gen$hat.fi)))
         ) 
@@ -217,7 +232,7 @@ plot.dpp_result <- function(x, sampleA, sampleB, nameA="A", nameB="B", colorRef=
                         ggtitle(paste("frequencies",nameA))
 
     frequencies_B <- data.frame(
-        attributes=c(names(sp$stats$fj),names(sp$gen$hat.fj)),
+        attributes=add_linebreaks_attributes(c(names(sp$stats$fj),names(sp$gen$hat.fj))),
         frequency=c(sp$stats$fj,sp$gen$hat.fj),
         state=c(rep("theoretical",length(sp$stats$fj)), rep("synthetic",length(sp$gen$hat.fj)))
         ) 
@@ -232,7 +247,8 @@ plot.dpp_result <- function(x, sampleA, sampleB, nameA="A", nameB="B", colorRef=
     heat_map_gradient <- scale_fill_gradient2(limits=c(-1,1)) # , trans="log"
 
     # plot pdi
-    diff_pdi <- sp$inputs$pdi$data - sp$gen$hat.pdi
+    diff_pdi <- sp$gen$hat.pdi - sp$inputs$pdi$data
+    colnames(diff_pdi) <- add_linebreaks_attributes(colnames(diff_pdi))
     diff_pdi$degree <- factor(seq(0,nrow(diff_pdi)-1))
     data_hm_pdi <- melt(diff_pdi)
     plot_pdi <- ggplot(data_hm_pdi, aes(variable, degree)) + 
@@ -240,7 +256,8 @@ plot.dpp_result <- function(x, sampleA, sampleB, nameA="A", nameB="B", colorRef=
                         heat_map_gradient + 
                         ggtitle(paste("difference degree for",nameA))
 
-    diff_pdj <- sp$inputs$pdj$data - sp$gen$hat.pdj
+    diff_pdj <- sp$gen$hat.pdj - sp$inputs$pdj$data
+    colnames(diff_pdj) <- add_linebreaks_attributes(colnames(diff_pdj))
     diff_pdj$degree <- factor(seq(0,nrow(diff_pdj)-1))
     data_hm_pdj <- melt(diff_pdj)
     plot_pdj <- ggplot(data_hm_pdj, aes(variable, degree)) + 
@@ -249,8 +266,10 @@ plot.dpp_result <- function(x, sampleA, sampleB, nameA="A", nameB="B", colorRef=
                         ggtitle(paste("difference degree for",nameB))
     
     # plot pij
-    diff_pij <- sp$inputs$pij$data - sp$gen$hat.pij
-    diff_pij$attributesB <- row.names(diff_pij)
+    diff_pij <- sp$gen$hat.pij - sp$inputs$pij$data
+    colnames(diff_pij) <- add_linebreaks_attributes(colnames(diff_pij))
+    diff_pij$attributesB <- add_linebreaks_attributes(row.names(diff_pij))
+    #diff_pij$variable <- add_linebreaks_attributes(diff_pij$variable)
     data_hm_pij <- melt(diff_pij)
     plot_pij <- ggplot(data_hm_pij, aes(variable, attributesB)) + 
                         geom_tile(aes(fill=value)) + 
