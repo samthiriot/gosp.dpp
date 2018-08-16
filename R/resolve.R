@@ -1293,6 +1293,20 @@ resolve.missing.chain <- function(sol, chain, case,
                         cat("\t\t\twe found a valid solution which provides: ", paste.known(sol.hyp),"\n")
                     }
                     sol.hyp <- quantify.errors(sol.hyp, case, nA, nB)
+                    if (verbose) {
+
+                        cat(paste("here are the NRMSE errors of this solution: ",
+                            "nA=",sol.hyp$nrmse.nA,
+                            ",fi=",sol.hyp$nrmse.fi, 
+                            ",di=",sol.hyp$nrmse.di,
+                            ",pij=",sol.hyp$nrmse.pij, 
+                            ",dj=",sol.hyp$nrmse.dj, 
+                            ",fj=",sol.hyp$nrmse.fj,
+                            ",nB=",sol.hyp$nrmse.nB,
+                            "\n",
+                            sep=""
+                            ))
+                    }
                     explored$sol <- sol.hyp
                     solutions[[length(solutions)+1]] <- explored
                 }
@@ -1303,6 +1317,8 @@ resolve.missing.chain <- function(sol, chain, case,
 
     }
 
+    # we did everything we could.
+    # now "solutions" contains the valid solutions which were found 
     res <- NULL 
     if (length(solutions) == 0) {
         if (verbose) 
@@ -1314,9 +1330,6 @@ resolve.missing.chain <- function(sol, chain, case,
             cat("\t\t\tfound one valid solution\n")
     } else {
 
-        if (verbose)
-            cat("\t\tfound ",length(solutions)," solutions, we have to select the best according to weights\n")
-
         # create a vector with errors
         val.or.0 <- function(x) {
             if (is.null(x) || is.nan(x)) {
@@ -1327,6 +1340,14 @@ resolve.missing.chain <- function(sol, chain, case,
         }
         cumulated.errors <- rep(0, times=length(solutions))
         weights <- c(nu.A, phi.A, delta.A, gamma, delta.B, phi.B, nu.B)
+        weights.names <- c("nu.A", "phi.A", "delta.A", "gamma", "delta.B", "phi.B", "nu.B")
+        indices_weights_not_null <- which(weights != 0)
+
+
+        if (verbose)
+            cat("\t\tfound ",length(solutions)," solutions, we have to select the best according to weights",weights.names[indices_weights_not_null],"\n")
+            weights <- c(nu.A, phi.A, delta.A, gamma, delta.B, phi.B, nu.B)
+
         # print("weights")
         # print(weights)
         for (i in 1:length(solutions)) {
@@ -1344,7 +1365,6 @@ resolve.missing.chain <- function(sol, chain, case,
                         val.or.0(s$sol$nrmse.nB)
                         )
 
-            indices_weights_not_null <- which(weights != 0)
 
             # print("errors for this sol")
             # print(errors[indices_weights_not_null])
@@ -1353,7 +1373,7 @@ resolve.missing.chain <- function(sol, chain, case,
             cumulated.errors[i] <- sum(errors[indices_weights_not_null] / weights[indices_weights_not_null])
             
             if (verbose)
-                cat("\t\t\tsolution (",i,") =>", cumulated.errors,"\n")
+                cat(paste("\t\t\tsolution (",i,") => ", errors[indices_weights_not_null], "\t weighted: ",cumulated.errors,"\n",sep=""))
         }
 
         best.solutions <- which(cumulated.errors == min(cumulated.errors)) 
@@ -1462,6 +1482,7 @@ resolve <- function(sol, case,
 #' @return the solution with additional variables for errors 
 #'  
 quantify.errors <- function(sol, case, nA, nB) {
+
 
     # measure errors
     # MSE fi
