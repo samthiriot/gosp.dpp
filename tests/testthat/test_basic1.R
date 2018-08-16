@@ -85,7 +85,7 @@ test_that("constraints: nA, phi.A, phi.B", {
 	solved <- matching.solve(prepared, 
 							nA=50000,nB=40000, 
 							nu.A=0, phi.A=0, delta.A=1, gamma=1, delta.B=1, phi.B=0, nu.B=1,
-							verbose=FALSE)
+							verbose=TRUE) # TODO remove
 
 	expect_is(solved, "dpp_resolved")
 
@@ -106,8 +106,8 @@ test_that("constraints: nA, phi.A, delta.B, phi.B, nu.B", {
 
 	solved <- matching.solve(prepared, 
 								nA=50000, nB=40000, 
-								nu.A=0, phi.A=0, delta.A=1, gamma=1, delta.B=0, phi.B=0, nu.B=0
-								)
+								nu.A=0, phi.A=0, delta.A=1, gamma=1, delta.B=0, phi.B=0, nu.B=0,
+								verbose=TRUE) # TODO remove
 
 	expect_is(solved, "dpp_resolved")
 
