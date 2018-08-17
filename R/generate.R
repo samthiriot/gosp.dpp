@@ -23,12 +23,14 @@ NULL
 #'
 #' @author Samuel Thiriot <samuel.thiriot@res-ear.ch> 
 #'
+#' @keywords internal
+#'
 matching.generate.resize_population <- function(sample, count.required, colname.weight) {
 	# weights.factor <- count.required / weights.available
 	#print(weights.factor)
 
 	#print(count.required)
-	
+
 	selected <- sample_n(sample, count.required, weight=sample[,colname.weight], replace=TRUE)
 	#print(nrow(selected))
 
@@ -72,11 +74,12 @@ matching.generate.copy_population <- function(n, sample, verbose=FALSE) {
 			cat("\tshould copy ", count.required, " individuals for ", name,
 					" and found ",count.available, " individuals with weights summing to ", weights.available,"\n",sep="")
 
-		toAdd <- matching.generate.resize_population(available, count.required, sample$dictionary$colname.weight)
+		if (count.required > 0) {
+			toAdd <- matching.generate.resize_population(available, count.required, sample$dictionary$colname.weight)
 
-		# extend the original target population
-		target <- rbind(target, toAdd)
-		
+			# extend the original target population
+			target <- rbind(target, toAdd)
+		}
 	}
 
     if (sum(n) != nrow(target)) {   
@@ -96,6 +99,8 @@ matching.generate.copy_population <- function(n, sample, verbose=FALSE) {
 #' @param verbose if TRUE, detailed messages are printed
 #'
 #' @author Samuel Thiriot <samuel.thiriot@res-ear.ch> 
+#'
+#' @keywords internal
 #'
 matching.generate.add_degree <- function(samp, pop, n, ndx, verbose) {
 
@@ -174,13 +179,16 @@ matching.generate.add_degree <- function(samp, pop, n, ndx, verbose) {
 #' @param sample.A the sample to use as population A 
 #' @param sample.B the sample to use as population B
 #' @param verbose displays detailed messages if TRUE
+#' @param measure if TRUE (default value), measures states from the actual population. 
 #' @return the generated population
+#'
+#' @seealso \code{\link{matching.solve}} to prepare the case for this call
 #' 
 #' @export 
 #'
 #' @author Samuel Thiriot <samuel.thiriot@res-ear.ch> 
 #'
-matching.generate <- function(case, sample.A, sample.B, verbose=FALSE) {
+matching.generate <- function(case, sample.A, sample.B, verbose=FALSE, measure=TRUE) {
 
 	if (class(case) != "dpp_resolved") 
 		stop("case should be the result of a solving by matching.solve")
@@ -304,8 +312,11 @@ matching.generate <- function(case, sample.A, sample.B, verbose=FALSE) {
 	res <- case
 	res$pop <- list(A=targetA, B=targetB, links=links)
     class(res$pop) <- "dpp_population" 
-	res$measure <- measure.population(case, res$pop, sample.A, sample.B, case$inputs$pij)
-    class(res$measure) <- "dpp_measure"
+
+    if (measure) {
+		res$measure <- measure.population(case, res$pop, sample.A, sample.B, case$inputs$pij)
+	    class(res$measure) <- "dpp_measure"
+	}
 
     class(res) <- "dpp_result"
 
