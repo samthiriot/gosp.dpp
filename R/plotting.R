@@ -14,6 +14,8 @@
 #' 
 #' @author Samuel Thiriot <samuel.thiriot@res-ear.ch> 
 #'  
+#' @keywords internal
+#'
 compute_common_columns <- function(t1, t2) {
     common_cols <- intersect(names(t1), names(t2)) 
     common_cols[common_cols != "id"]
@@ -108,10 +110,41 @@ plot.unconstrained <- function(sp, sampleA, sampleB, nameA="A", nameB="B") {
 #' 
 #' @author Samuel Thiriot <samuel.thiriot@res-ear.ch> 
 #' 
+#' @keywords internal
+#'
 add_linebreaks_attributes <- function(labels) {
     gsub(",", ",\n", labels)
 }
 
+
+#' Plots the relaxation parameters
+#' 
+#' Plots as a bar chart all the relaxation parameters as they were passed by the user
+#'
+#' @param sp a synthetic population, as produced by \code{\link{matching.generate}}.
+#' @param colorRef the color to be used to plot values passed as parameters (defaults to "darkgray")
+#' @return a ggplot ready to display
+#' 
+#' @export 
+#' 
+#' @importFrom ggplot2 ggplot aes geom_bar xlab ylab ggtitle geom_tile
+#' 
+#' @author Samuel Thiriot <samuel.thiriot@res-ear.ch> 
+#' 
+plot_relaxation <- function(sp, colorRef="darkgray") {
+
+    if (class(sp) != "dpp_result") stop("the data to analyze x should be the result of a matching.generate call")
+
+    # plot relaxation parameters
+    all_relaxation <- data.frame(
+        parameter=c("nA","fi","pdi/di","pij","pdj/dj","fj","nB"),
+        relaxation=c(sp$inputs$nu.A, sp$inputs$phi.A, sp$inputs$delta.A, sp$inputs$gamma, sp$inputs$delta.B, sp$inputs$phi.B, sp$inputs$nu.B)
+        )
+    all_relaxation$parameter <- factor(all_relaxation$parameter, levels=c("nA","fi","pdi/di","pij","pdj/dj","fj","nB"))
+    plot_all_relaxation <- ggplot(all_relaxation, aes(parameter, relaxation)) + geom_bar(stat="identity", fill=colorRef)
+
+    plot_all_relaxation
+}
 
 #' Plots a visual synthese of the errors induced by the generation process. 
 #'
@@ -119,7 +152,7 @@ add_linebreaks_attributes <- function(labels) {
 #' and their actual value (as measured in the resulting synthetic population).
 #' The resulting graphs contain: 
 #' \itemize{
-#'  \item a graph showing the relaxation parameters passed to the solving function; 
+#'  \item a graph showing the relaxation parameters passed to the solving function, as computed by \code{\link{plot_relaxation}}
 #'  \item a graph showing the Normalized Root Mean Square Error (NRMSE) for the each control variable 
 #'  \item a graph showing the population sizes asked for and generated for populations A and B
 #'  \item a graph showing the difference between the input and observed peering probabilities pij
@@ -164,12 +197,7 @@ plot.dpp_result <- function(x, sampleA, sampleB, nameA="A", nameB="B", colorRef=
     if (class(sampleB) != "data.frame") stop("sampleB should be a data frame")
     
     # plot relaxation parameters
-    all_relaxation <- data.frame(
-        parameter=c("nA","fi","pdi/di","pij","pdj/dj","fj","nB"),
-        relaxation=c(sp$inputs$nu.A, sp$inputs$phi.A, sp$inputs$delta.A, sp$inputs$gamma, sp$inputs$delta.B, sp$inputs$phi.B, sp$inputs$nu.B)
-        )
-    all_relaxation$parameter <- factor(all_relaxation$parameter, levels=c("nA","fi","pdi/di","pij","pdj/dj","fj","nB"))
-    plot_all_relaxation <- ggplot(all_relaxation, aes(parameter, relaxation)) + geom_bar(stat="identity", fill=colorRef)
+    plot_all_relaxation <- plot_relaxation(sp)
 
     # plot errors on each value
     all_errors <- data.frame(
