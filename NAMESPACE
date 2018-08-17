@@ -2,7 +2,7 @@
 
 S3method(as.igraph,dpp_population)
 S3method(as.igraph,dpp_result)
-S3method(plot,dpp_result)
+S3method(plot,dpp_resolved)
 S3method(print,dpp_degree_cpt)
 S3method(print,dpp_matching_probas)
 S3method(print,dpp_measure)

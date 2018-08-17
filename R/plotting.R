@@ -135,8 +135,9 @@ add_linebreaks_attributes <- function(labels) {
 #' 
 plot_relaxation <- function(sp, colorRef="darkgray") {
 
-    if (class(sp) != "dpp_result") stop("the data to analyze x should be the result of a matching.generate call")
-
+    if ((class(sp) != "dpp_result") && (class(sp) != "dpp_resolved")) 
+        stop("the data to analyze x should be the result of a matching.solve or matching.generate call")
+    
     # plot relaxation parameters
     all_relaxation <- data.frame(
         parameter=c("nA","fi","pdi/di","pij","pdj/dj","fj","nB"),
@@ -169,8 +170,9 @@ plot_relaxation <- function(sp, colorRef="darkgray") {
 #' 
 plot_errors <- function(sp, colorSynthetic="blue") {
 
-    if (class(sp) != "dpp_result") stop("the data to analyze x should be the result of a matching.generate call")
-
+    if ((class(sp) != "dpp_result") && (class(sp) != "dpp_resolved")) 
+        stop("the data to analyze x should be the result of a matching.solve or matching.generate call")
+    
     all_errors <- data.frame(
         error=c("nA","fi","pdi","di","pij","dj","pdj","fj","nB"),
         NRMSE=c(sp$gen$nrmse.nA, sp$gen$nrmse.fi, sp$gen$nrmse.pdi, sp$gen$nrmse.di, sp$gen$nrmse.pij, sp$gen$nrmse.dj, sp$gen$nrmse.pdj, sp$gen$nrmse.fj, sp$gen$nrmse.nB)
@@ -200,8 +202,9 @@ plot_errors <- function(sp, colorSynthetic="blue") {
 #' 
 plot_population_sizes <- function(sp, nameA="A", nameB="B", colorRef="darkgray", colorSynthetic="blue") {
 
-    if (class(sp) != "dpp_result") stop("the data to analyze x should be the result of a matching.generate call")
-
+    if ((class(sp) != "dpp_result") && (class(sp) != "dpp_resolved")) 
+        stop("the data to analyze x should be the result of a matching.solve or matching.generate call")
+    
     scale_gray_blue <- scale_fill_manual(values=c(colorRef,colorSynthetic))
 
     population_sizes <- data.frame(
@@ -239,8 +242,9 @@ plot_population_sizes <- function(sp, nameA="A", nameB="B", colorRef="darkgray",
 #' 
 plot_average_degree_A <- function(sp, nameA="A", colorRef="darkgray", colorSynthetic="blue") {
 
-    if (class(sp) != "dpp_result") stop("the data to analyze x should be the result of a matching.generate call")
-
+    if ((class(sp) != "dpp_result") && (class(sp) != "dpp_resolved")) 
+        stop("the data to analyze x should be the result of a matching.solve or matching.generate call")
+    
     scale_gray_blue <- scale_fill_manual(values=c(colorRef,colorSynthetic))
 
     degrees_A <- data.frame(
@@ -261,8 +265,9 @@ plot_average_degree_A <- function(sp, nameA="A", colorRef="darkgray", colorSynth
 #' @rdname plot_average_degree_A
 plot_average_degree_B <- function(sp, nameB="B", colorRef="darkgray", colorSynthetic="blue") {
 
-    if (class(sp) != "dpp_result") stop("the data to analyze x should be the result of a matching.generate call")
-
+    if ((class(sp) != "dpp_result") && (class(sp) != "dpp_resolved")) 
+        stop("the data to analyze x should be the result of a matching.solve or matching.generate call")
+    
     scale_gray_blue <- scale_fill_manual(values=c(colorRef,colorSynthetic))
 
     degrees_B <- data.frame(
@@ -299,8 +304,9 @@ plot_average_degree_B <- function(sp, nameB="B", colorRef="darkgray", colorSynth
 #' 
 plot_frequencies_A <- function(sp, nameA="A", colorRef="darkgray", colorSynthetic="blue") {
 
-    if (class(sp) != "dpp_result") stop("the data to analyze x should be the result of a matching.generate call")
-
+    if ((class(sp) != "dpp_result") && (class(sp) != "dpp_resolved")) 
+        stop("the data to analyze x should be the result of a matching.solve or matching.generate call")
+    
     scale_gray_blue <- scale_fill_manual(values=c(colorRef,colorSynthetic))
 
     frequencies_A <- data.frame(
@@ -320,8 +326,9 @@ plot_frequencies_A <- function(sp, nameA="A", colorRef="darkgray", colorSyntheti
 #' @rdname plot_frequencies_A
 plot_frequencies_B <- function(sp, nameB="B", colorRef="darkgray", colorSynthetic="blue") {
 
-    if (class(sp) != "dpp_result") stop("the data to analyze x should be the result of a matching.generate call")
-
+    if ((class(sp) != "dpp_result") && (class(sp) != "dpp_resolved")) 
+        stop("the data to analyze x should be the result of a matching.solve or matching.generate call")
+    
     scale_gray_blue <- scale_fill_manual(values=c(colorRef,colorSynthetic))
 
     frequencies_B <- data.frame(
@@ -360,8 +367,9 @@ plot_frequencies_B <- function(sp, nameB="B", colorRef="darkgray", colorSyntheti
 #' 
 plot_errors_pdi <- function(sp, nameA="A", colorRef="darkgray", colorSynthetic="blue") {
 
-    if (class(sp) != "dpp_result") stop("the data to analyze x should be the result of a matching.generate call")
-
+    if ((class(sp) != "dpp_result") && (class(sp) != "dpp_resolved")) 
+        stop("the data to analyze x should be the result of a matching.solve or matching.generate call")
+    
     heat_map_gradient <- scale_fill_gradient2(limits=c(-1,1)) # , trans="log"
 
     diff_pdi <- sp$gen$hat.pdi - sp$inputs$pdi$data
@@ -378,8 +386,9 @@ plot_errors_pdi <- function(sp, nameA="A", colorRef="darkgray", colorSynthetic="
 #' @rdname plot_errors_pdi
 plot_errors_pdj <- function(sp, nameB="B", colorRef="darkgray", colorSynthetic="blue") {
 
-    if (class(sp) != "dpp_result") stop("the data to analyze x should be the result of a matching.generate call")
-
+    if ((class(sp) != "dpp_result") && (class(sp) != "dpp_resolved")) 
+        stop("the data to analyze x should be the result of a matching.solve or matching.generate call")
+    
     heat_map_gradient <- scale_fill_gradient2(limits=c(-1,1)) # , trans="log"
 
     diff_pdj <- sp$gen$hat.pdj - sp$inputs$pdj$data
@@ -412,8 +421,9 @@ plot_errors_pdj <- function(sp, nameB="B", colorRef="darkgray", colorSynthetic="
 #' 
 plot_errors_pij <- function(sp) {
 
-    if (class(sp) != "dpp_result") stop("the data to analyze x should be the result of a matching.generate call")
-
+    if ((class(sp) != "dpp_result") && (class(sp) != "dpp_resolved")) 
+        stop("the data to analyze x should be the result of a matching.solve or matching.generate call")
+    
     heat_map_gradient <- scale_fill_gradient2(limits=c(-1,1)) # , trans="log"
 
     diff_pij <- sp$gen$hat.pij - sp$inputs$pij$data
@@ -429,7 +439,7 @@ plot_errors_pij <- function(sp) {
     plot_pij
 }
 
-#' Plots a visual synthese of the errors induced by the generation process. 
+#' Plots a visual synthese of the errors induced by the resolution process. 
 #'
 #' Plots all the values controlled by the algorithm, and compares their expected value (passed as data or parameter)
 #' and their actual value (as measured in the resulting synthetic population).
@@ -443,8 +453,10 @@ plot_errors_pij <- function(sp) {
 #'  \item two graphs showing the initial and observed average degrees in both populations A and B, as computed by \code{\link{plot_average_degree_A}}
 #'  \item two graphs showing the difference between the expected and measured distribution of probability of degrees for both A and B, as computed by \code{\link{plot_errors_pdi}}
 #' }
+#' 
+#' Note you can call the individual plotting functions for rendering for papers or zooming.
 #'
-#' @param x an object returned by the matching.generate method
+#' @param x an object returned by the \code{\link{matching.solve}} or the \code{\link{matching.generate}} method
 #' @param nameA a meaningfull label for the entity type of population A, such as "dwellings" (default to "A")
 #' @param nameB a meaningfull label for the entity type of population B, such as "households" (default to "B")
 #' @param colorRef the color to be used to plot values passed as parameters (defaults to "darkgray")
@@ -457,9 +469,11 @@ plot_errors_pij <- function(sp) {
 #' prepared <- matching.prepare(cas1$sample.A, cas1$sample.B, cas1$pdi, cas1$pdj, cas1$pij)
 #' solved <- matching.solve(prepared, nA=50000, nB=40000, nu.A=1, phi.A=0, 
 #'                            delta.A=0, gamma=0, delta.B=0, phi.B=0, nu.B=1, verbose=TRUE)
-#' sp <- matching.generate(solved, sample.A=cas1$sample.A, sample.B=cas1$sample.B, verbose=TRUE)
-#' plot(sp, "dwellings", "households")
-#'
+#' plot(solved, "dwellings", "households")
+#' # we might as well drive the same on a generated case:
+#' # sp <- matching.generate(solved, sample.A=cas1$sample.A, sample.B=cas1$sample.B, verbose=TRUE)
+#' # plot(sp, "dwellings", "households")
+#' 
 #' @export
 #'
 #' @author Samuel Thiriot <samuel.thiriot@res-ear.ch> 
@@ -468,12 +482,13 @@ plot_errors_pij <- function(sp) {
 #' @importFrom gridExtra grid.arrange
 #' @importFrom reshape2 melt
 #'
-plot.dpp_result <- function(x, nameA="A", nameB="B", colorRef="darkgray", colorSynthetic="blue", ...) {
+plot.dpp_resolved <- function(x, nameA="A", nameB="B", colorRef="darkgray", colorSynthetic="blue", ...) {
 
     sp <- x
 
     # TODO ensure this object is of the right type
-    if (class(sp) != "dpp_result") stop("the data to analyze x should be the result of a matching.generate call")
+    if ((class(sp) != "dpp_result") && (class(sp) != "dpp_resolved")) 
+        stop("the data to analyze x should be the result of a matching.solve or matching.generate call")
     
     # plot relaxation parameters
     plot_all_relaxation <- plot_relaxation(sp, colorRef)
@@ -508,3 +523,6 @@ plot.dpp_result <- function(x, nameA="A", nameB="B", colorRef="darkgray", colorS
         ncol=2, nrow=5)
 
 }
+
+#' @rdname plot.dpp_resolved
+plot.dpp_result <- plot.dpp_resolved
