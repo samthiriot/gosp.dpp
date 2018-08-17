@@ -47,10 +47,7 @@
 #'
 # TODO keep ? remove ? @describeIn as.igraph exports a generation result as an igraph graph
 #'
-#' @importFrom igraph graph_from_edgelist 
-#' @importFrom igraph set_vertex_attr
-#' @importFrom igraph as.igraph
-#'
+#' @importFrom igraph graph_from_edgelist set_vertex_attr as.igraph 
 #'
 #' @author Samuel Thiriot <samuel.thiriot@res-ear.ch> 
 #'
@@ -58,28 +55,28 @@ as.igraph.dpp_population <- function(pop, with.attributes=FALSE, ...) {
     
     # pop$links is a data frame that requires convertion to a matrix
 
-    g <- graph_from_edgelist(as.matrix(pop$links), directed=TRUE)
+    g <- igraph::graph_from_edgelist(as.matrix(pop$links), directed=TRUE)
 
     if (as.logical(with.attributes)) {
 
         # first define values to NA 
         # ... attributes of A which are not defined
         for (name in colnames(pop$B)) {
-            g <- set_vertex_attr(g, name, index=pop$A$id.A, value=rep(NA, times=nrow(pop$A)))
+            g <- igraph::set_vertex_attr(g, name, index=pop$A$id.A, value=rep(NA, times=nrow(pop$A)))
         }
         # ... attributes of B which are not defined
         for (name in colnames(pop$A)) {
-            g <- set_vertex_attr(g, name, index=pop$B$id.B, value=rep(NA, times=nrow(pop$B)))   
+            g <- igraph::set_vertex_attr(g, name, index=pop$B$id.B, value=rep(NA, times=nrow(pop$B)))   
         } 
 
         # copy the content of attributes of A
         for (name in colnames(pop$A)) {
-            g <- set_vertex_attr(g, name, index=pop$A$id.A, value=pop$A[,name])   
+            g <- igraph::set_vertex_attr(g, name, index=pop$A$id.A, value=pop$A[,name])   
         }
         
         # attributes of B
         for (name in colnames(pop$B)) {
-            g <- set_vertex_attr(g, name, index=pop$B$id.B, value=pop$B[,name])    
+            g <- igraph::set_vertex_attr(g, name, index=pop$B$id.B, value=pop$B[,name])    
         }
 
     }
@@ -105,6 +102,6 @@ as.igraph.dpp_population <- function(pop, with.attributes=FALSE, ...) {
 #'
 as.igraph.dpp_result <- function(generated, with.attributes=FALSE, ...) {
 
-    as.igraph(generated$pop, with.attributes=with.attributes)
+    as.igraph.dpp_population(generated$pop, with.attributes=with.attributes)
 
 }
