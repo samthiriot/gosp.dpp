@@ -7,7 +7,7 @@ Generation of Synthetic Populations: Direct Probabilistic Pairing
 
 # user install
 
-## install 
+From R, you can install it in 2 steps only:
 
 install the devtools package 
 
@@ -16,6 +16,7 @@ install the devtools package
 then use it to install the package from github
 
 	install_github("samthiriot/gosp.dpp")
+
 
 # developer install
 
@@ -26,37 +27,38 @@ clone the repository
 	devtools::install()
 	devtools::load_all()
 
+enjoy!
 
-# releasing
 
-## generate the data
+# releasing
+
+generate the data
 
 	library(devtools)
 	devtools::install()
 	source("data-raw/cas1.R")
 	source("data-raw/case2.R")
 
-## run local tests
+run local tests
 
 	library(devtools)
 	devtools::test()
 
-## check the package locally
+check the package locally
 
 	library(devtools)
 	devtools::check(manual=TRUE)
 
-## check on various platforms
+check on various platforms
 
 before release, we test the package on Windows, MacOSX and Linux
 
 	library(rhub)
 	check()
 
-## update comments for CRAN
+update comments for CRAN: if relevant, update the comments in cran-comments.md
 
-if relevant, update the comments in cran-comments.md
 
-## TODO
+## TODO
 
 actual upload:
