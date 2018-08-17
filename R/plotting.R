@@ -1,11 +1,4 @@
 
-#' Plots the differences between two populations
-#' 
-#' 
-#'
-#' @author Samuel Thiriot <samuel.thiriot@res-ear.ch> 
-#'
-
 #' Identifies the columns present it two datasets 
 #'
 #' @param t1 a dataframe
@@ -21,6 +14,28 @@ compute_common_columns <- function(t1, t2) {
     common_cols[common_cols != "id"]
 }
 
+#' Stops if ggplot2 is not installed
+#' 
+#' @author Samuel Thiriot <samuel.thiriot@res-ear.ch> 
+#' 
+#' @keywords internal
+#'
+ensure_presence_ggplot <- function() {
+
+    if (!requireNamespace("ggplot2", quietly = TRUE) || !requireNamespace("gridExtra", quietly = TRUE)) {
+        stop("Packages \"ggplot2\" and \"gridExtra\" a required for plotting features. Please install it with install.packages(\"ggplot2\",\"gridExtra\")", call. = FALSE)
+    }
+
+}
+
+
+# TODO
+# Plots the differences between two populations
+# 
+# 
+#
+#' @author Samuel Thiriot <samuel.thiriot@res-ear.ch> 
+#'
 #' @importFrom graphics hist par
 #' @importFrom stats frequency
 #' 
@@ -65,10 +80,12 @@ plot.differences <- function(sp, sampleA, sampleB, nameA="A", nameB="B") {
 
 }
 
-#' @importFrom gridExtra grid.arrange
-#' @importFrom ggplot2 geom_histogram
-#' 
+# @importFrom gridExtra grid.arrange
+# @importFrom ggplot2 geom_histogram ggplot xlab aes
+#
 plot.unconstrained <- function(sp, sampleA, sampleB, nameA="A", nameB="B") {
+
+    ensure_presence_ggplot()
 
     # TODO read https://stackoverflow.com/questions/38507729/recast-in-r-with-sumproduct
 
@@ -89,14 +106,13 @@ plot.unconstrained <- function(sp, sampleA, sampleB, nameA="A", nameB="B") {
         print(n)
 
         pAref[[n]] <- factor(pAref[[n]])
-        p <- ggplot(pAref, aes(pAref[[n]], weight=pAref$weight)) + geom_histogram() + xlab(n)
+        p <- ggplot2::ggplot(pAref, ggplot2::aes(pAref[[n]], weight=pAref$weight)) + 
+                    ggplot2::geom_histogram() + 
+                    ggplot2::xlab(n)
         plots_list <- append(plots_list, list(p))
     }
 
-    print("list:")
-    print(plots_list)
-    do.call("grid.arrange", c(plots_list, ncol=1, nrow=length(plots_list)))
-
+    do.call("ggplot2::grid.arrange", c(plots_list, ncol=1, nrow=length(plots_list)))
 
 }
 
@@ -129,7 +145,7 @@ add_linebreaks_attributes <- function(labels) {
 #' 
 #' @export 
 #' 
-#' @importFrom ggplot2 ggplot aes geom_bar xlab ylab ggtitle geom_tile
+# @importFrom ggplot2 ggplot aes ggplot2::geom_bar xlab ylab ggtitle geom_tile
 #' 
 #' @author Samuel Thiriot <samuel.thiriot@res-ear.ch> 
 #' 
@@ -138,14 +154,16 @@ plot_relaxation <- function(sp, colorRef="darkgray") {
     if ((class(sp) != "dpp_result") && (class(sp) != "dpp_resolved")) 
         stop("the data to analyze x should be the result of a matching.solve or matching.generate call")
     
+    ensure_presence_ggplot()
+
     # plot relaxation parameters
     all_relaxation <- data.frame(
         parameter=c("nA","fi","pdi/di","pij","pdj/dj","fj","nB"),
         relaxation=c(sp$inputs$nu.A, sp$inputs$phi.A, sp$inputs$delta.A, sp$inputs$gamma, sp$inputs$delta.B, sp$inputs$phi.B, sp$inputs$nu.B)
         )
     all_relaxation$parameter <- factor(all_relaxation$parameter, levels=c("nA","fi","pdi/di","pij","pdj/dj","fj","nB"))
-    plot_all_relaxation <- ggplot(all_relaxation, aes(parameter, relaxation)) + 
-                                geom_bar(stat="identity", fill=colorRef)
+    plot_all_relaxation <- ggplot2::ggplot(all_relaxation, ggplot2::aes(parameter, relaxation)) + 
+                                ggplot2::geom_bar(stat="identity", fill=colorRef)
 
     plot_all_relaxation
 }
@@ -164,7 +182,7 @@ plot_relaxation <- function(sp, colorRef="darkgray") {
 #' 
 #' @export 
 #' 
-#' @importFrom ggplot2 ggplot aes geom_bar xlab ylab ggtitle geom_tile
+# @importFrom ggplot2 ggplot aes ggplot2::geom_bar xlab ylab ggtitle geom_tile
 #' 
 #' @author Samuel Thiriot <samuel.thiriot@res-ear.ch> 
 #' 
@@ -172,14 +190,16 @@ plot_errors <- function(sp, colorSynthetic="blue") {
 
     if ((class(sp) != "dpp_result") && (class(sp) != "dpp_resolved")) 
         stop("the data to analyze x should be the result of a matching.solve or matching.generate call")
-    
+
+    ensure_presence_ggplot()
+
     all_errors <- data.frame(
         error=c("nA","fi","pdi","di","pij","dj","pdj","fj","nB"),
         NRMSE=c(sp$gen$nrmse.nA, sp$gen$nrmse.fi, sp$gen$nrmse.pdi, sp$gen$nrmse.di, sp$gen$nrmse.pij, sp$gen$nrmse.dj, sp$gen$nrmse.pdj, sp$gen$nrmse.fj, sp$gen$nrmse.nB)
         )
     all_errors$error <- factor(all_errors$error, levels=c("nA","fi","pdi","di","pij","dj","pdj","fj","nB"))
-    plot_all_errors <- ggplot(all_errors, aes(error, NRMSE)) + 
-                            geom_bar(stat="identity", fill=colorSynthetic)
+    plot_all_errors <- ggplot2::ggplot(all_errors, ggplot2::aes(error, NRMSE)) + 
+                            ggplot2::geom_bar(stat="identity", fill=colorSynthetic)
 
     plot_all_errors
 }
@@ -196,7 +216,7 @@ plot_errors <- function(sp, colorSynthetic="blue") {
 #' 
 #' @export 
 #' 
-#' @importFrom ggplot2 ggplot aes geom_bar xlab ylab ggtitle geom_tile scale_fill_manual
+# @importFrom ggplot2 ggplot aes ggplot2::geom_bar xlab ylab ggtitle geom_tile scale_fill_manual
 #' 
 #' @author Samuel Thiriot <samuel.thiriot@res-ear.ch> 
 #' 
@@ -204,8 +224,10 @@ plot_population_sizes <- function(sp, nameA="A", nameB="B", colorRef="darkgray",
 
     if ((class(sp) != "dpp_result") && (class(sp) != "dpp_resolved")) 
         stop("the data to analyze x should be the result of a matching.solve or matching.generate call")
+
+    ensure_presence_ggplot()
     
-    scale_gray_blue <- scale_fill_manual(values=c(colorRef,colorSynthetic))
+    scale_gray_blue <- ggplot2::scale_fill_manual(values=c(colorRef,colorSynthetic))
 
     population_sizes <- data.frame(
         type=c(paste(nameA, "(nA)"), paste(nameB,"(nB)")), 
@@ -214,10 +236,10 @@ plot_population_sizes <- function(sp, nameA="A", nameB="B", colorRef="darkgray",
     population_sizes$type <- factor(population_sizes$type, c(paste(nameA, "(nA)"), paste(nameB,"(nB)")))
     population_sizes$state <- factor(population_sizes$state, levels=c("theoretical","synthetic"))
 
-    # ggplot(population_sizes, aes(x=type)) + geom_bar(data=parameter, stat="identity", fill=colorRef) 
-    # geom_bar(stat="identity", aes(y=parameter, fill=colorRef), position="dodge") +
-    res_plot <- ggplot(population_sizes, aes(x=type, y=factor(count), fill=state)) + 
-                        geom_bar(stat="identity", position = 'dodge2') + 
+    # ggplot(population_sizes, ggplot2::aes(x=type)) + ggplot2::geom_bar(data=parameter, stat="identity", fill=colorRef) 
+    # ggplot2::geom_bar(stat="identity", ggplot2::aes(y=parameter, fill=colorRef), position="dodge") +
+    res_plot <- ggplot2::ggplot(population_sizes, ggplot2::aes(x=type, y=factor(count), fill=state)) + 
+                        ggplot2::geom_bar(stat="identity", position = 'dodge2') + 
                         scale_gray_blue
 
     res_plot
@@ -236,7 +258,7 @@ plot_population_sizes <- function(sp, nameA="A", nameB="B", colorRef="darkgray",
 #' 
 #' @export 
 #' 
-#' @importFrom ggplot2 ggplot aes geom_bar xlab ylab ggtitle geom_tile scale_fill_manual
+# @importFrom ggplot2 ggplot aes ggplot2::geom_bar xlab ylab ggtitle geom_tile scale_fill_manual
 #' 
 #' @author Samuel Thiriot <samuel.thiriot@res-ear.ch> 
 #' 
@@ -245,7 +267,9 @@ plot_average_degree_A <- function(sp, nameA="A", colorRef="darkgray", colorSynth
     if ((class(sp) != "dpp_result") && (class(sp) != "dpp_resolved")) 
         stop("the data to analyze x should be the result of a matching.solve or matching.generate call")
     
-    scale_gray_blue <- scale_fill_manual(values=c(colorRef,colorSynthetic))
+    ensure_presence_ggplot()
+
+    scale_gray_blue <- ggplot2::scale_fill_manual(values=c(colorRef,colorSynthetic))
 
     degrees_A <- data.frame(
         attributes=add_linebreaks_attributes(c(names(sp$inputs$di),names(sp$gen$hat.di))),
@@ -253,11 +277,11 @@ plot_average_degree_A <- function(sp, nameA="A", colorRef="darkgray", colorSynth
         state=c(rep("theoretical",length(sp$inputs$di)), rep("synthetic",length(sp$gen$hat.di)))
         )
     degrees_A$state <- factor(degrees_A$state, levels=c("theoretical","synthetic"))
-    plot_degrees_A <- ggplot(degrees_A, aes(x=attributes, y=average.degree, fill=state)) + 
-                        geom_bar(stat="identity", position = 'dodge2') + 
+    plot_degrees_A <- ggplot2::ggplot(degrees_A, ggplot2::aes(x=attributes, y=average.degree, fill=state)) + 
+                        ggplot2::geom_bar(stat="identity", position = 'dodge2') + 
                         scale_gray_blue + 
-                        ylab("average degree") + 
-                        ggtitle(paste("average degree",nameA))
+                        ggplot2::ylab("average degree") + 
+                        ggplot2::ggtitle(paste("average degree",nameA))
 
     plot_degrees_A
 }
@@ -268,7 +292,9 @@ plot_average_degree_B <- function(sp, nameB="B", colorRef="darkgray", colorSynth
     if ((class(sp) != "dpp_result") && (class(sp) != "dpp_resolved")) 
         stop("the data to analyze x should be the result of a matching.solve or matching.generate call")
     
-    scale_gray_blue <- scale_fill_manual(values=c(colorRef,colorSynthetic))
+    ensure_presence_ggplot()
+
+    scale_gray_blue <- ggplot2::scale_fill_manual(values=c(colorRef,colorSynthetic))
 
     degrees_B <- data.frame(
         attributes=add_linebreaks_attributes(c(names(sp$inputs$dj),names(sp$gen$hat.dj))),
@@ -276,11 +302,11 @@ plot_average_degree_B <- function(sp, nameB="B", colorRef="darkgray", colorSynth
         state=c(rep("theoretical",length(sp$inputs$dj)), rep("synthetic",length(sp$gen$hat.dj)))
         )
     degrees_B$state <- factor(degrees_B$state, levels=c("theoretical","synthetic"))
-    plot_degrees_B <- ggplot(degrees_B, aes(x=attributes, y=average.degree, fill=state)) + 
-                        geom_bar(stat="identity", position = 'dodge2') + 
+    plot_degrees_B <- ggplot2::ggplot(degrees_B, ggplot2::aes(x=attributes, y=average.degree, fill=state)) + 
+                        ggplot2::geom_bar(stat="identity", position = 'dodge2') + 
                         scale_gray_blue + 
-                        ylab("average degree") + 
-                        ggtitle(paste("average degree",nameB))
+                        ggplot2::ylab("average degree") + 
+                        ggplot2::ggtitle(paste("average degree",nameB))
 
     plot_degrees_B 
 }
@@ -298,7 +324,7 @@ plot_average_degree_B <- function(sp, nameB="B", colorRef="darkgray", colorSynth
 #' 
 #' @export 
 #' 
-#' @importFrom ggplot2 ggplot aes geom_bar xlab ylab ggtitle geom_tile scale_fill_manual
+# @importFrom ggplot2 ggplot aes ggplot2::geom_bar xlab ylab ggtitle geom_tile scale_fill_manual
 #' 
 #' @author Samuel Thiriot <samuel.thiriot@res-ear.ch> 
 #' 
@@ -307,7 +333,9 @@ plot_frequencies_A <- function(sp, nameA="A", colorRef="darkgray", colorSyntheti
     if ((class(sp) != "dpp_result") && (class(sp) != "dpp_resolved")) 
         stop("the data to analyze x should be the result of a matching.solve or matching.generate call")
     
-    scale_gray_blue <- scale_fill_manual(values=c(colorRef,colorSynthetic))
+    ensure_presence_ggplot()
+
+    scale_gray_blue <- ggplot2::scale_fill_manual(values=c(colorRef,colorSynthetic))
 
     frequencies_A <- data.frame(
         attributes=add_linebreaks_attributes(c(names(sp$stats$fi),names(sp$gen$hat.fi))),
@@ -315,11 +343,11 @@ plot_frequencies_A <- function(sp, nameA="A", colorRef="darkgray", colorSyntheti
         state=c(rep("theoretical",length(sp$stats$fi)), rep("synthetic",length(sp$gen$hat.fi)))
         ) 
     frequencies_A$state <- factor(frequencies_A$state, levels=c("theoretical","synthetic"))
-    res_plot <- ggplot(frequencies_A, aes(x=attributes, y=frequency, fill=state)) + 
-                        geom_bar(stat="identity", position = 'dodge2') + 
+    res_plot <- ggplot2::ggplot(frequencies_A, ggplot2::aes(x=attributes, y=frequency, fill=state)) + 
+                        ggplot2::geom_bar(stat="identity", position = 'dodge2') + 
                         scale_gray_blue + 
-                        ylab("freq") + 
-                        ggtitle(paste("frequencies",nameA))
+                        ggplot2::ylab("freq") + 
+                        ggplot2::ggtitle(paste("frequencies",nameA))
 
     res_plot
 }
@@ -329,7 +357,9 @@ plot_frequencies_B <- function(sp, nameB="B", colorRef="darkgray", colorSyntheti
     if ((class(sp) != "dpp_result") && (class(sp) != "dpp_resolved")) 
         stop("the data to analyze x should be the result of a matching.solve or matching.generate call")
     
-    scale_gray_blue <- scale_fill_manual(values=c(colorRef,colorSynthetic))
+    ensure_presence_ggplot()
+
+    scale_gray_blue <- ggplot2::scale_fill_manual(values=c(colorRef,colorSynthetic))
 
     frequencies_B <- data.frame(
         attributes=add_linebreaks_attributes(c(names(sp$stats$fj),names(sp$gen$hat.fj))),
@@ -337,11 +367,11 @@ plot_frequencies_B <- function(sp, nameB="B", colorRef="darkgray", colorSyntheti
         state=c(rep("theoretical",length(sp$stats$fj)), rep("synthetic",length(sp$gen$hat.fj)))
         ) 
     frequencies_B$state <- factor(frequencies_B$state, levels=c("theoretical","synthetic"))
-    res_plot <- ggplot(frequencies_B, aes(x=attributes, y=frequency, fill=state)) + 
-                        geom_bar(stat="identity", position = 'dodge2') + 
+    res_plot <- ggplot2::ggplot(frequencies_B, ggplot2::aes(x=attributes, y=frequency, fill=state)) + 
+                        ggplot2::geom_bar(stat="identity", position = 'dodge2') + 
                         scale_gray_blue + 
-                        ylab("freq") + 
-                        ggtitle(paste("frequencies",nameB))
+                        ggplot2::ylab("freq") + 
+                        ggplot2::ggtitle(paste("frequencies",nameB))
 
 
     res_plot
@@ -361,7 +391,7 @@ plot_frequencies_B <- function(sp, nameB="B", colorRef="darkgray", colorSyntheti
 #' 
 #' @export 
 #' 
-#' @importFrom ggplot2 ggplot aes geom_bar xlab ylab ggtitle geom_tile scale_fill_manual scale_fill_gradient2
+# @importFrom ggplot2 ggplot aes ggplot2::geom_bar xlab ylab ggtitle geom_tile scale_fill_manual scale_fill_gradient2
 #' 
 #' @author Samuel Thiriot <samuel.thiriot@res-ear.ch> 
 #' 
@@ -370,16 +400,18 @@ plot_errors_pdi <- function(sp, nameA="A", colorRef="darkgray", colorSynthetic="
     if ((class(sp) != "dpp_result") && (class(sp) != "dpp_resolved")) 
         stop("the data to analyze x should be the result of a matching.solve or matching.generate call")
     
-    heat_map_gradient <- scale_fill_gradient2(limits=c(-1,1)) # , trans="log"
+    ensure_presence_ggplot()
+
+    heat_map_gradient <- ggplot2::scale_fill_gradient2(limits=c(-1,1)) # , trans="log"
 
     diff_pdi <- sp$gen$hat.pdi - sp$inputs$pdi$data
     colnames(diff_pdi) <- add_linebreaks_attributes(colnames(diff_pdi))
     diff_pdi$degree <- factor(seq(0,nrow(diff_pdi)-1))
     data_hm_pdi <- melt(diff_pdi)
-    plot_pdi <- ggplot(data_hm_pdi, aes(variable, degree)) + 
-                        geom_tile(aes(fill=value)) + 
+    plot_pdi <- ggplot2::ggplot(data_hm_pdi, ggplot2::aes(variable, degree)) + 
+                        ggplot2::geom_tile(ggplot2::aes(fill=value)) + 
                         heat_map_gradient + 
-                        ggtitle(paste("difference degree for",nameA))
+                        ggplot2::ggtitle(paste("difference degree for",nameA))
 
     plot_pdi
 }
@@ -389,16 +421,18 @@ plot_errors_pdj <- function(sp, nameB="B", colorRef="darkgray", colorSynthetic="
     if ((class(sp) != "dpp_result") && (class(sp) != "dpp_resolved")) 
         stop("the data to analyze x should be the result of a matching.solve or matching.generate call")
     
-    heat_map_gradient <- scale_fill_gradient2(limits=c(-1,1)) # , trans="log"
+    ensure_presence_ggplot()
+
+    heat_map_gradient <- ggplot2::scale_fill_gradient2(limits=c(-1,1)) # , trans="log"
 
     diff_pdj <- sp$gen$hat.pdj - sp$inputs$pdj$data
     colnames(diff_pdj) <- add_linebreaks_attributes(colnames(diff_pdj))
     diff_pdj$degree <- factor(seq(0,nrow(diff_pdj)-1))
     data_hm_pdj <- melt(diff_pdj)
-    plot_pdj <- ggplot(data_hm_pdj, aes(variable, degree)) + 
-                        geom_tile(aes(fill=value)) + 
+    plot_pdj <- ggplot2::ggplot(data_hm_pdj, ggplot2::aes(variable, degree)) + 
+                        ggplot2::geom_tile(ggplot2::aes(fill=value)) + 
                         heat_map_gradient + 
-                        ggtitle(paste("difference degree for",nameB))
+                        ggplot2::ggtitle(paste("difference degree for",nameB))
     plot_pdj
 }
 
@@ -415,7 +449,7 @@ plot_errors_pdj <- function(sp, nameB="B", colorRef="darkgray", colorSynthetic="
 #' 
 #' @export 
 #' 
-#' @importFrom ggplot2 ggplot aes geom_bar xlab ylab ggtitle geom_tile scale_fill_manual scale_fill_gradient2
+# @importFrom ggplot2 ggplot aes ggplot2::geom_bar xlab ylab ggtitle geom_tile scale_fill_manual scale_fill_gradient2
 #' 
 #' @author Samuel Thiriot <samuel.thiriot@res-ear.ch> 
 #' 
@@ -424,17 +458,19 @@ plot_errors_pij <- function(sp) {
     if ((class(sp) != "dpp_result") && (class(sp) != "dpp_resolved")) 
         stop("the data to analyze x should be the result of a matching.solve or matching.generate call")
     
-    heat_map_gradient <- scale_fill_gradient2(limits=c(-1,1)) # , trans="log"
+    ensure_presence_ggplot()
+
+    heat_map_gradient <- ggplot2::scale_fill_gradient2(limits=c(-1,1)) # , trans="log"
 
     diff_pij <- sp$gen$hat.pij - sp$inputs$pij$data
     colnames(diff_pij) <- add_linebreaks_attributes(colnames(diff_pij))
     diff_pij$attributesB <- add_linebreaks_attributes(row.names(diff_pij))
     #diff_pij$variable <- add_linebreaks_attributes(diff_pij$variable)
     data_hm_pij <- melt(diff_pij)
-    plot_pij <- ggplot(data_hm_pij, aes(variable, attributesB)) + 
-                        geom_tile(aes(fill=value)) + 
+    plot_pij <- ggplot2::ggplot(data_hm_pij, ggplot2::aes(variable, attributesB)) + 
+                        ggplot2::geom_tile(ggplot2::aes(fill=value)) + 
                         heat_map_gradient + 
-                        ggtitle(paste("difference peering"))
+                        ggplot2::ggtitle(paste("difference peering"))
 
     plot_pij
 }
@@ -478,8 +514,8 @@ plot_errors_pij <- function(sp) {
 #'
 #' @author Samuel Thiriot <samuel.thiriot@res-ear.ch> 
 #'
-#' @importFrom ggplot2 ggplot aes geom_bar xlab ylab ggtitle scale_fill_gradient2 geom_tile scale_fill_manual
-#' @importFrom gridExtra grid.arrange
+# @importFrom ggplot2 ggplot aes ggplot2::geom_bar xlab ylab ggtitle scale_fill_gradient2 geom_tile scale_fill_manual
+# @importFrom gridExtra grid.arrange
 #' @importFrom reshape2 melt
 #'
 plot.dpp_resolved <- function(x, nameA="A", nameB="B", colorRef="darkgray", colorSynthetic="blue", ...) {
@@ -490,6 +526,8 @@ plot.dpp_resolved <- function(x, nameA="A", nameB="B", colorRef="darkgray", colo
     if ((class(sp) != "dpp_result") && (class(sp) != "dpp_resolved")) 
         stop("the data to analyze x should be the result of a matching.solve or matching.generate call")
     
+    ensure_presence_ggplot()
+
     # plot relaxation parameters
     plot_all_relaxation <- plot_relaxation(sp, colorRef)
 
@@ -497,7 +535,7 @@ plot.dpp_resolved <- function(x, nameA="A", nameB="B", colorRef="darkgray", colo
     plot_all_errors <- plot_errors(sp, colorSynthetic)
 
     # this scale will be used for various heatmaps    
-    scale_gray_blue <- scale_fill_manual(values=c(colorRef,colorSynthetic))
+    scale_gray_blue <- ggplot2::scale_fill_manual(values=c(colorRef,colorSynthetic))
 
     plot_population_sizes <- plot_population_sizes(sp, nameA=nameA, nameB=nameB, colorRef=colorRef, colorSynthetic=colorSynthetic)
 
@@ -514,7 +552,7 @@ plot.dpp_resolved <- function(x, nameA="A", nameB="B", colorRef="darkgray", colo
     plot_pij <- plot_errors_pij(sp)
 
     # actual plot over a grid
-    grid.arrange(
+    gridExtra::grid.arrange(
         plot_all_relaxation, plot_all_errors, 
         plot_population_sizes, plot_pij,
         plot_frequencies_A, plot_frequencies_B,
