@@ -27,7 +27,7 @@ you would also better install the optional dependancies:
 
 clone the repository
 
-    install.packages("devtools", "rhub", "ggplot2", "gridExtra", "igraph")
+    install.packages("devtools", "rhub")
 	library(devtools)
 	devtools::install()
 	devtools::load_all()
