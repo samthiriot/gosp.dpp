@@ -67,6 +67,8 @@ print.dpp_result <- function(x,...) {
 #' 
 #' @author Samuel Thiriot <samuel.thiriot@res-ear.ch>
 #' 
+#' @keywords internal
+#'
 measure.pij <- function(pop, sample.A, sample.B, pij, mix.pij, A2l2B, verbose=FALSE) {
 
 
@@ -134,7 +136,11 @@ measure.pij <- function(pop, sample.A, sample.B, pij, mix.pij, A2l2B, verbose=FA
 #' 
 #' @author Samuel Thiriot <samuel.thiriot@res-ear.ch>
 #' 
+#' @keywords internal
+#'
 measure.ci_fi <- function(target.ni, orig.fi, colname, dico, pop) {
+
+	cat("measuring", colname)
 
     hat.ni <- c()
     for (codeA in dico$encoding[[colname]]) {
@@ -165,6 +171,8 @@ measure.ci_fi <- function(target.ni, orig.fi, colname, dico, pop) {
 #' @return a list containing the measures
 #' @author Samuel Thiriot <samuel.thiriot@res-ear.ch>
 #' 
+#' @keywords internal
+#'
 measure.pdn <- function(dico, pdn.orig, sample, verbose=FALSE) {
 
 
@@ -208,6 +216,8 @@ measure.pdn <- function(dico, pdn.orig, sample, verbose=FALSE) {
 #' 
 #' @export 
 #' 
+#' @keywords internal
+#'
 merge_links <- function(pop) {
 
 	# merge the datasets	

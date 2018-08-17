@@ -61,6 +61,11 @@ sum_degrees <- function(pdx) {
 #' 
 #' @param pdx the distribution of degrees 
 #' @param t.target the vector of the expected average degrees
+#'
+#' @author samuel.thiriot@res-ear.ch
+#'
+#' @keywords internal
+#'
 update_degree_distribution.col <- function(pdx, t.target) {
 
     np.orig <- pdx * 0:(length(pdx)-1)
@@ -156,6 +161,8 @@ update_degree_distribution.col <- function(pdx, t.target) {
 #'
 #' @author Samuel Thiriot <samuel.thiriot@res-ear.ch> 
 #'
+#' @keywords internal
+#'
 update_degree_distribution <- function(pdx, dx) {
 
     # ... sum the weight we are playing with 
@@ -195,6 +202,8 @@ update_degree_distribution <- function(pdx, dx) {
 #'
 #' @author Samuel Thiriot <samuel.thiriot@res-ear.ch> 
 #' 
+#' @keywords internal
+#'
 rectify.degree.counts <- function(pdn, nn, cn, verbose=FALSE) {
 
     if (verbose) {
@@ -293,6 +302,8 @@ rectify.degree.counts <- function(pdn, nn, cn, verbose=FALSE) {
 #' @param df any data to normalise
 #' @return the same object normalised
 #'
+#' @keywords internal
+#'
 normalise <- function(df) {
     df / sum(df)
 }
@@ -306,6 +317,8 @@ normalise <- function(df) {
 #' @param x a vector, list or matrix
 #' @param ... ignored
 #' @return the same type without NaNs
+#'
+#' @keywords internal
 #'
 nan_to_zeros <- function (x, ...) {
    UseMethod("nan_to_zeros", x)
@@ -335,6 +348,8 @@ nan_to_zeros.data.frame <- nan_to_zeros.matrix
 #' @param vv a vector or list
 #' @return the same vector without Infinite
 #'
+#' @keywords internal
+#'
 inf_to_zeros <- function(vv) {
     vv[which(is.infinite(vv))] <- 0
     vv
@@ -362,6 +377,8 @@ inf_to_zeros <- function(vv) {
 #'  
 #' @author Samuel Thiriot <samuel.thiriot@res-ear.ch>
 #'  
+#' @keywords internal
+#'
 propagate.direct <- function(sol,case, verbose=FALSE, indent=1) {
 
     info.rule <- function(name, sol, verbose=FALSE, indent=3) {
@@ -811,6 +828,8 @@ propagate.direct <- function(sol,case, verbose=FALSE, indent=1) {
 #' @param tolerance the numeric tolerance to define two numeric are equal
 #' @return 1 in case of error else 0
 #' 
+#' @keywords internal
+#'
 assert.equal <- function(v1,v2,msg, verbose=FALSE, indent=3, tolerance=1.5e-8) {
 
     if (!identical(v1,v2) && !(all.equal(v1,v2,tolerance=tolerance)==TRUE)) {  # && ((length(v1) > 1) & sum((v1-v2)^2) > 0)
@@ -856,6 +875,8 @@ assert.equal <- function(v1,v2,msg, verbose=FALSE, indent=3, tolerance=1.5e-8) {
 #'  
 #' @author Samuel Thiriot <samuel.thiriot@res-ear.ch>
 #'  
+#' @keywords internal
+#'
 detect.problems <- function(sol, case, fail=TRUE, verbose=FALSE, indent=1) {
 
     if (verbose) {
@@ -1084,6 +1105,8 @@ detect.problems <- function(sol, case, fail=TRUE, verbose=FALSE, indent=1) {
 #'  
 #' @author Samuel Thiriot <samuel.thiriot@res-ear.ch>
 #'  
+#' @keywords internal
+#'
 detect.missing.chains <- function(sol, verbose=FALSE) {
 
     if (verbose) {
@@ -1146,6 +1169,8 @@ detect.missing.chains <- function(sol, verbose=FALSE) {
 #' @param sol the current solution (a list)
 #' @return a string
 #' 
+#' @keywords internal
+#'
 paste.known <- function(sol) {
     paste(
         intersect(
@@ -1194,6 +1219,8 @@ paste.known <- function(sol) {
 #'  
 #' @importFrom utils combn
 #' 
+#' @keywords internal
+#'
 resolve.missing.chain <- function(sol, chain, case, 
                                     nA, nB, 
                                     nu.A, phi.A, delta.A, nu.B, phi.B, delta.B, gamma, 
@@ -1407,7 +1434,7 @@ resolve.missing.chain <- function(sol, chain, case,
 #' Resolves a partial solution by inference and hypothesis
 #' 
 #' Resolves a given case starting with the base solution
-#' accordng to user parameters. 
+#' according to user parameters. 
 #' It first uses \code{\link{propagate.direct}} to infer 
 #' results from available elements; then it detects the 
 #' chains of variable which are not constrained enough to be solved this way 
@@ -1431,6 +1458,8 @@ resolve.missing.chain <- function(sol, chain, case,
 #' 
 #' @author Samuel Thiriot <samuel.thiriot@res-ear.ch>
 #' 
+#' @keywords internal
+#'
 resolve <- function(sol, case, 
                         nA, nB, 
                         nu.A, phi.A, delta.A, 
@@ -1482,6 +1511,8 @@ resolve <- function(sol, case,
 #' @param nB the expected size of population B
 #' @return the solution with additional variables for errors 
 #'  
+#' @keywords internal
+#'
 quantify.errors <- function(sol, case, nA, nB) {
 
 
@@ -1568,6 +1599,8 @@ quantify.errors <- function(sol, case, nA, nB) {
 #' @param case the case
 #' @return the same solution fixed formats
 #' 
+#' @keywords internal
+#'
 ensure.form <- function(sol, case) {
 
     if (!is.null(sol$hat.ni)) {
@@ -1612,6 +1645,8 @@ ensure.form <- function(sol, case) {
 #' 
 #' @author Samuel Thiriot <samuel.thiriot@res-ear.ch> 
 #' 
+#' @keywords internal
+#'
 mean.data.frame <- function(x, ...) {
 
     if (class(x) != "data.frame") 
@@ -1623,10 +1658,12 @@ mean.data.frame <- function(x, ...) {
 #' Solves the equations by arbitrating.
 #' 
 #' Solves the underlying equations based on data, the inputs parameters, 
-#' and the control parameters. It distributes the errors in the places 
+#' and the control parameters. It tries to distribute the errors in the places 
 #' accepted by the user. 
 #'
-#' This function is deterministic.
+#' This function is deterministic as long as only one solution is found. 
+#' In case several solutions with equivalent quality are found, one of them 
+#' is randomly chosen.
 #'
 #' @param case a case prepared with \code{\link{matching.prepare}}
 #' @param nA the count of entities expected for population A
@@ -1653,17 +1690,17 @@ mean.data.frame <- function(x, ...) {
 #' # prepare the case  
 #' case.prepared <- matching.prepare(cas1$sample.A, cas1$sample.B, cas1$pdi, cas1$pdj, cas1$pij)
 #' # resolve tbe case
-#' disc <- matching.solve(case.prepared, 
+#' solved <- matching.solve(case.prepared, 
 #'                     nA=50000,nB=40000, 
 #'                     nu.A=0, phi.A=0, delta.A=1, 
 #'                     gamma=1, 
 #'                     delta.B=0, phi.B=0, nu.B=0)
 #' # print the resolution information
-#' print(disc)
+#' print(solved)
 #' # access the solved frequencies, distribution of degrees and matching probabilities
-#' print(disc$gen$hat.fi)
-#' print(disc$gen$hat.pdi)
-#' print(disc$gen$hat.pij)
+#' print(solved$gen$hat.fi)
+#' print(solved$gen$hat.pdi)
+#' print(solved$gen$hat.pij)
 #' 
 #' @author Samuel Thiriot <samuel.thiriot@res-ear.ch> 
 #'
