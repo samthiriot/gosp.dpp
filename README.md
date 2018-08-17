@@ -5,33 +5,28 @@
 Generation of Synthetic Populations: Direct Probabilistic Pairing
 
 
-# test the git version 
+# user install
 
-If you want to test or use the development version, you can clone this repository, and:
+## install 
 
 install the devtools package 
 
     install.packages("devtools")
 	
-the first time, from the gosp.dpp directory
+then use it to install the package from github
 
+	install_github("samthiriot/gosp.dpp")
+
+# developer install
+
+clone the repository
+
+    install.packages("devtools")
 	library(devtools)
 	devtools::install()
 	devtools::load_all()
-	source("data-raw/cas1.R")
-	source("data-raw/case2.R")
 
-then from the gosp.dpp directory:
-
-    library(devtools)
-    devtools::check()
-
-
-# more info
-
-see http://r-pkgs.had.co.nz/check.html
-
-# releasing:
+# releasing
 
 ## generate the data
 
@@ -40,7 +35,27 @@ see http://r-pkgs.had.co.nz/check.html
 	source("data-raw/cas1.R")
 	source("data-raw/case2.R")
 
+## run local tests
 
-use devtools checking: http://r-pkgs.had.co.nz/check.html
+	library(devtools)
+	devtools::test()
 
-see https://www.r-project.org/nosvn/pandoc/devtools.html
+## check the package locally
+
+	library(devtools)
+	devtools::check(manual=TRUE)
+
+## check on various platforms
+
+before release, we test the package on Windows, MacOSX and Linux
+
+	library(rhub)
+	check()
+
+## update comments for CRAN
+
+if relevant, update the comments in cran-comments.md
+
+## TODO
+
+actual upload:
