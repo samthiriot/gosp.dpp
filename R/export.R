@@ -17,16 +17,16 @@
 #' library(igraph)
 #' # generate a population based on sample case 1
 #' data(cas1)
-#' case.prepared <- matching.prepare(cas1$sample.A, cas1$sample.B, cas1$pdi, cas1$pdj, cas1$pij)
-#' disc <- matching.solve(case.prepared, 
+#' prepared <- matching.prepare(cas1$sample.A, cas1$sample.B, cas1$pdi, cas1$pdj, cas1$pij)
+#' solved <- matching.solve(prepared, 
 #'                     nA=500,nB=400, 
 #'                     nu.A=0, phi.A=0, delta.A=1, 
 #'                     gamma=1, 
 #'                     delta.B=0, phi.B=0, nu.B=0)
-#' case <- matching.generate(disc, cas1$sample.A, cas1$sample.B)
+#' sampled <- matching.generate(solved, cas1$sample.A, cas1$sample.B)
 #' 
 #' # convert the population as a population
-#' g <- as.igraph(case$pop, with.attributes=TRUE)
+#' g <- as.igraph(sampled$pop, with.attributes=TRUE)
 #'
 #' # can export the graph using one of the igraph formats
 #' write.graph(g,file="mygraph.graphml", format="graphml")
