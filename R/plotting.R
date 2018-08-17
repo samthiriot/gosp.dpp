@@ -464,7 +464,7 @@ plot_errors_pij <- function(sp) {
 
     diff_pij <- sp$gen$hat.pij - sp$inputs$pij$data
     colnames(diff_pij) <- add_linebreaks_attributes(colnames(diff_pij))
-    diff_pij$attributesB <- add_linebreaks_attributes(row.names(diff_pij))
+    diff_pij$attributesB <- row.names(diff_pij)
     #diff_pij$variable <- add_linebreaks_attributes(diff_pij$variable)
     data_hm_pij <- melt(diff_pij)
     plot_pij <- ggplot2::ggplot(data_hm_pij, ggplot2::aes(variable, attributesB)) + 
