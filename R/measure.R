@@ -140,7 +140,7 @@ measure.pij <- function(pop, sample.A, sample.B, pij, mix.pij, A2l2B, verbose=FA
 #'
 measure.ci_fi <- function(target.ni, orig.fi, colname, dico, pop) {
 
-	cat("measuring", colname)
+	cat("measuring", colname, "\n")
 
     hat.ni <- c()
     for (codeA in dico$encoding[[colname]]) {

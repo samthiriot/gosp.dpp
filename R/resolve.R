@@ -9,31 +9,32 @@
 #' @return the rounded version of the object
 #'
 #' @export
+#'
 round_sum <- function (x, ...) {
-   UseMethod("round_sum", x)
- }
+    UseMethod("round_sum", x)
+}
 
-round_sum.numeric <- function(x) {
+round_sum.numeric <- function(x, ...) {
     y <- floor(x)
     indices <- tail(order(x-y), round(sum(x)) - sum(y))
     y[indices] <- y[indices] + 1
     y
 }
 
-round_sum.matrix <- function(m) {
+round_sum.matrix <- function(x, ...) {
 
     # convert the matrix to a vector (by columns)
-    x <- unlist(m)
+    y <- unlist(x)
 
     # round it 
-    r <- round_sum.numeric(x)
+    r <- round_sum.numeric(y)
 
     # convert it to a matrix
-    mat <- matrix(r, ncol=ncol(m), nrow=nrow(m))
+    mat <- matrix(r, ncol=ncol(x), nrow=nrow(x))
 
     # convert it back to a matrix
-    res <- as.data.frame(mat, row.names=row.names(m), col.names=colnames(m))
-    colnames(res) <- colnames(m)
+    res <- as.data.frame(mat, row.names=row.names(x), col.names=colnames(x))
+    colnames(res) <- colnames(x)
     
     res
 }
