@@ -16,7 +16,7 @@ Description: Peering of entities for Synthetic populations,
 	their characteristics. The problem is then solved anatically depending 
 	to user constrainsts, before a direct generation of the links 
 	between the populations.
-Imports: dplyr, igraph, utils, stats, reshape2, ggplot2, gridExtra, stringi
+Imports: dplyr, igraph, utils, stats, reshape2, ggplot2, gridExtra
 Depends: R (>= 2.10)
 Suggests: testthat
 License: GPL-2
