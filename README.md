@@ -15,14 +15,19 @@ install the devtools package
 	
 then use it to install the package from github
 
+	library(devtools)
 	install_github("samthiriot/gosp.dpp")
+
+you would also better install the optional dependancies:
+
+    install.packages("ggplot2", "gridExtra", "igraph")
 
 
 # developer install
 
 clone the repository
 
-    install.packages("devtools")
+    install.packages("devtools", "rhub", "ggplot2", "gridExtra", "igraph")
 	library(devtools)
 	devtools::install()
 	devtools::load_all()
