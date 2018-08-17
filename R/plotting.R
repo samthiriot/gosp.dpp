@@ -436,9 +436,9 @@ plot_errors_pdj <- function(sp, nameB="B", colorRef="darkgray", colorSynthetic="
     plot_pdj
 }
 
-#' Plots expected and generated peering probability 
+#' Plots expected and generated pairing probability 
 #' 
-#' Plots as a heatmap the difference between expected peering probabilities and 
+#' Plots as a heatmap the difference between expected pairing probabilities and 
 #' generated ones. Locations in red have a lower probability than expected; in blue, it's the opposite.
 #'
 #' @param sp a synthetic population, as produced by \code{\link{matching.generate}}.
@@ -470,7 +470,7 @@ plot_errors_pij <- function(sp) {
     plot_pij <- ggplot2::ggplot(data_hm_pij, ggplot2::aes(variable, attributesB)) + 
                         ggplot2::geom_tile(ggplot2::aes(fill=value)) + 
                         heat_map_gradient + 
-                        ggplot2::ggtitle(paste("difference peering"))
+                        ggplot2::ggtitle(paste("difference pairing"))
 
     plot_pij
 }
@@ -484,7 +484,7 @@ plot_errors_pij <- function(sp) {
 #'  \item a graph showing the relaxation parameters passed to the solving function, as computed by \code{\link{plot_relaxation}}
 #'  \item a graph showing the Normalized Root Mean Square Error (NRMSE) for the each control variable, as computed by \code{\link{plot_errors}}
 #'  \item a graph showing the population sizes asked for and generated for populations A and B, as computed by \code{\link{plot_population_sizes}}
-#'  \item a graph showing the difference between the input and observed peering probabilities pij, as computed by \code{\link{plot_errors_pij}} 
+#'  \item a graph showing the difference between the input and observed pairing probabilities pij, as computed by \code{\link{plot_errors_pij}} 
 #'  \item two graphs showing the initial and observed frequencies of control variables in both populations A and B, as computed by \code{\link{plot_frequencies_A}}
 #'  \item two graphs showing the initial and observed average degrees in both populations A and B, as computed by \code{\link{plot_average_degree_A}}
 #'  \item two graphs showing the difference between the expected and measured distribution of probability of degrees for both A and B, as computed by \code{\link{plot_errors_pdi}}
