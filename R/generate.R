@@ -16,7 +16,7 @@ NULL
 #'
 #' @param sample the sample to use for loading 
 #' @param count.required the count of entities expected as a result 
-#' @param colname.weight a string describing the column to be used as a weight in the sample
+#' @param colnaœ.weight a string describing the column to be used as a weight in the sample
 #'
 #' @importFrom dplyr sample_n
 #'
@@ -180,6 +180,7 @@ matching.generate.add_degree <- function(samp, pop, n, ndx, verbose) {
 #' @param sample.B the sample to use as population B
 #' @param verbose displays detailed messages if TRUE
 #' @param measure if TRUE (default value), measures states from the actual population. 
+#' @param force if TRUE, will try to generate even very big populations (and will likely fail)
 #' @return the generated population
 #'
 #' @seealso \code{\link{matching.solve}} to prepare the case for this call
@@ -188,13 +189,30 @@ matching.generate.add_degree <- function(samp, pop, n, ndx, verbose) {
 #'
 #' @author Samuel Thiriot <samuel.thiriot@res-ear.ch> 
 #'
-matching.generate <- function(case, sample.A, sample.B, verbose=FALSE, measure=TRUE) {
+matching.generate <- function(case, sample.A, sample.B, verbose=FALSE, measure=TRUE, force=FALSE) {
 
 	if (class(case) != "dpp_resolved") 
 		stop("case should be the result of a solving by matching.solve")
 
 	if (verbose)
     	cat("starting generation\n")
+
+    # avoid starting the generation of a whole country without checking the user really wants it 
+    # (s/he often doesn't)
+    if (case$gen$hat.nA + case$gen$hat.nB > 1e6) {
+    	if (force) 
+    		warning(paste("you are trying to generate a population of more than 1 million of individuals, ",
+    				"which probably does not make sense, and also might fail and freeze your system.\n",
+    				" Good luck...",
+    				sep=""),
+    		immediate.=TRUE)
+    	else 
+			stop(paste("you are trying to generate a population of more than 1 million of individuals: ",
+				"case$gen$hat.nA=", case$gen$hat.nA , ", case$gen$hat.nB=", case$gen$hat.nB,
+				" .\nThat probably does not make much sense. It also would likely fail and freeze your system.\n",
+				"If you really want to do it, add parameter force=TRUE and cross fingers.",
+				sep=""))
+    }
 
 	# copy the individuals required for A
 	targetA <- sample.A$sample[FALSE,] 	# empty with the same properties
