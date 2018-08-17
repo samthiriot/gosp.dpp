@@ -15,6 +15,8 @@
 #' 
 #' @return a named list with attribute as key and value for each  
 #'
+#' @keywords internal
+#'
 extract_attributes_values <- function(name) { 
 
     kv <- unlist(strsplit(name,","))
@@ -169,6 +171,7 @@ print.dpp_sample <- function(x, ...) {
 #' Creates a table storing probabilities for degrees
 #' 
 #' @param probabilities a data frame containing the probabilities 
+#' @param norm if TRUE, will normalize the table so the columns sum up to 1 (defaults to FALSE)
 #' 
 #' @examples
 #' # create a table describing degrees depending to size; the bigger the size, the highest the degree
@@ -185,7 +188,7 @@ print.dpp_sample <- function(x, ...) {
 #' 
 #' @author Samuel Thiriot <samuel.thiriot@res-ear.ch>
 #' 
-create_degree_probabilities_table <- function(probabilities) {
+create_degree_probabilities_table <- function(probabilities, norm=FALSE) {
 
     # check inputs
     if (!is.data.frame(probabilities)) {
@@ -196,7 +199,9 @@ create_degree_probabilities_table <- function(probabilities) {
     for (name in colnames(probabilities)) {
 
         # ensure probabilities sum to 1
-        if (abs(sum(probabilities[,name]) - 1.0) >= 0.0000000001) {
+        if (norm) {
+            probabilities[,name] <- normalise(probabilities[,name])
+        } else if (abs(sum(probabilities[,name]) - 1.0) >= 0.0000000001) {
             stop(paste("invalid probabilities for ", name, 
                 ": should sum to 1 but sums to ", 
                 sum(probabilities[,name]), sep=""))
@@ -236,7 +241,7 @@ create_degree_probabilities_table <- function(probabilities) {
 #' @author Samuel Thiriot <samuel.thiriot@res-ear.ch>
 #' 
 print.dpp_degree_cpt <- function(x, ...) {
-    cat("distribution of degrees depending to attributes '", x$attributes,"':\n",sep="")
+    cat("distribution of degrees depending to attributes '", paste(x$attributes, collapse=","),"':\n",sep="")
     print(x$data)
 }
 
