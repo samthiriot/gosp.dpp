@@ -1,4 +1,4 @@
-[![Travis-CI Build Status](https://travis-ci.org/samthiriot/direct-probabilistic-pairing.svg?branch=master)](https://travis-ci.org/samthiriot/direct-probabilistic-pairing)
+[![Travis-CI Build Status](https://travis-ci.org/samthiriot/gosp.dpp.svg?branch=master)](https://travis-ci.org/samthiriot/gosp.dpp)
 
 # gosp.dpp 
 
