@@ -305,6 +305,8 @@ rectify.degree.counts <- function(pdn, nn, cn, verbose=FALSE) {
 #'
 #' @keywords internal
 #'
+#' @author Samuel Thiriot <samuel.thiriot@res-ear.ch>
+#'
 normalise <- function(df) {
     df / sum(df)
 }
