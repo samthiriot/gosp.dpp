@@ -26,6 +26,7 @@ clone the repository
 	devtools::install()
 	devtools::load_all()
 
+
 # releasing
 
 ## generate the data
