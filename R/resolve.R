@@ -1681,7 +1681,9 @@ mean.data.frame <- function(x, ...) {
 #'
 #' @export
 #'
-#' @seealso \code{\link{matching.prepare}} to prepare a case for this function, \code{\link{matching.generate}} to use the result for actual generation 
+#' @seealso \code{\link{matching.prepare}} to prepare a case for this function, 
+#'          \code{\link{matching.generate}} to use the result for actual generation, 
+#'          \code{\link{plot.dpp_resolved}} to plot the quality of the solution
 #' 
 #' @examples
 #'
