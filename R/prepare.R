@@ -203,7 +203,7 @@ expand_with_variable_row.data.frame <- function(df, name, values) {
 #' 
 #' @keywords internal
 #'
-xpand_with_variable.dpp_degree_cpt <- function(cpt, name, values) {
+expand_with_variable.dpp_degree_cpt <- function(cpt, name, values) {
 
     if (class(cpt) != "dpp_degree_cpt")
         stop("cpt should be a degree Conditional Probability Table.")
