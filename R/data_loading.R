@@ -166,6 +166,22 @@ print.dpp_sample <- function(x, ...) {
     cat(" (weight column:",x$dictionary$colname.weight,")\n",sep="")
 }
 
+
+#' Coerce the a dpp sample into a data frame
+#' 
+#' Extracts the data frame of a sample prepare by function \code{\link{create_sample}}
+#' 
+#' @param x the sample to convert
+#' @param ... further parameters are ignored quietly
+#' 
+#' @export
+#' 
+#' @author Samuel Thiriot <samuel.thiriot@res-ear.ch>
+#' 
+as.data.frame.dpp_sample <- function(x, ...) {
+    x$sample
+}
+
 # TODO manage multiple attributes
 # 
 #' Creates a table storing probabilities for degrees
@@ -243,6 +259,21 @@ create_degree_probabilities_table <- function(probabilities, norm=TRUE) {
 print.dpp_degree_cpt <- function(x, ...) {
     cat("distribution of degrees depending to attributes '", paste(x$attributes, collapse=","),"':\n",sep="")
     print(x$data)
+}
+
+#' Coerce a distribution of degrees into a data frame
+#' 
+#' Extracts the data frame of the distribution of degrees. 
+#' 
+#' @param x the distribution of degrees created by \code{\link{create_degree_probabilities_table}}
+#' @param ... further parameters are ignored quietly
+#' 
+#' @export
+#' 
+#' @author Samuel Thiriot <samuel.thiriot@res-ear.ch>
+#' 
+as.data.frame.dpp_degree_cpt <- function(x, ...) {
+    x$data
 }
 
 # TODO manage multiple attributes
@@ -324,4 +355,20 @@ create_matching_probabilities_table <- function(data, norm=TRUE) {
 print.dpp_matching_probas <- function(x, ...) {
     cat("matching probabilities given '", x$Ai,"' and '",x$Bi,"':\n",sep="")
     print(x$data)
+}
+
+
+#' Coerce pairing probabilities into a data frame
+#'
+#' Extracts the data frame of pairing probabilities prepared by function \code{\link{create_matching_probabilities_table}}
+#'
+#' @param x the pairing probabilities to convert
+#' @param ... further parameters are ignored quietly
+#'
+#' @export
+#'
+#' @author Samuel Thiriot <samuel.thiriot@res-ear.ch>
+#' 
+as.data.frame.dpp_matching_probas <- function(x, ...) {
+    x$data
 }
