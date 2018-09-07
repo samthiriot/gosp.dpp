@@ -171,7 +171,7 @@ print.dpp_sample <- function(x, ...) {
 #' Creates a table storing probabilities for degrees
 #' 
 #' @param probabilities a data frame containing the probabilities 
-#' @param norm if TRUE, will normalize the table so the columns sum up to 1 (defaults to FALSE)
+#' @param norm if TRUE, will normalize the table so the columns sum up to 1 (defaults to TRUE)
 #' 
 #' @examples
 #' # create a table describing degrees depending to size; the bigger the size, the highest the degree
@@ -188,7 +188,7 @@ print.dpp_sample <- function(x, ...) {
 #' 
 #' @author Samuel Thiriot <samuel.thiriot@res-ear.ch>
 #' 
-create_degree_probabilities_table <- function(probabilities, norm=FALSE) {
+create_degree_probabilities_table <- function(probabilities, norm=TRUE) {
 
     # check inputs
     if (!is.data.frame(probabilities)) {
@@ -252,6 +252,7 @@ print.dpp_degree_cpt <- function(x, ...) {
 #' 
 #' 
 #' @param data a data frame containing matching probabilities
+#' @param norm if TRUE, will normalize the table so the totals sum up to one (defaults to TRUE)
 #' @return a matching probability table ready to be used for usage with \code{\link{matching.prepare}}
 #' 
 #' @examples
@@ -271,15 +272,21 @@ print.dpp_degree_cpt <- function(x, ...) {
 #' 
 #' @author Samuel Thiriot <samuel.thiriot@res-ear.ch>
 #' 
-create_matching_probabilities_table <- function(data) {
+create_matching_probabilities_table <- function(data, norm=TRUE) {
 
     # check inputs
     if (!is.data.frame(data)) {
         stop("data should be a data frame")
     }
 
+    data_normalized <- if (norm) normalise(data) else data
+
+    if (abs(sum(data_normalized) - 1.0) >= 1e-6) {
+        stop(paste("the pairing probabilities should sum up to 1.0 but sum up to", sum(data_normalized)))
+    }
+
     # create list of Ai
-    Ai.idx2k2v <- lapply(colnames(data),extract_attributes_values)
+    Ai.idx2k2v <- lapply(colnames(data_normalized),extract_attributes_values)
     # do all the parameters have the same length of attributes ?
     if (length(unique(lapply(Ai.idx2k2v, length))) != 1) {
         stop("all the column names should contain the same count of attributes")
@@ -289,7 +296,7 @@ create_matching_probabilities_table <- function(data) {
 
 
     # create list of Bj
-    Bj.idx2k2v <- lapply(rownames(data),extract_attributes_values)
+    Bj.idx2k2v <- lapply(rownames(data_normalized),extract_attributes_values)
     # do all the parameters have the same length of attributes ?
     if (length(unique(lapply(Bj.idx2k2v, length))) != 1) {
         stop("all the row names should contain the same count of attributes")
@@ -299,7 +306,7 @@ create_matching_probabilities_table <- function(data) {
 
     # TODO check input
 
-    res <- list(data=data, Ai=Ai,Bi=Bj)
+    res <- list(data=data_normalized, Ai=Ai,Bi=Bj)
     class(res) <- "dpp_matching_probas"
 
     res
