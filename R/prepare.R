@@ -404,7 +404,7 @@ matching.fix <- function(sample.A, sample.B, pdi, pdj, pij) {
 
     missing_pdj <- setdiff(mods_pij_B,mods_pdj)
     if (length(missing_pdj) > 0) {
-        message(paste("some attributes are missing in pdj: ", paste(missing_pdi, collapse=","), "; we will add them", sep=""))
+        message(paste("some attributes are missing in pdj: ", paste(missing_pdj, collapse=","), "; we will add them", sep=""))
         res_pdj <- expand_with_variables.dpp_degree_cpt(res_pdj, missing_pdj, sample.B$dictionary)
     }
 
