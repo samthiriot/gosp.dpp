@@ -564,3 +564,56 @@ plot.dpp_resolved <- function(x, nameA="A", nameB="B", colorRef="darkgray", colo
 
 #' @rdname plot.dpp_resolved
 plot.dpp_result <- plot.dpp_resolved
+
+
+
+
+# TODO example
+#
+#' Plots the difference between proportions in the original sample and synthethic population
+#'
+#' Measures the difference between the total weight of the various levels of a variable in the original sample,
+#' and the actual count of each level in the synthetic population.
+#'
+#' @param sample a sample as produced by \code{\link{create_sample}} 
+#' @param generated a population as produced by \code{\link{matching.generate}} 
+#' @param var.name the name of the variable to measure and plot
+#' @param colorRef the color to be used to plot values passed as parameters (defaults to "darkgray")
+#' @param colorSynthetic the color to be used to plot values measured in the synthetic population (defaults to "blue")
+#'
+#' @return the plot
+#'
+#' @importFrom reshape2 dcast
+#'
+plot_variable <- function(sample, generated, var.name, colorRef="darkgray", colorSynthetic="blue") {
+
+    ensure_presence_ggplot()
+
+    if (class(sample) != "dpp_sample") 
+        stop("the parameter 'sample' should be the result of a create_sample call")
+    if (class(generated) != "data.frame")
+        stop("the parameter 'sample' should be the result of a matching.generate call")
+    
+    # TODO check input types
+    sample <- dcast(sample$sample, paste(var.name,"~.",sep=""), fun.aggregate=sum, value.var=sample$dictionary$colname.weight)
+    synthetic <- dcast(generated, paste(var.name,"~.",sep=""), fun.aggregate=length, value.var="current.degree")
+
+    prop_sample <- normalise(sample$.)
+    prop_synthetic <- normalise(synthetic$.)
+    df <- data.frame(
+            modalities=sample[[var.name]], 
+            proportion=c(prop_sample,prop_synthetic), 
+            state=factor(c(rep("theoretical",nrow(sample)), rep("synthetic",nrow(synthetic))), levels=c("theoretical","synthetic"))
+            )
+
+    rmse <- sqrt( mean( (prop_sample - prop_synthetic)^2 ) )
+    
+    scale_gray_blue <- ggplot2::scale_fill_manual(values=c(colorRef,colorSynthetic))
+
+    ggplot2::ggplot(df, ggplot2::aes(x=modalities, y=proportion, fill=state)) + 
+                        ggplot2::geom_bar(stat="identity", position = 'dodge2') + 
+                        scale_gray_blue + 
+                        ggplot2::ylab("freq") + 
+                        ggplot2::ggtitle(paste("proportions of attribute ", var.name, " (RMSE:",rmse,")",sep=""))
+
+}
