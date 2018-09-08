@@ -39,6 +39,25 @@ extract_attributes_values <- function(name) {
     setNames(v,k)
 }
 
+
+#' Relax the dataset by changing zeros with low probability
+#' 
+#' @param x the case to print
+#' @param by the value to use to replace zeros (defaults to 1e-6)
+#' @param ... ignored
+#'
+#' @export
+#' 
+#' @author Samuel Thiriot <samuel.thiriot@res-ear.ch>
+#' 
+relax.zeros <- function(x, by=.Machine$double.eps, ...) {
+   UseMethod("relax.zeros", x)
+}
+relax.zeros.data.frame <- function(x, by=.Machine$double.eps, ...) {
+   x[x == 0] <- by
+   x
+}
+
 #' Creates a sample organized for dpp manipulation. 
 #' 
 #' The resulting object contains the sample and a dictionary of data. 
@@ -182,6 +201,12 @@ as.data.frame.dpp_sample <- function(x, ...) {
     x$sample
 }
 
+relax.zeros.dpp_sample <- function(x, by=.Machine$double.eps, ...) {
+   x$sample <- relax.zeros.data.frame(x$sample)
+   x
+}
+
+
 # TODO manage multiple attributes
 # 
 #' Creates a table storing probabilities for degrees
@@ -274,6 +299,12 @@ print.dpp_degree_cpt <- function(x, ...) {
 #' 
 as.data.frame.dpp_degree_cpt <- function(x, ...) {
     x$data
+}
+
+
+relax.zeros.dpp_degree_cpt <- function(x, by=.Machine$double.eps, ...) {
+   x$data <- relax.zeros.data.frame(x$data)
+   x
 }
 
 # TODO manage multiple attributes
@@ -372,3 +403,77 @@ print.dpp_matching_probas <- function(x, ...) {
 as.data.frame.dpp_matching_probas <- function(x, ...) {
     x$data
 }
+
+relax.zeros.dpp_matching_probas <- function(x, by=.Machine$double.eps, ...) {
+   x$data <- relax.zeros.data.frame(x$data)
+   x
+}
+
+#' Replace underscores by variables and modalities 
+#'
+#' In a vector like c("1_A","1_B", "2_A", "2_B"),
+#' given variable names c("x","y"),
+#' returns a vector c("x=1&y=A","x=1&y=B", "x=2&y=A", "x=2&y=B")
+#'
+#' @param vec a vector of strings
+#' @param vars a vector of variable names
+#' @return a vector of strings
+#'
+#' @keywords internal
+#'
+#' @author Samuel Thiriot <samuel.thiriot@res-ear.ch> 
+#'
+underscore_to_varmod <- function(vec, vars) {
+
+    # replace the first elem
+    vec2 <- paste(vars[1], vec, sep="=")
+    
+    for (v in tail(vars, -1)) {
+        vec2 <- gsub("_", paste("&",v,"=",sep=""), vec2)  
+    }
+
+    vec2
+}
+
+#' Create pairing probabilities 
+#'
+#' Takes a dataframe containing a sample, and extracts a joint probabilitie table
+#' ready to be passed to \code{\link{create_matching_probabilities_table}}.
+#'
+#' @param df the dataframe 
+#' @param var.row the variables to use as rows
+#' @param var.col the variables to use as cols
+#' @param var.weight the name of the variable to use for weight
+#' @return a dataframe structured in two dimensions as joint probabilities
+#'
+#' @export 
+#'
+#' @author Samuel Thiriot <samuel.thiriot@res-ear.ch> 
+#'
+#' @importFrom reshape2 dcast
+#'
+measure_pairing_from_df <- function(df, var.row, var.col, var.weight) {
+
+    # TODO check params
+
+    formula <- paste(paste(var.row, collapse="+"), "~", paste(var.col, collapse="+"))
+
+    # aggregate 
+    casted <- dcast(df, formula, fun.aggregate=sum, value.var=var.weight)
+
+    # replace row names
+    rownames_underscore <- apply(casted[,var.row,drop=F], 1, paste, collapse="_")
+    
+    row.names(casted) <- underscore_to_varmod(rownames_underscore, var.row)
+    for (i in 1:length(var.row)) {
+        casted <- casted[-1]
+    }
+
+    # replace col names
+    colnames(casted) <- underscore_to_varmod(colnames(casted), var.col)
+
+    # return a normalised version
+    normalise(casted)
+
+}
+
