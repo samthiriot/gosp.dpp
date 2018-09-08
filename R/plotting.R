@@ -281,7 +281,7 @@ plot_average_degree_A <- function(sp, nameA="A", colorRef="darkgray", colorSynth
                         ggplot2::geom_bar(stat="identity", position = 'dodge2') + 
                         scale_gray_blue + 
                         ggplot2::ylab("average degree") + 
-                        ggplot2::ggtitle(paste("average degree",nameA))
+                        ggplot2::ggtitle(paste("average degree",nameA," (NRMSE ",sp$gen$nrmse.di,")"))
 
     plot_degrees_A
 }
@@ -306,7 +306,7 @@ plot_average_degree_B <- function(sp, nameB="B", colorRef="darkgray", colorSynth
                         ggplot2::geom_bar(stat="identity", position = 'dodge2') + 
                         scale_gray_blue + 
                         ggplot2::ylab("average degree") + 
-                        ggplot2::ggtitle(paste("average degree",nameB))
+                        ggplot2::ggtitle(paste("average degree",nameB," (NRMSE ",sp$gen$nrmse.dj,")"))
 
     plot_degrees_B 
 }
