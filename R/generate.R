@@ -173,13 +173,12 @@ matching.generate.add_degree <- function(samp, pop, n, ndx, verbose) {
 #' applied on two samples \code{sample.A} and \code{sample.B}. 
 #' It first resizes the two populations so they reach the expected sizes, 
 #' the adds degrees to them, then creates links based on degrees 
-#' and characteristics, before measuring the result.  
+#' and characteristics.  
 #'
 #' @param case the case resolved by the \code{\link{matching.solve}} function. 
 #' @param sample.A the sample to use as population A 
 #' @param sample.B the sample to use as population B
 #' @param verbose displays detailed messages if TRUE
-#' @param measure if TRUE (default value), measures states from the actual population. 
 #' @param force if TRUE, will try to generate even very big populations (and will likely fail)
 #' @return the generated population
 #'
@@ -189,7 +188,7 @@ matching.generate.add_degree <- function(samp, pop, n, ndx, verbose) {
 #'
 #' @author Samuel Thiriot <samuel.thiriot@res-ear.ch> 
 #'
-matching.generate <- function(case, sample.A, sample.B, verbose=FALSE, measure=TRUE, force=FALSE) {
+matching.generate <- function(case, sample.A, sample.B, verbose=FALSE, force=FALSE) {
 
 	if (class(case) != "dpp_resolved") 
 		stop("case should be the result of a solving by matching.solve")
@@ -330,11 +329,6 @@ matching.generate <- function(case, sample.A, sample.B, verbose=FALSE, measure=T
 	res <- case
 	res$pop <- list(A=targetA, B=targetB, links=links)
     class(res$pop) <- "dpp_population" 
-
-    if (measure) {
-		res$measure <- measure.population(case, res$pop, sample.A, sample.B, case$inputs$pij)
-	    class(res$measure) <- "dpp_measure"
-	}
 
     class(res) <- "dpp_result"
 
