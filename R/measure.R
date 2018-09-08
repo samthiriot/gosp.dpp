@@ -268,3 +268,73 @@ measure.population <- function(case, pop, sample.A, sample.B, pij, verbose=FALSE
 	res
 
 }
+
+#' Measure the errors in the distributions of degrees pdi
+#' 
+#' Returns the difference between the actual and input distributions of degrees. 
+#' For instance a "minus one" means we reached one less than expected.
+#' 
+#' @param sp a synthetic population, as produced by \code{\link{matching.generate}} or \code{\link{matching.solve}}.
+#' @return a dataframe containing the difference between the expected and actual distribution of degrees
+#' 
+#' @seealso \code{\link{errors.pdj}} for the measure of distributions of degrees pdj
+#' 
+#' @export 
+#' 
+#' @author Samuel Thiriot <samuel.thiriot@res-ear.ch> 
+#' 
+errors.pdi <- function(sp) {
+
+    if ((class(sp) != "dpp_result") && (class(sp) != "dpp_resolved")) 
+        stop("the data to analyze x should be the result of a matching.solve or matching.generate call")
+    
+    sp$gen$hat.pdi - as.data.frame(sp$inputs$pdi_fixed)
+
+}
+
+#' Measure the errors in the distributions of degrees pdj
+#' 
+#' Returns the difference between the actual and input distributions of degrees. 
+#' For instance a "minus one" means we reached one less than expected.
+#' 
+#' @param sp a synthetic population, as produced by \code{\link{matching.generate}} or \code{\link{matching.solve}}.
+#' @return a dataframe containing the difference between the expected and actual distribution of degrees
+#' 
+#' @seealso \code{\link{errors.pdi}} for the measure of distributions of degrees pdi
+#' 
+#' @export 
+#' 
+#' @author Samuel Thiriot <samuel.thiriot@res-ear.ch> 
+#' 
+errors.pdj <- function(sp) {
+
+    if ((class(sp) != "dpp_result") && (class(sp) != "dpp_resolved")) 
+        stop("the data to analyze x should be the result of a matching.solve or matching.generate call")
+    
+    sp$gen$hat.pdj - as.data.frame(sp$inputs$pdj_fixed)
+
+}
+
+#' Measure the errors in the pairing probabilities  pij
+#' 
+#' Returns the difference between the actual and input pairing probabilities. 
+#' For instance a "minus one" means we reached one less than expected.
+#' 
+#' @param sp a synthetic population, as produced by \code{\link{matching.generate}} or \code{\link{matching.solve}}.
+#' @return a dataframe containing the difference between the expected and actual pairing probabilities
+#' 
+#' @seealso \code{\link{errors.pdi}} for the measure of distributions of degrees pdi
+#' 			\code{\link{errors.pdj}} for the measure of distributions of degrees pdj
+#' 
+#' @export 
+#' 
+#' @author Samuel Thiriot <samuel.thiriot@res-ear.ch> 
+#' 
+errors.pij <- function(sp) {
+
+    if ((class(sp) != "dpp_result") && (class(sp) != "dpp_resolved")) 
+        stop("the data to analyze x should be the result of a matching.solve or matching.generate call")
+    
+    sp$gen$hat.pij - as.data.frame(sp$inputs$pij_fixed)
+
+}

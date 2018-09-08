@@ -112,7 +112,7 @@ plot.unconstrained <- function(sp, sampleA, sampleB, nameA="A", nameB="B") {
         plots_list <- append(plots_list, list(p))
     }
 
-    do.call("ggplot2::grid.arrange", c(plots_list, ncol=1, nrow=length(plots_list)))
+    do.call("gridExtra::grid.arrange", c(plots_list, ncol=1, nrow=length(plots_list)))
 
 }
 
@@ -129,7 +129,7 @@ plot.unconstrained <- function(sp, sampleA, sampleB, nameA="A", nameB="B") {
 #' @keywords internal
 #'
 add_linebreaks_attributes <- function(labels) {
-    gsub(",", ",\n", labels)
+    gsub(",", "\n", labels)
 }
 
 
@@ -347,7 +347,7 @@ plot_frequencies_A <- function(sp, nameA="A", colorRef="darkgray", colorSyntheti
                         ggplot2::geom_bar(stat="identity", position = 'dodge2') + 
                         scale_gray_blue + 
                         ggplot2::ylab("freq") + 
-                        ggplot2::ggtitle(paste("frequencies",nameA))
+                        ggplot2::ggtitle(paste("frequencies",nameA," (NRMSE ",sp$gen$nrmse.fi,")"))
 
     res_plot
 }
@@ -371,7 +371,7 @@ plot_frequencies_B <- function(sp, nameB="B", colorRef="darkgray", colorSyntheti
                         ggplot2::geom_bar(stat="identity", position = 'dodge2') + 
                         scale_gray_blue + 
                         ggplot2::ylab("freq") + 
-                        ggplot2::ggtitle(paste("frequencies",nameB))
+                        ggplot2::ggtitle(paste("frequencies",nameB," (NRMSE ",sp$gen$nrmse.fj,")"))
 
 
     res_plot
@@ -404,14 +404,14 @@ plot_errors_pdi <- function(sp, nameA="A", colorRef="darkgray", colorSynthetic="
 
     heat_map_gradient <- ggplot2::scale_fill_gradient2(limits=c(-1,1)) # , trans="log"
 
-    diff_pdi <- sp$gen$hat.pdi - sp$inputs$pdi$data
+    diff_pdi <- errors.pdi(sp)
     colnames(diff_pdi) <- add_linebreaks_attributes(colnames(diff_pdi))
     diff_pdi$degree <- factor(seq(0,nrow(diff_pdi)-1))
     data_hm_pdi <- melt(diff_pdi)
     plot_pdi <- ggplot2::ggplot(data_hm_pdi, ggplot2::aes(variable, degree)) + 
                         ggplot2::geom_tile(ggplot2::aes(fill=value)) + 
                         heat_map_gradient + 
-                        ggplot2::ggtitle(paste("difference degree for",nameA))
+                        ggplot2::ggtitle(paste("difference degree for",nameA," (NRMSE ",sp$gen$nrmse.pdi,")"))
 
     plot_pdi
 }
@@ -425,14 +425,14 @@ plot_errors_pdj <- function(sp, nameB="B", colorRef="darkgray", colorSynthetic="
 
     heat_map_gradient <- ggplot2::scale_fill_gradient2(limits=c(-1,1)) # , trans="log"
 
-    diff_pdj <- sp$gen$hat.pdj - sp$inputs$pdj$data
+    diff_pdj <- errors.pdj(sp)
     colnames(diff_pdj) <- add_linebreaks_attributes(colnames(diff_pdj))
     diff_pdj$degree <- factor(seq(0,nrow(diff_pdj)-1))
     data_hm_pdj <- melt(diff_pdj)
     plot_pdj <- ggplot2::ggplot(data_hm_pdj, ggplot2::aes(variable, degree)) + 
                         ggplot2::geom_tile(ggplot2::aes(fill=value)) + 
                         heat_map_gradient + 
-                        ggplot2::ggtitle(paste("difference degree for",nameB))
+                        ggplot2::ggtitle(paste("difference degree for",nameB," (NRMSE ",sp$gen$nrmse.pdj,")"))
     plot_pdj
 }
 
@@ -441,7 +441,7 @@ plot_errors_pdj <- function(sp, nameB="B", colorRef="darkgray", colorSynthetic="
 #' Plots as a heatmap the difference between expected pairing probabilities and 
 #' generated ones. Locations in red have a lower probability than expected; in blue, it's the opposite.
 #'
-#' @param sp a synthetic population, as produced by \code{\link{matching.generate}}.
+#' @param sp a synthetic population, as produced by \code{\link{matching.generate}} or \code{\link{matching.solve}}.
 #' @inheritParams plot.dpp_result
 #' @return a ggplot ready to display
 #' 
@@ -462,7 +462,7 @@ plot_errors_pij <- function(sp) {
 
     heat_map_gradient <- ggplot2::scale_fill_gradient2(limits=c(-1,1)) # , trans="log"
 
-    diff_pij <- sp$gen$hat.pij - sp$inputs$pij$data
+    diff_pij <- errors.pij(sp)
     colnames(diff_pij) <- add_linebreaks_attributes(colnames(diff_pij))
     diff_pij$attributesB <- row.names(diff_pij)
     #diff_pij$variable <- add_linebreaks_attributes(diff_pij$variable)
@@ -470,7 +470,7 @@ plot_errors_pij <- function(sp) {
     plot_pij <- ggplot2::ggplot(data_hm_pij, ggplot2::aes(variable, attributesB)) + 
                         ggplot2::geom_tile(ggplot2::aes(fill=value)) + 
                         heat_map_gradient + 
-                        ggplot2::ggtitle(paste("difference pairing"))
+                        ggplot2::ggtitle(paste("difference pairing (NRMSE ",sp$gen$nrmse.pij,")"))
 
     plot_pij
 }
