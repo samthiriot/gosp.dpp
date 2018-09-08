@@ -52,33 +52,35 @@ matching.generate.copy_population <- function(n, sample, verbose=FALSE) {
 
         count.required <- n[name]
 
-      	if (verbose)
-    		cat("\tcopying ", count.required, " having ",name,"\n",sep="")
-        
-        k2v <- extract_attributes_values(name)
-        #print(k2v)
+        if (count.required > 0) {
+	      	if (verbose)
+	    		cat("\tcopying ", count.required, " having ",name,"\n",sep="")
+	        
+	        k2v <- extract_attributes_values(name)
+	        #print(k2v)
 
-        # accumulate the conditions on each key / value
-        selected_ids <- 1:nrow(sample$sample) 
-        for (k in names(k2v)) {
-        	selected_ids <- intersect(selected_ids, which(sample$sample[k] == k2v[[k]]))
-        }
+	        # accumulate the conditions on each key / value
+	        selected_ids <- 1:nrow(sample$sample) 
+	        for (k in names(k2v)) {
+	        	selected_ids <- intersect(selected_ids, which(sample$sample[k] == k2v[[k]]))
+	        }
 
-        # identify the subpart of the population having these values
-        available <- sample$sample[selected_ids,]
-        
-		count.available <- nrow(available)
-		weights.available <- sum(available[,sample$dictionary$colname.weight])
+	        # identify the subpart of the population having these values
+	        available <- sample$sample[selected_ids,]
+	        
+			count.available <- nrow(available)
+			weights.available <- sum(available[,sample$dictionary$colname.weight])
 
-		if (verbose)
-			cat("\tshould copy ", count.required, " individuals for ", name,
-					" and found ",count.available, " individuals with weights summing to ", weights.available,"\n",sep="")
+			if (verbose)
+				cat("\tshould copy ", count.required, " individuals for ", name,
+						" and found ",count.available, " individuals with weights summing to ", weights.available,"\n",sep="")
 
-		if (count.required > 0) {
-			toAdd <- matching.generate.resize_population(available, count.required, sample$dictionary$colname.weight)
+			if (count.required > 0) {
+				toAdd <- matching.generate.resize_population(available, count.required, sample$dictionary$colname.weight)
 
-			# extend the original target population
-			target <- rbind(target, toAdd)
+				# extend the original target population
+				target <- rbind(target, toAdd)
+			}
 		}
 	}
 
@@ -120,31 +122,35 @@ matching.generate.add_degree <- function(samp, pop, n, ndx, verbose) {
 		for (degree in 0:(nrow(ndx)-1)) {
 
 			count.required <- ndx[degree+1,name]
-			totalForDegree <- totalForDegree + count.required*degree
 
-			# accumulate selection criteria: write set of attributes, and also no defined degree
-			criteriaRaw <- which( is.na(pop["target.degree"]) )
-			for (k in names(k2v)) {
-	        	criteriaRaw <- intersect(criteriaRaw, which(pop[k] == k2v[[k]]))
-	        }
+			if (count.required > 0) {
 
-			if (verbose)
-				cat("\tset target degree ", degree, " for ", count.required, " over ", length(criteriaRaw), " having ", name,"\n", sep="")
-			
-			if (count.required == 0) {
-				next 
+				totalForDegree <- totalForDegree + count.required*degree
+
+				# accumulate selection criteria: write set of attributes, and also no defined degree
+				criteriaRaw <- which( is.na(pop["target.degree"]) )
+				for (k in names(k2v)) {
+		        	criteriaRaw <- intersect(criteriaRaw, which(pop[k] == k2v[[k]]))
+		        }
+
+				if (verbose)
+					cat("\tset target degree ", degree, " for ", count.required, " over ", length(criteriaRaw), " having ", name,"\n", sep="")
+				
+				if (count.required == 0) {
+					next 
+				}
+				
+				lastDegreeNonNull <- degree
+
+				criteria <- NULL 
+				if (count.required < length(criteriaRaw)) {
+					criteria <- sample(criteriaRaw, count.required)
+				} else {
+					criteria <- criteriaRaw
+				}
+
+				pop[criteria,"target.degree"] <- degree
 			}
-			
-			lastDegreeNonNull <- degree
-
-			criteria <- NULL 
-			if (count.required < length(criteriaRaw)) {
-				criteria <- sample(criteriaRaw, count.required)
-			} else {
-				criteria <- criteriaRaw
-			}
-
-			pop[criteria,"target.degree"] <- degree
 		}
 
 
@@ -261,66 +267,69 @@ matching.generate <- function(case, sample.A, sample.B, verbose=FALSE, force=FAL
 
 			count.required <- case$gen$hat.nij[cB,cA] 
 
-			if (verbose)
-				cat("\tshould create", count.required, "links for A:\t", cA, "\tand B:\t", cB, "\n")
+			if (count.required > 0) { 
 
-			pass.remaining <- 1
+				if (verbose)
+					cat("\tshould create", count.required, "links for A:\t", cA, "\tand B:\t", cB, "\n")
 
-			links.toadd.A <- c()
-			links.toadd.B <- c()
-			
+				pass.remaining <- 1
 
-			while ( (pass.remaining > 0) & (count.required > 0) ) {
-
-				pass.remaining <- pass.remaining - 1
-
-				criteriaAraw <- which( targetA$current.degree < targetA$target.degree )
-				for (k in names(k2v.A)) {
-		        	criteriaAraw <- intersect(criteriaAraw, which(targetA[k] == k2v.A[[k]]))
-		        }
-
-				criteriaBraw <- which( targetB$current.degree < targetB$target.degree )
-				for (k in names(k2v.B)) {
-		        	criteriaBraw <- intersect(criteriaBraw, which(targetB[k] == k2v.B[[k]]))
-		        }
+				links.toadd.A <- c()
+				links.toadd.B <- c()
 				
-				available.degree.A <- max(targetA[criteriaAraw,"target.degree"] - targetA[criteriaAraw,"current.degree"])
-				available.degree.B <- max(targetB[criteriaBraw,"target.degree"] - targetB[criteriaBraw,"current.degree"])
 
-				# first pass for largely connectable ones
-				if ( (available.degree.A > 1) | (available.degree.B > 1) ) {
-					pass.remaining <- 1
+				while ( (pass.remaining > 0) & (count.required > 0) ) {
+
+					pass.remaining <- pass.remaining - 1
+
+					criteriaAraw <- which( targetA$current.degree < targetA$target.degree )
+					for (k in names(k2v.A)) {
+			        	criteriaAraw <- intersect(criteriaAraw, which(targetA[k] == k2v.A[[k]]))
+			        }
+
+					criteriaBraw <- which( targetB$current.degree < targetB$target.degree )
+					for (k in names(k2v.B)) {
+			        	criteriaBraw <- intersect(criteriaBraw, which(targetB[k] == k2v.B[[k]]))
+			        }
+					
+					available.degree.A <- max(targetA[criteriaAraw,"target.degree"] - targetA[criteriaAraw,"current.degree"])
+					available.degree.B <- max(targetB[criteriaBraw,"target.degree"] - targetB[criteriaBraw,"current.degree"])
+
+					# first pass for largely connectable ones
+					if ( (available.degree.A > 1) | (available.degree.B > 1) ) {
+						pass.remaining <- 1
+					}
+
+					count.found <- min(length(criteriaAraw), length(criteriaBraw), count.required)
+
+					criteriaA <- sample(criteriaAraw, count.found)
+					criteriaB <- sample(criteriaBraw, count.found)
+
+					# add the links
+					links.toadd.A <- c(links.toadd.A, targetA[criteriaA,"id.A"])
+					links.toadd.B <- c(links.toadd.B, targetB[criteriaB,"id.B"])
+
+					# update the degree
+					targetA[criteriaA,"current.degree"] <- targetA[criteriaA,"current.degree"] + 1
+					targetB[criteriaB,"current.degree"] <- targetB[criteriaB,"current.degree"] + 1
+
+					count.required <- count.required - count.found
 				}
 
-				count.found <- min(length(criteriaAraw), length(criteriaBraw), count.required)
 
-				criteriaA <- sample(criteriaAraw, count.found)
-				criteriaB <- sample(criteriaBraw, count.found)
+				if ( count.required > 0)  {
+					warning(paste("\t/!\\ failed to create ", count.required," link(s) ",
+							"for ", cA, 
+							"\tand B:\t", cB, "\n",sep=""))
+				}
 
-				# add the links
-				links.toadd.A <- c(links.toadd.A, targetA[criteriaA,"id.A"])
-				links.toadd.B <- c(links.toadd.B, targetB[criteriaB,"id.B"])
-
-				# update the degree
-				targetA[criteriaA,"current.degree"] <- targetA[criteriaA,"current.degree"] + 1
-				targetB[criteriaB,"current.degree"] <- targetB[criteriaB,"current.degree"] + 1
-
-				count.required <- count.required - count.found
+				links.toadd <- data.frame(
+							id.A=links.toadd.A,
+							id.B=links.toadd.B
+							)
+				links <- rbind(links, links.toadd)
+				
 			}
-
-
-			if ( count.required > 0)  {
-				warning(paste("\t/!\\ failed to create ", count.required," link(s) ",
-						"for ",case$inputs$pij$Ai, "=", cA, 
-						"\tand B:\t",  case$inputs$pij$Bi, "=", cB,"\n",sep=""))
-			}
-
-			links.toadd <- data.frame(
-						id.A=links.toadd.A,
-						id.B=links.toadd.B
-						)
-			links <- rbind(links, links.toadd)
-			
 		}
 
 	}
