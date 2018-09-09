@@ -270,7 +270,7 @@ matching.generate <- function(case, sample.A, sample.B, verbose=FALSE, force=FAL
 			if (count.required > 0) { 
 
 				if (verbose)
-					cat("\tshould create \t", count.required, "links for A:\t", cA, "\tand B:\t", cB, "\n")
+					cat("\tshould create", count.required, "\t links for A:\t", cA, "\tand B:\t", cB, "\n")
 
 				pass.remaining <- 1
 
@@ -301,6 +301,11 @@ matching.generate <- function(case, sample.A, sample.B, verbose=FALSE, force=FAL
 					}
 
 					count.found <- min(length(criteriaAraw), length(criteriaBraw), count.required)
+				
+					if ( count.found == 0)  {
+						cat("\tfound no valid candidate...\n")
+						break
+					} 
 
 					criteriaA <- sample(criteriaAraw, count.found)
 					criteriaB <- sample(criteriaBraw, count.found)
@@ -314,6 +319,7 @@ matching.generate <- function(case, sample.A, sample.B, verbose=FALSE, force=FAL
 					targetB[criteriaB,"current.degree"] <- targetB[criteriaB,"current.degree"] + 1
 
 					count.required <- count.required - count.found
+				
 				}
 
 
