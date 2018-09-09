@@ -134,7 +134,7 @@ matching.generate.add_degree <- function(samp, pop, n, ndx, verbose) {
 		        }
 
 				if (verbose)
-					cat("\tset target degree ", degree, " for ", count.required, " over ", length(criteriaRaw), " having ", name,"\n", sep="")
+					cat("\tset target degree ", degree, "\t for ", count.required, " over\t", length(criteriaRaw), "\t having ", name,"\n", sep="")
 				
 				if (count.required == 0) {
 					next 
@@ -270,7 +270,7 @@ matching.generate <- function(case, sample.A, sample.B, verbose=FALSE, force=FAL
 			if (count.required > 0) { 
 
 				if (verbose)
-					cat("\tshould create", count.required, "links for A:\t", cA, "\tand B:\t", cB, "\n")
+					cat("\tshould create \t", count.required, "links for A:\t", cA, "\tand B:\t", cB, "\n")
 
 				pass.remaining <- 1
 
