@@ -1152,7 +1152,7 @@ detect.problems <- function(sol, case, fail=TRUE, verbose=FALSE, indent=1, toler
     if (!is.null(sol$hat.di)) {
         problems <- problems + assert.equal(
                                 FALSE, 
-                                any(sol$hat.di - case$inputs$min.di < tolerance.degree.max), 
+                                any(case$inputs$min.di - sol$hat.di > tolerance.degree.max), 
                                 "hat.di >= min.di (try increasing tolerance.degree.max)", 
                                 verbose=verbose, indent=indent+1)     
         problems <- problems + assert.equal(
@@ -1164,7 +1164,7 @@ detect.problems <- function(sol, case, fail=TRUE, verbose=FALSE, indent=1, toler
     if (!is.null(sol$hat.dj)) {
         problems <- problems + assert.equal(
                                 FALSE, 
-                                any(sol$hat.dj - case$inputs$min.dj < tolerance.degree.max), 
+                                any(case$inputs$min.dj - sol$hat.dj > tolerance.degree.max), 
                                 "hat.dj >= min.dj (try increasing tolerance.degree.max)", 
                                 verbose=verbose, indent=indent+1)     
         problems <- problems + assert.equal(
@@ -1477,7 +1477,8 @@ resolve.missing.chain <- function(sol, chain, case,
 
 
         if (verbose)
-            cat("\t\tfound ",length(solutions)," solutions, we have to select the best according to weights",weights.names[indices_weights_not_null],"\n")
+            cat("\t\tfound ",length(solutions)," solutions, we have to select the best according to weights", 
+                    paste(weights.names[indices_weights_not_null], collapse=","),"\n")
             weights <- c(nu.A, phi.A, delta.A, gamma, delta.B, phi.B, nu.B)
 
         # print("weights")
@@ -1497,16 +1498,17 @@ resolve.missing.chain <- function(sol, chain, case,
                         val.or.0(s$sol$nrmse.nB)
                         )
 
-
             # print("errors for this sol")
             # print(errors[indices_weights_not_null])
             # print("weighted")
             # print(errors[indices_weights_not_null] / weights[indices_weights_not_null])
-            cumulated.errors[i] <- sum(errors[indices_weights_not_null] / weights[indices_weights_not_null])
+            weighted <- errors[indices_weights_not_null] / weights[indices_weights_not_null]
+            cumulated.errors[i] <- sum(weighted)
             
             if (verbose)
-                cat(paste("\t\t\tsolution (",i,") => ", paste(errors[   ],collapse="\t"), 
-                    "\t weighted: ",paste(cumulated.errors,collapse="\t"),"\n",sep=""))
+                cat(paste("\t\t\tsolution (",i,") (", cumulated.errors[i], ") =>\n",
+                    "\t\t\t\t\t\t", paste(errors[indices_weights_not_null],collapse="\t"), "\n",
+                    "\t\t\t\t weighted: \t",paste(weighted,collapse="\t"),"\n",sep=""))
         }
 
         best.solutions <- which(cumulated.errors == min(cumulated.errors)) 
@@ -1687,12 +1689,12 @@ quantify.errors <- function(sol, case, nA, nB) {
     if (!is.null(sol$hat.nA)) {
         sol$error.nA <- abs( sol$hat.nA - nA )
         sol$rmse.nA <- sol$error.nA
-        sol$nrmse.nA <- sol$rmse.nA / max(sol$hat.nA, nA)
+        sol$nrmse.nA <- abs(sol$hat.nA - nA)/nA
     }
     if (!is.null(sol$hat.nB)) {
         sol$error.nB <- abs( sol$hat.nB - nB )
         sol$rmse.nB <- sol$error.nB
-        sol$nrmse.nB <- sol$rmse.nB / max(sol$hat.nB, nB)
+        sol$nrmse.nB <- abs(sol$hat.nB - nB)/nB
     }
 
     sol
