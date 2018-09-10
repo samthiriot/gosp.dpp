@@ -215,12 +215,15 @@ rectify.degree.counts <- function(pdn, nn, cn, verbose=FALSE) {
     }
     for (col in 1:ncol(pdn)) {
 
+        if (verbose) cat("col ", col, "\n")
+
         total.current <- sum(pdn[,col]*0:(nrow(pdn)-1))
         total.expected <- nn[col]
 
         if (total.current > total.expected) {
             to.remove <- total.current - total.expected
 
+            if (verbose) cat("should remove ", to.remove, "\n")
             # no more warning: we anyway check at the end how well we fixed it
             # if (to.remove > 1) {
             #     warning("/!\\ the solution to fix rounding errors below 1 slot (here:",to.remove,") is not managed well\n.",sep="")
@@ -228,9 +231,16 @@ rectify.degree.counts <- function(pdn, nn, cn, verbose=FALSE) {
 
             # we are creating more slots than expected
             # ... we have to remove it somewhere 
-            if ( (pdn[2,col] >= to.remove) && (pdn[1,col] > 0)) {
+            if ( (pdn[2,col] >= to.remove) ) { # && (pdn[1,col] > 0)
                 pdn[2,col] <- pdn[2,col] - to.remove
                 pdn[1,col] <- pdn[1,col] + to.remove
+            } else if ( ( nrow(pdn) >= 3) && (pdn[3,col] >= to.remove/2) ) { # && (pdn[1,col] > 0)
+                # cat("removing 2 and adding 1\n")
+                # to remove -1, we also might remove 2 and add 1 !
+                # print(pdn[,col])
+                pdn[3,col] <- pdn[3,col] - to.remove
+                pdn[2,col] <- pdn[2,col] + to.remove
+                # print(pdn[,col])
             } else {
                 if (verbose)
                     warning("/!\\ found no good solution to fix this rounding error by removing ",to.remove,"\n") 
@@ -239,6 +249,8 @@ rectify.degree.counts <- function(pdn, nn, cn, verbose=FALSE) {
         } else if (total.current < total.expected) {
             to.add <- total.expected - total.current 
 
+            if (verbose) cat("should add ", to.add, "\n")
+
             # no more warning: we anyway check at the end how well we fixed it
             # if (to.add > 1) {
             #     warning("/!\\ the solution to fix rounding errors above 1 slot (here:",to.add,") is not managed well\n", sep="")
@@ -246,9 +258,12 @@ rectify.degree.counts <- function(pdn, nn, cn, verbose=FALSE) {
 
             # we are creating more slots than expected
             # ... we have to remove it somewhere 
-            if ( (pdn[1,col] >= to.add) && (pdn[2,col] > 0)) {
+            if (pdn[1,col] >= to.add) { # (pdn[2,col] > 0
                 pdn[1,col] <- pdn[1,col] - to.add
                 pdn[2,col] <- pdn[2,col] + to.add
+            } else if ( (nrow(pdn) >= 3) && (pdn[2,col] >= to.add) ) { # (pdn[2,col] > 0
+                pdn[2,col] <- pdn[2,col] - to.add
+                pdn[3,col] <- pdn[3,col] + to.add
             } else {
                 if (verbose)
                     warning("/!\\ found no good solution to fix this rounding error of an additional ",to.add,"\n") 
@@ -275,6 +290,9 @@ rectify.degree.counts <- function(pdn, nn, cn, verbose=FALSE) {
                 unname(nn)
                 ) != TRUE) {
 
+        # print(pdn)
+        # print(nn)
+        # print(cn)
         stop("was unable to fix the rounding of degree distributions ",
             "so the total slots ",
             paste(unname(colSums(pdn*(0:(nrow(pdn)-1)))), collapse=","),
@@ -432,6 +450,9 @@ propagate.direct <- function(sol,case, verbose=FALSE, indent=1) {
         if ( 
             ("hat.ci" %in% names(sol)) && ("hat.di" %in% names(sol)) && (!"hat.ni" %in% names(sol))
             ) {
+            # print(sol$hat.ci)
+            # print(sol$hat.di)
+            # print(sol$hat.ci * sol$hat.di)
             sol$hat.ni <- round_sum(sol$hat.ci * sol$hat.di)
             # adapt rounding
             sol$hat.di <- nan_to_zeros(sol$hat.ni / sol$hat.ci)
@@ -667,6 +688,30 @@ propagate.direct <- function(sol,case, verbose=FALSE, indent=1) {
             changed <- TRUE
         }
 
+        # pj + dj -> fj
+        # TODO this should exist, but it leads to diffult problems. If a degree is close to 0, then dividing by it leads to weird frequencies.
+        # if ( 
+        #     ("hat.pi" %in% names(sol)) && ("hat.di" %in% names(sol)) &&  (!"hat.fi" %in% names(sol))
+        #     ) {
+        #     print(sol$hat.pi)
+        #     print(sol$hat.di)
+        #     print(sol$hat.pi / sol$hat.di)
+        #     sol$hat.fi <- normalise(sol$hat.pi / sol$hat.di)
+        #     sol <- info.rule("hat.pi, hat.di -> hat.fi", sol, verbose=verbose, indent=indent+1)
+        #     print(sol$hat.fi)
+        #     print(sum(sol$hat.fi))
+        #     changed <- TRUE
+        # }
+        # if ( 
+        #     ("hat.pj" %in% names(sol)) && ("hat.dj" %in% names(sol)) &&  (!"hat.fj" %in% names(sol))
+        #     ) {
+        #     sol$hat.fj <- normalise(sol$hat.pj / sol$hat.dj)
+        #     sol <- info.rule("hat.pj, hat.dj -> hat.fj", sol, verbose=verbose, indent=indent+1)
+        #     print(sol$hat.fj)
+        #     print(sum(sol$hat.fj))
+        #     changed <- TRUE
+        # }
+
         # pj + pij -> pij 
         if ( 
             ("hat.pi" %in% names(sol)) && (!"hat.pij" %in% names(sol))
@@ -737,10 +782,10 @@ propagate.direct <- function(sol,case, verbose=FALSE, indent=1) {
             all(c("hat.pdi", "hat.ci", "hat.ni") %in% names(sol)) && (!"hat.ndi" %in% names(sol))
             ) {
 
-            sol <- info.rule("hat.pdi, hat.ci -> hat.ndi", sol, verbose=verbose, indent=indent+1)
+            sol <- info.rule("hat.pdi, hat.ci, hat.ni -> hat.ndi", sol, verbose=verbose, indent=indent+1)
             # print(sol$hat.pdi)
             sol$hat.ndi <- round_sum(t(t(sol$hat.pdi) * sol$hat.ci))
-            sol$hat.ndi <- rectify.degree.counts(sol$hat.ndi, sol$hat.ni, sol$hat.ci, verbose=FALSE)
+            sol$hat.ndi <- rectify.degree.counts(sol$hat.ndi, sol$hat.ni, sol$hat.ci, verbose=F)
             
             # update pdi after rounding (when divisible, else we keep the theorical version)
             indices <- which(sol$hat.ci!=0)
@@ -757,9 +802,9 @@ propagate.direct <- function(sol,case, verbose=FALSE, indent=1) {
             all(c("hat.pdj", "hat.cj", "hat.nj") %in% names(sol)) && (!"hat.ndj" %in% names(sol))
             ) {
             
-            sol <- info.rule("hat.pdj, hat.cj -> hat.ndj", sol, verbose=verbose, indent=indent+1)
+            sol <- info.rule("hat.pdj, hat.cj, hat.nj -> hat.ndj", sol, verbose=verbose, indent=indent+1)
             sol$hat.ndj <- round_sum(t(t(sol$hat.pdj) * sol$hat.cj))
-            sol$hat.ndj <- rectify.degree.counts(sol$hat.ndj, sol$hat.nj, sol$hat.cj, verbose=FALSE)   
+            sol$hat.ndj <- rectify.degree.counts(sol$hat.ndj, sol$hat.nj, sol$hat.cj, verbose=F)   
 
             # update pdi after rounding (when divisible, else we keep the theorical version)
             indices <- which(sol$hat.cj!=0)
@@ -874,13 +919,14 @@ assert.equal <- function(v1,v2,msg, verbose=FALSE, indent=3, tolerance=1.5e-8) {
 #' @param fail if TRUE, an error will call stop()
 #' @param verbose if TRUE, will ddetect.problemsisplay detailed information on the console
 #' @param indent the indentation (count of tabs) for verbose display
+#' @param tolerance.pd the tolerance for probability distributions
 #' @return the count of problems 
 #'  
 #' @author Samuel Thiriot <samuel.thiriot@res-ear.ch>
 #'  
 #' @keywords internal
 #'
-detect.problems <- function(sol, case, fail=TRUE, verbose=FALSE, indent=1) {
+detect.problems <- function(sol, case, fail=TRUE, verbose=FALSE, indent=1, tolerance.pd=1.5e-8) {
 
     if (verbose) {
         cat(rep("\t",times=indent),"checking the consistency of the current solution with ",paste.known(sol),"\n",sep="")
@@ -1009,8 +1055,9 @@ detect.problems <- function(sol, case, fail=TRUE, verbose=FALSE, indent=1) {
             problems <- problems + assert.equal(
                                         1, 
                                         sum(sol$hat.pdi[,i]), 
-                                        paste("sum(hat.pdi[",i,"])=1",sep=""), 
-                                        verbose=verbose, indent=indent+1)       
+                                        paste("sum(hat.pdi[",i,"])=1 (you can tune tolerance.pd)",sep=""), 
+                                        verbose=verbose, indent=indent+1,
+                                        tolerance=tolerance.pd)       
         }
     } 
     if (!is.null(sol$hat.pdj)) {
@@ -1018,8 +1065,9 @@ detect.problems <- function(sol, case, fail=TRUE, verbose=FALSE, indent=1) {
             problems <- problems + assert.equal(
                                         1, 
                                         sum(sol$hat.pdj[,i]), 
-                                        paste("sum(hat.pdj[",i,"])=1",sep=""), 
-                                        verbose=verbose, indent=indent+1)       
+                                        paste("sum(hat.pdj[",i,"])=1 (you can tune tolerance.pd)",sep=""), 
+                                        verbose=verbose, indent=indent+1,
+                                        tolerance=tolerance.pd)       
         }
     } 
 
@@ -1082,6 +1130,8 @@ detect.problems <- function(sol, case, fail=TRUE, verbose=FALSE, indent=1) {
 
     if (verbose) {
         if (problems > 0) {
+            #print(sol)
+
             cat(rep("\t",times=indent),"=> the solution is NOT consistent: ",problems," problems detected\n", sep="")
         } else {
             cat(rep("\t",times=indent),"=> the solution is consistent\n", sep="")
@@ -1213,6 +1263,7 @@ paste.known <- function(sol) {
 #' @param phi.B control for frequencies: 0 means "respect the original frequencies as detected in the sample", non-null "adapt it to solve the case"
 #' @param nu.B control for nB: 0 means "respect nB", non-null "adapt it to solve the case"
 #' @param verbose if TRUE, will display detailed information on the console
+#' @param tolerance.pd the tolerance for probability distributions
 #' @return a list of vectors (the chains) of strings 
 #'
 #' @seealso \code{\link{propagate.direct}} for the inference of the consequences of the hypothesis,
@@ -1227,7 +1278,8 @@ paste.known <- function(sol) {
 resolve.missing.chain <- function(sol, chain, case, 
                                     nA, nB, 
                                     nu.A, phi.A, delta.A, nu.B, phi.B, delta.B, gamma, 
-                                    verbose=FALSE) {
+                                    verbose=FALSE,
+                                    tolerance.pd=1.5e-8) {
 
     if (verbose)
         cat("\tstarting the investigation of the missing chain: ",paste(chain,collapse=","),"\n",sep="")
@@ -1296,7 +1348,7 @@ resolve.missing.chain <- function(sol, chain, case,
                         propagate.direct(sol.hyp, case, verbose=verbose, indent=3)
                     }, error = function(e) {
                         if (verbose) {
-                            cat("\t\t\tfound an invalid solution.\n")
+                            cat(paste("\t\t\tfound an invalid solution (inference failed: ", e, ")\n", sep=""))
                         }
                         NULL
                     })     
@@ -1311,12 +1363,12 @@ resolve.missing.chain <- function(sol, chain, case,
             } else {
                 
                 # do we achieve to solve the problem on this basis ?
-                nb.problems <- detect.problems(sol.hyp, case, fail=FALSE, verbose=verbose, indent=3)
+                nb.problems <- detect.problems(sol.hyp, case, fail=FALSE, verbose=verbose, indent=3, tolerance.pd=tolerance.pd)
 
                 if (nb.problems > 0) {
                     #cat("this variable does not provides a valid solution to our problem","\n")
                     if (verbose) {
-                        cat("\t\t\twe found an invalid solution","\n")
+                        cat(paste("\t\t\twe found an invalid solution (",nb.problems," inconsistencies found)\n", sep=""))
                     }   
                 } else {
                     if (verbose) {
@@ -1403,7 +1455,7 @@ resolve.missing.chain <- function(sol, chain, case,
             cumulated.errors[i] <- sum(errors[indices_weights_not_null] / weights[indices_weights_not_null])
             
             if (verbose)
-                cat(paste("\t\t\tsolution (",i,") => ", paste(errors[indices_weights_not_null],collapse="\t"), 
+                cat(paste("\t\t\tsolution (",i,") => ", paste(errors[   ],collapse="\t"), 
                     "\t weighted: ",paste(cumulated.errors,collapse="\t"),"\n",sep=""))
         }
 
@@ -1456,6 +1508,7 @@ resolve.missing.chain <- function(sol, chain, case,
 #' @param phi.B control for frequencies: 0 means "respect the original frequencies as detected in the sample", non-null "adapt it to solve the case"
 #' @param nu.B control for nB: 0 means "respect nB", non-null "adapt it to solve the case"
 #' @param verbose if TRUE, will display detailed information on the console
+#' @param tolerance.pd the tolerance for probability distributions
 #' 
 #' @return a list of vectors (the chains) of strings 
 #' 
@@ -1468,7 +1521,8 @@ resolve <- function(sol, case,
                         nu.A, phi.A, delta.A, 
                         gamma,
                         nu.B, phi.B, delta.B,  
-                        verbose=FALSE) {
+                        verbose=FALSE,
+                        tolerance.pd=1.5e-8) {
 
     # direct propagation of what we know
     sol.tmp <- propagate.direct(sol, case, verbose=verbose)
@@ -1481,7 +1535,8 @@ resolve <- function(sol, case,
 
         found <- resolve.missing.chain(sol.tmp, chain, case, 
                     nA, nB, nu.A, phi.A, delta.A, nu.B, phi.B, delta.B, gamma, 
-                    verbose=verbose)
+                    verbose=verbose,
+                    tolerance.pd=tolerance.pd)
 
         if (!is.null(found)) {
             if (verbose) {
@@ -1679,6 +1734,7 @@ mean.data.frame <- function(x, ...) {
 #' @param phi.B control for frequencies: 0 means "respect the original frequencies as detected in the sample", non-null "adapt it to solve the case"
 #' @param nu.B control for nB: 0 means "respect nB", non-null "adapt it to solve the case"
 #' @param verbose if TRUE, the resolution will emit messages for debug
+#' @param tolerance.pd the tolerance for probability distributions
 #' 
 #' @return a case ready for generation
 #'
@@ -1714,7 +1770,8 @@ matching.solve <- function(case,
                                 nu.A, phi.A, delta.A, 
                                 gamma, 
                                 delta.B, phi.B, nu.B, 
-                                verbose = FALSE) {
+                                verbose = FALSE,
+                                tolerance.pd = 1.5e-6) {
 
     if (class(case) != "dpp_prepared") 
         stop("case should be the result of a preparation of data by matching.prepare")
@@ -1758,9 +1815,9 @@ matching.solve <- function(case,
     }
 
     # detect issues right now; maybe the problem is overconstrained or badly constrainted
-    detect.problems(sol, case, verbose=verbose)
+    detect.problems(sol, case, verbose=verbose, tolerance.pd=tolerance.pd)
 
-    sol <- resolve(sol, case, nA, nB, nu.A, phi.A, delta.A, nu.B, phi.B, delta.B, gamma, verbose=verbose)
+    sol <- resolve(sol, case, nA, nB, nu.A, phi.A, delta.A, nu.B, phi.B, delta.B, gamma, verbose=verbose, tolerance.pd=tolerance.pd)
 
     # ensure all the variables found a solution during the process
      if (!all(c(
@@ -1779,7 +1836,7 @@ matching.solve <- function(case,
             ")")
     } 
 
-    detect.problems(sol, case, verbose=verbose)
+    detect.problems(sol, case, verbose=verbose, tolerance.pd=tolerance.pd)
 
     if (verbose) {
         cat("\ncase solved.\n")
@@ -1801,6 +1858,7 @@ matching.solve <- function(case,
     res$inputs$delta.A <- delta.A 
     res$inputs$delta.B <- delta.B
     res$inputs$gamma <- gamma 
+    res$inputs$tolerance.pd <- tolerance.pd
 
     res$gen <- sol
 
