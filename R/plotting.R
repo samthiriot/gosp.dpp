@@ -272,7 +272,7 @@ plot_average_degree_A <- function(sp, nameA="A", colorRef="darkgray", colorSynth
     scale_gray_blue <- ggplot2::scale_fill_manual(values=c(colorRef,colorSynthetic))
 
     degrees_A <- data.frame(
-        attributes=add_linebreaks_attributes(c(names(sp$inputs$di),names(sp$gen$hat.di))),
+        attributes=c(names(sp$inputs$di),names(sp$gen$hat.di)), # add_linebreaks_attributes(
         average.degree=c(sp$inputs$di,sp$gen$hat.di),
         state=c(rep("theoretical",length(sp$inputs$di)), rep("synthetic",length(sp$gen$hat.di)))
         )
@@ -281,7 +281,8 @@ plot_average_degree_A <- function(sp, nameA="A", colorRef="darkgray", colorSynth
                         ggplot2::geom_bar(stat="identity", position = 'dodge2') + 
                         scale_gray_blue + 
                         ggplot2::ylab("average degree") + 
-                        ggplot2::ggtitle(paste("average degree",nameA," (NRMSE ",sp$gen$nrmse.di,")"))
+                        ggplot2::ggtitle(paste("average degree",nameA," (NRMSE ",sp$gen$nrmse.di,")")) +
+                        ggplot2::theme(axis.text.x = element_text(angle = 90, hjust = 1))
 
     plot_degrees_A
 }
@@ -297,7 +298,7 @@ plot_average_degree_B <- function(sp, nameB="B", colorRef="darkgray", colorSynth
     scale_gray_blue <- ggplot2::scale_fill_manual(values=c(colorRef,colorSynthetic))
 
     degrees_B <- data.frame(
-        attributes=add_linebreaks_attributes(c(names(sp$inputs$dj),names(sp$gen$hat.dj))),
+        attributes=c(names(sp$inputs$dj),names(sp$gen$hat.dj)), # add_linebreaks_attributes(
         average.degree=c(sp$inputs$dj,sp$gen$hat.dj),
         state=c(rep("theoretical",length(sp$inputs$dj)), rep("synthetic",length(sp$gen$hat.dj)))
         )
@@ -306,7 +307,8 @@ plot_average_degree_B <- function(sp, nameB="B", colorRef="darkgray", colorSynth
                         ggplot2::geom_bar(stat="identity", position = 'dodge2') + 
                         scale_gray_blue + 
                         ggplot2::ylab("average degree") + 
-                        ggplot2::ggtitle(paste("average degree",nameB," (NRMSE ",sp$gen$nrmse.dj,")"))
+                        ggplot2::ggtitle(paste("average degree",nameB," (NRMSE ",sp$gen$nrmse.dj,")")) +
+                        ggplot2::theme(axis.text.x = element_text(angle = 90, hjust = 1))
 
     plot_degrees_B 
 }
@@ -338,7 +340,7 @@ plot_frequencies_A <- function(sp, nameA="A", colorRef="darkgray", colorSyntheti
     scale_gray_blue <- ggplot2::scale_fill_manual(values=c(colorRef,colorSynthetic))
 
     frequencies_A <- data.frame(
-        attributes=add_linebreaks_attributes(c(names(sp$stats$fi),names(sp$gen$hat.fi))),
+        attributes=c(names(sp$stats$fi),names(sp$gen$hat.fi)), #add_linebreaks_attributes(
         frequency=c(sp$stats$fi,sp$gen$hat.fi),
         state=c(rep("theoretical",length(sp$stats$fi)), rep("synthetic",length(sp$gen$hat.fi)))
         ) 
@@ -347,7 +349,8 @@ plot_frequencies_A <- function(sp, nameA="A", colorRef="darkgray", colorSyntheti
                         ggplot2::geom_bar(stat="identity", position = 'dodge2') + 
                         scale_gray_blue + 
                         ggplot2::ylab("freq") + 
-                        ggplot2::ggtitle(paste("frequencies",nameA," (NRMSE ",sp$gen$nrmse.fi,")"))
+                        ggplot2::ggtitle(paste("frequencies",nameA," (NRMSE ",sp$gen$nrmse.fi,")")) +
+                        ggplot2::theme(axis.text.x = element_text(angle = 90, hjust = 1))
 
     res_plot
 }
@@ -362,7 +365,7 @@ plot_frequencies_B <- function(sp, nameB="B", colorRef="darkgray", colorSyntheti
     scale_gray_blue <- ggplot2::scale_fill_manual(values=c(colorRef,colorSynthetic))
 
     frequencies_B <- data.frame(
-        attributes=add_linebreaks_attributes(c(names(sp$stats$fj),names(sp$gen$hat.fj))),
+        attributes=c(names(sp$stats$fj),names(sp$gen$hat.fj)), # add_linebreaks_attributes
         frequency=c(sp$stats$fj,sp$gen$hat.fj),
         state=c(rep("theoretical",length(sp$stats$fj)), rep("synthetic",length(sp$gen$hat.fj)))
         ) 
@@ -371,7 +374,8 @@ plot_frequencies_B <- function(sp, nameB="B", colorRef="darkgray", colorSyntheti
                         ggplot2::geom_bar(stat="identity", position = 'dodge2') + 
                         scale_gray_blue + 
                         ggplot2::ylab("freq") + 
-                        ggplot2::ggtitle(paste("frequencies",nameB," (NRMSE ",sp$gen$nrmse.fj,")"))
+                        ggplot2::ggtitle(paste("frequencies",nameB," (NRMSE ",sp$gen$nrmse.fj,")")) +
+                        ggplot2::theme(axis.text.x = element_text(angle = 90, hjust = 1))
 
 
     res_plot
@@ -405,13 +409,14 @@ plot_errors_pdi <- function(sp, nameA="A", colorRef="darkgray", colorSynthetic="
     heat_map_gradient <- ggplot2::scale_fill_gradient2(limits=c(-1,1)) # , trans="log"
 
     diff_pdi <- errors.pdi(sp)
-    colnames(diff_pdi) <- add_linebreaks_attributes(colnames(diff_pdi))
+    colnames(diff_pdi) <- colnames(diff_pdi) # add_linebreaks_attributes
     diff_pdi$degree <- factor(seq(0,nrow(diff_pdi)-1))
     data_hm_pdi <- melt(diff_pdi)
     plot_pdi <- ggplot2::ggplot(data_hm_pdi, ggplot2::aes(variable, degree)) + 
                         ggplot2::geom_tile(ggplot2::aes(fill=value)) + 
                         heat_map_gradient + 
-                        ggplot2::ggtitle(paste("difference degree for",nameA," (NRMSE ",sp$gen$nrmse.pdi,")"))
+                        ggplot2::ggtitle(paste("difference degree for",nameA," (NRMSE ",sp$gen$nrmse.pdi,")")) +
+                        ggplot2::theme(axis.text.x = element_text(angle = 90, hjust = 1))
 
     plot_pdi
 }
@@ -426,13 +431,14 @@ plot_errors_pdj <- function(sp, nameB="B", colorRef="darkgray", colorSynthetic="
     heat_map_gradient <- ggplot2::scale_fill_gradient2(limits=c(-1,1)) # , trans="log"
 
     diff_pdj <- errors.pdj(sp)
-    colnames(diff_pdj) <- add_linebreaks_attributes(colnames(diff_pdj))
+    colnames(diff_pdj) <- colnames(diff_pdj) # add_linebreaks_attributes(
     diff_pdj$degree <- factor(seq(0,nrow(diff_pdj)-1))
     data_hm_pdj <- melt(diff_pdj)
     plot_pdj <- ggplot2::ggplot(data_hm_pdj, ggplot2::aes(variable, degree)) + 
                         ggplot2::geom_tile(ggplot2::aes(fill=value)) + 
                         heat_map_gradient + 
-                        ggplot2::ggtitle(paste("difference degree for",nameB," (NRMSE ",sp$gen$nrmse.pdj,")"))
+                        ggplot2::ggtitle(paste("difference degree for",nameB," (NRMSE ",sp$gen$nrmse.pdj,")")) +
+                        ggplot2::theme(axis.text.x = element_text(angle = 90, hjust = 1))
     plot_pdj
 }
 
@@ -463,14 +469,15 @@ plot_errors_pij <- function(sp) {
     heat_map_gradient <- ggplot2::scale_fill_gradient2(limits=c(-1,1)) # , trans="log"
 
     diff_pij <- errors.pij(sp)
-    colnames(diff_pij) <- add_linebreaks_attributes(colnames(diff_pij))
+    colnames(diff_pij) <- colnames(diff_pij) # add_linebreaks_attributes(
     diff_pij$attributesB <- row.names(diff_pij)
     #diff_pij$variable <- add_linebreaks_attributes(diff_pij$variable)
     data_hm_pij <- melt(diff_pij)
     plot_pij <- ggplot2::ggplot(data_hm_pij, ggplot2::aes(variable, attributesB)) + 
                         ggplot2::geom_tile(ggplot2::aes(fill=value)) + 
                         heat_map_gradient + 
-                        ggplot2::ggtitle(paste("difference pairing (NRMSE ",sp$gen$nrmse.pij,")"))
+                        ggplot2::ggtitle(paste("difference pairing (NRMSE ",sp$gen$nrmse.pij,")")) +
+                        ggplot2::theme(axis.text.x = element_text(angle = 90, hjust = 1))
 
     plot_pij
 }
@@ -617,3 +624,308 @@ plot_variable <- function(sample, generated, var.name, colorRef="darkgray", colo
                         ggplot2::ggtitle(paste("proportions of attribute ", var.name, " (RMSE:",rmse,")",sep=""))
 
 }
+
+
+
+create_probability_view_init <- function(sp) {
+
+    if ( (class(sp) != "dpp_prepared") && (class(sp) != "dpp_resolved") ) 
+        stop("the parameter 'sp' should be the result of a 'matching.prepare' or 'matching.solve' call")
+
+    count_cols_left <- 4 
+    count_cols_right <- ncol(sp$inputs$pij$data)
+ 
+    count_rows_left <- nrow(sp$inputs$pij$data)
+
+    end_line <- "\\\\\n"
+
+    # define the header of the table
+    s <- paste(
+        "\\begin{tabular}{r|ccc|c", 
+        paste(rep("c",count_cols_right),collapse=""), 
+        "|c}\n",
+        sep="")
+    
+    # Mod A
+    s <- paste(
+        s,
+        "\\multicolumn{4}{r|}{$\\text{Mod}_i^A$} & ",
+        " & \\rot{",
+        paste(names(sp$stats$fi), collapse="} & \\rot{"),
+        "} & ",
+        end_line,
+        "\\hline\n",
+        sep="")
+    # fi
+    s <- paste(
+        s,
+        "\\multicolumn{4}{r|}{$f_i$} & ",
+        " & ",
+        paste(formatC(sp$stats$fi,format="G"), collapse=" & "),
+        " & ",
+        formatC(sum(sp$stats$fi), format="G"),
+        end_line,
+        sep="")
+    # di
+    s <- paste(
+        s,
+        "\\multicolumn{4}{r|}{$\\tilde{d}_i$} & ",
+        " & ",
+        paste(formatC(sp$inputs$di, format="G"), collapse=" & "),
+        " & ",
+        end_line,
+        sep="")
+
+    # pi
+    s <-  paste(
+        s,
+        "\\multicolumn{4}{r|}{$p_i$} & ",
+        " & ",
+        paste(formatC(colSums(sp$inputs$pij$data), format="G"), collapse=" & "),
+        " & ",
+        formatC(sum(sp$inputs$pij$data), format="G"),
+        end_line,
+        sep="")
+
+    s <- paste(s, "\\hline\n", sep="")
+
+    # define the header of the left part
+    s <- paste(s, 
+            "$\\text{Mod}_j^B$ & $f_j$ & $\\tilde{d}_j$ & $p_j$ & $j/i$ & ", 
+            paste(seq(1, count_cols_right), collapse="&"), 
+            "&",
+            end_line, 
+            "\\hline\n",
+            sep="")
+
+    for (j in 1:count_rows_left) {
+        s <- paste(s,
+                paste(names(sp$stats$fj[j]), collapse=""), " & ",
+                formatC(sp$stats$fj[j], format="G"), " & ",
+                formatC(sp$inputs$dj[j], format="G"), " & ",
+                formatC(sum(sp$inputs$pij$data[j,]), format="G"), " & ",
+                j, " & ",
+                paste(sapply(sp$inputs$pij$data[j,], formatC, format="G"), collapse=" & "), " & ",
+                end_line,
+                sep="")
+    }
+
+    s <- paste(s, 
+        "\\hline\n", 
+        " & ", formatC(sum(sp$stats$fj), format="G"), 
+        " & ", 
+        " & ", formatC(sum(sp$inputs$pij$data), format="G"), 
+        " & ",
+        paste(rep("&",count_cols_right), collapse=""),
+        " & ", formatC(sum(sp$inputs$pij$data), format="G"), 
+        end_line,
+        sep="")
+
+
+    s <- paste(s, "\\end{tabular}\n", sep="")
+
+    s
+
+ }
+
+create_probability_view_solved  <- function(sp) {
+
+    if (class(sp) != "dpp_resolved") 
+        stop("the parameter 'sp' should be the result of a 'matching.solve' call")
+
+    count_cols_left <- 4 
+    count_cols_right <- ncol(sp$inputs$pij$data)
+ 
+    count_rows_left <- nrow(sp$inputs$pij$data)
+
+    end_line <- "\\\\\n"
+
+    # define the header of the table
+    s <- paste(
+        "\\begin{tabular}{r|ccc|c", 
+        paste(rep("c",count_cols_right),collapse=""), 
+        "|c}\n",
+        sep="")
+    
+    # Mod A
+    s <- paste(
+        s,
+        "\\multicolumn{4}{r|}{$\\text{Mod}_i^A$} & ",
+        " & \\rot{",
+        paste(names(sp$stats$fi), collapse="} & \\rot{"),
+        "} & ",
+        end_line,
+        "\\hline\n",
+        sep="")
+    # fi
+    s <- paste(
+        s,
+        "\\multicolumn{4}{r|}{$\\hat{f_i}$} & ",
+        " & ",
+        paste(formatC(sp$gen$hat.fi,format="G"), collapse=" & "),
+        " & ",
+        formatC(sum(sp$gen$hat.fi), format="G"),
+        end_line,
+        sep="")
+    # di
+    s <- paste(
+        s,
+        "\\multicolumn{4}{r|}{$\\hat{\\tilde{d}}_i$} & ",
+        " & ",
+        paste(formatC(sp$gen$hat.di, format="G"), collapse=" & "),
+        " & ",
+        end_line,
+        sep="")
+
+    # pi
+    s <-  paste(
+        s,
+        "\\multicolumn{4}{r|}{$\\hat{p}_i$} & ",
+        " & ",
+        paste(formatC(colSums(sp$gen$hat.pij), format="G"), collapse=" & "),
+        " & ",
+        formatC(sum(sp$gen$hat.pij), format="G"),
+        end_line,
+        sep="")
+
+    s <- paste(s, "\\hline\n", sep="")
+
+    # define the header of the left part
+    s <- paste(s, 
+            "$\\text{Mod}_j^B$ & $\\hat{f}_j$ & $\\hat{\\tilde{d}}_j$ & $\\hat{p}_j$ & $j/i$ & ", 
+            paste(seq(1, count_cols_right), collapse="&"), 
+            "&",
+            end_line, 
+            "\\hline\n",
+            sep="")
+
+    for (j in 1:count_rows_left) {
+        s <- paste(s,
+                paste(names(sp$gen$hat.fj[j]), collapse=""), " & ",
+                formatC(sp$gen$hat.fj[j], format="G"), " & ",
+                formatC(sp$gen$hat.dj[j], format="G"), " & ",
+                formatC(sum(sp$gen$hat.pij[j,]), format="G"), " & ",
+                j, " & ",
+                paste(sapply(sp$gen$hat.pij[j,], formatC, format="G"), collapse=" & "), " & ",
+                end_line,
+                sep="")
+    }
+
+    s <- paste(s, 
+        "\\hline\n", 
+        " & ", formatC(sum(sp$gen$hat.fj), format="G"), 
+        " & ", 
+        " & ", formatC(sum(sp$gen$hat.pij), format="G"), 
+        " & ",
+        paste(rep("&",count_cols_right), collapse=""),
+        " & ", formatC(sum(sp$gen$hat.pij), format="G"), 
+        end_line,
+        sep="")
+
+
+    s <- paste(s, "\\end{tabular}\n", sep="")
+
+    s
+
+ }
+
+create_discrete_view_solved  <- function(sp) {
+
+    if (class(sp) != "dpp_resolved") 
+        stop("the parameter 'sp' should be the result of a 'matching.solve' call")
+
+    count_cols_left <- 4 
+    count_cols_right <- ncol(sp$inputs$pij$data)
+ 
+    count_rows_left <- nrow(sp$inputs$pij$data)
+
+    end_line <- "\\\\\n"
+
+    # define the header of the table
+    s <- paste(
+        "\\begin{tabular}{r|ccc|c", 
+        paste(rep("c",count_cols_right),collapse=""), 
+        "|c}\n",
+        sep="")
+    
+    # Mod A
+    s <- paste(
+        s,
+        "\\multicolumn{4}{r|}{$\\text{Mod}_i^A$} & ",
+        " & \\rot{",
+        paste(names(sp$stats$fi), collapse="} & \\rot{"),
+        "} & ",
+        end_line,
+        "\\hline\n",
+        sep="")
+    # fi
+    s <- paste(
+        s,
+        "\\multicolumn{4}{r|}{$\\hat{c_i}$} & ",
+        " & ",
+        paste(formatC(sp$gen$hat.ci,format="d"), collapse=" & "),
+        " & ",
+        formatC(sum(sp$gen$hat.ci), format="d"),
+        end_line,
+        sep="")
+    # di
+    s <- paste(
+        s,
+        "\\multicolumn{4}{r|}{$\\hat{\\tilde{d}}_i$} & ",
+        " & ",
+        paste(formatC(sp$gen$hat.di, format="G"), collapse=" & "),
+        " & ",
+        end_line,
+        sep="")
+
+    # pi
+    s <-  paste(
+        s,
+        "\\multicolumn{4}{r|}{$\\hat{n}_i$} & ",
+        " & ",
+        paste(formatC(colSums(sp$gen$hat.nij), format="d"), collapse=" & "),
+        " & ",
+        formatC(sum(sp$gen$hat.nij), format="d"),
+        end_line,
+        sep="")
+
+    s <- paste(s, "\\hline\n", sep="")
+
+    # define the header of the left part
+    s <- paste(s, 
+            "$\\text{Mod}_j^B$ & $\\hat{c}_j$ & $\\hat{\\tilde{d}}_j$ & $\\hat{n}_j$ & $j/i$ & ", 
+            paste(seq(1, count_cols_right), collapse="&"), 
+            "&",
+            end_line, 
+            "\\hline\n",
+            sep="")
+
+    for (j in 1:count_rows_left) {
+        s <- paste(s,
+                paste(names(sp$gen$hat.cj[j]), collapse=""), " & ",
+                formatC(sp$gen$hat.cj[j], format="d"), " & ",
+                formatC(sp$gen$hat.dj[j], format="G"), " & ",
+                formatC(sum(sp$gen$hat.nij[j,]), format="d"), " & ",
+                j, " & ",
+                paste(sapply(sp$gen$hat.nij[j,], formatC, format="d"), collapse=" & "), " & ",
+                end_line,
+                sep="")
+    }
+
+    s <- paste(s, 
+        "\\hline\n", 
+        " & ", formatC(sum(sp$gen$hat.cj), format="d"), 
+        " & ", 
+        " & ", formatC(sum(sp$gen$hat.nij), format="d"), 
+        " & ",
+        paste(rep("&",count_cols_right), collapse=""),
+        " & ", formatC(sum(sp$gen$hat.nij), format="d"), 
+        end_line,
+        sep="")
+
+
+    s <- paste(s, "\\end{tabular}\n", sep="")
+
+    s
+
+ }
