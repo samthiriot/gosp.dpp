@@ -137,7 +137,7 @@ expand_with_variable_col.data.frame <- function(df, name, values) {
         df2[q] <- NULL
     }
 
-    df2
+    normalise(df2)
 }
 
 #' Expands a data frame by adding combinations with a novel variable
@@ -181,7 +181,7 @@ expand_with_variable_row.data.frame <- function(df, name, values) {
     }
     
     # delete former columns
-    df2[!(rownames(df2) %in% to_delete),]
+    normalise(df2[!(rownames(df2) %in% to_delete),])
 
 }
 
@@ -211,7 +211,7 @@ expand_with_variable.dpp_degree_cpt <- function(cpt, name, values) {
     cpt$data <- expand_with_variable_col.data.frame(cpt$data, name, values)
     cpt$attributes[length(cpt$attributes)+1] <- name
 
-    cpt
+    normalise(cpt)
 }
 
 #' Expands a conditional probability table for degrees with additional variables
@@ -242,7 +242,7 @@ expand_with_variables.dpp_degree_cpt <- function(cpt, names, dictionary) {
         cat("adding for ",n," values ",values,"\n")
         cpt2 <- expand_with_variable.dpp_degree_cpt(cpt2, n, values)
     }
-    cpt2
+    normalise(cpt2)
 }
 
 #' Expands the columns of matching probabilities with additional variables
@@ -264,7 +264,7 @@ expand_with_variable.dpp_matching_probas.A <- function(pt, name, values) {
     if (class(pt) != "dpp_matching_probas")
         stop("pt should be a matching Probability Table.")
 
-    pt$data <- expand_with_variable_col.data.frame(pt$data, name, values)
+    pt$data <- normalise(expand_with_variable_col.data.frame(pt$data, name, values))
     pt$Ai[length(pt$Ai)+1] <- name
 
     pt
