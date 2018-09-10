@@ -587,12 +587,13 @@ plot.dpp_result <- plot.dpp_resolved
 #' @param var.name the name of the variable to measure and plot
 #' @param colorRef the color to be used to plot values passed as parameters (defaults to "darkgray")
 #' @param colorSynthetic the color to be used to plot values measured in the synthetic population (defaults to "blue")
+#' @param as.factor if TRUE (default), plots the variable as a factor instead of numerical
 #'
 #' @return the plot
 #'
 #' @importFrom reshape2 dcast
 #'
-plot_variable <- function(sample, generated, var.name, colorRef="darkgray", colorSynthetic="blue") {
+plot_variable <- function(sample, generated, var.name, colorRef="darkgray", colorSynthetic="blue", as.factor=TRUE) {
 
     ensure_presence_ggplot()
 
@@ -600,7 +601,8 @@ plot_variable <- function(sample, generated, var.name, colorRef="darkgray", colo
         stop("the parameter 'sample' should be the result of a create_sample call")
     if (class(generated) != "data.frame")
         stop("the parameter 'sample' should be the result of a matching.generate call")
-    
+  
+
     # TODO check input types
     sample <- dcast(sample$sample, paste(var.name,"~.",sep=""), fun.aggregate=sum, value.var=sample$dictionary$colname.weight)
     synthetic <- dcast(generated, paste(var.name,"~.",sep=""), fun.aggregate=length, value.var="current.degree")
@@ -612,7 +614,9 @@ plot_variable <- function(sample, generated, var.name, colorRef="darkgray", colo
             proportion=c(prop_sample,prop_synthetic), 
             state=factor(c(rep("theoretical",nrow(sample)), rep("synthetic",nrow(synthetic))), levels=c("theoretical","synthetic"))
             )
-
+    if (as.factor) {
+        df$modalities <- as.factor(df$modalities)
+    }
     rmse <- sqrt( mean( (prop_sample - prop_synthetic)^2 ) )
     
     scale_gray_blue <- ggplot2::scale_fill_manual(values=c(colorRef,colorSynthetic))
@@ -626,7 +630,7 @@ plot_variable <- function(sample, generated, var.name, colorRef="darkgray", colo
 }
 
 
-
+# TODO doc
 create_probability_view_init <- function(sp) {
 
     if ( (class(sp) != "dpp_prepared") && (class(sp) != "dpp_resolved") ) 
