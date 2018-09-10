@@ -215,7 +215,7 @@ rectify.degree.counts <- function(pdn, nn, cn, verbose=FALSE) {
     }
     for (col in 1:ncol(pdn)) {
 
-        if (verbose) cat("col ", col, "\n")
+        # if (verbose) cat("col ", col, "\n")
 
         total.current <- sum(pdn[,col]*0:(nrow(pdn)-1))
         total.expected <- nn[col]
@@ -223,7 +223,7 @@ rectify.degree.counts <- function(pdn, nn, cn, verbose=FALSE) {
         if (total.current > total.expected) {
             to.remove <- total.current - total.expected
 
-            if (verbose) cat("should remove ", to.remove, "\n")
+            if (verbose) cat("col ", col, ": should remove ", to.remove, "\n")
             # no more warning: we anyway check at the end how well we fixed it
             # if (to.remove > 1) {
             #     warning("/!\\ the solution to fix rounding errors below 1 slot (here:",to.remove,") is not managed well\n.",sep="")
@@ -249,7 +249,7 @@ rectify.degree.counts <- function(pdn, nn, cn, verbose=FALSE) {
         } else if (total.current < total.expected) {
             to.add <- total.expected - total.current 
 
-            if (verbose) cat("should add ", to.add, "\n")
+            if (verbose) cat("col ", col, ": should add ", to.add, "\n")
 
             # no more warning: we anyway check at the end how well we fixed it
             # if (to.add > 1) {
@@ -261,12 +261,14 @@ rectify.degree.counts <- function(pdn, nn, cn, verbose=FALSE) {
             if (pdn[1,col] >= to.add) { # (pdn[2,col] > 0
                 pdn[1,col] <- pdn[1,col] - to.add
                 pdn[2,col] <- pdn[2,col] + to.add
-            } else if ( (nrow(pdn) >= 3) && (pdn[2,col] >= to.add) ) { # (pdn[2,col] > 0
+            } else if ( (nrow(pdn) >= 3) && (pdn[3,col] >= to.add) ) { # (pdn[2,col] > 0
                 pdn[2,col] <- pdn[2,col] - to.add
                 pdn[3,col] <- pdn[3,col] + to.add
             } else {
-                if (verbose)
+                if (verbose) {
                     warning("/!\\ found no good solution to fix this rounding error of an additional ",to.add,"\n") 
+                    print(pdn[,col])
+                }
             }
         }
 
@@ -636,20 +638,51 @@ propagate.direct <- function(sol,case, verbose=FALSE, indent=1) {
         if ( 
             ("hat.pi" %in% names(sol)) && ("hat.fi" %in% names(sol)) && (!"hat.di" %in% names(sol))
             ) {
+            # print("current hat.pi")
+            # print(sol$hat.pi)
+            # print("current hat.fi")
+            # print(sol$hat.fi)
             sol$hat.di <- nan_to_zeros(sol$hat.pi / sol$hat.fi)
             # fix potential NaNs due to di=0 by their native di counterparts (they do not matter anyway)
-            sol <- info.rule("hat.pi, hat.fi -> hat.di", sol, verbose=verbose, indent=indent+1)
+            # print("current hat.di")
+            # print(sol$hat.di)
             
-            # in factor we might change it of a factor, only the ratio matters
-            factor <- 1
-            if (any(sol$hat.di > case$inputs$max.di)) {
-                # we are higher than what is allowed
-                factor <- min(case$inputs$max.di / sol$hat.di, na.rm=TRUE)
-            }  else if (any(sol$hat.di < case$inputs$min.di)) {
-                factor <- min(case$inputs$min.di / sol$hat.di, na.rm=TRUE) # TODO verifier
+
+            # the degrees higher than the possible one are set to the maximum
+            ids_too_high <- which(sol$hat.di > case$inputs$max.di)
+            sol$hat.di[ids_too_high] <- case$inputs$max.di[ids_too_high]
+
+            ids_too_low <- which(sol$hat.di < case$inputs$min.di)
+            sol$hat.di[ids_too_low] <- case$inputs$min.di[ids_too_low]
+
+            # now, maybe we cannot reach the expected values...
+            if (length(ids_too_high) + length(ids_too_low) > 0) {
+                if (case$inputs$phi.A > 0) { # case$inputs$gamma
+                    # the user prefers to report the errors on fi !
+                    sol <- info.rule("hat.pi, hat.fi -> hat.di [+ hat.fi]", sol, verbose=verbose, indent=indent+1)
+                    sol$hat.fi <- normalise(nan_to_zeros(sol$hat.pi / sol$hat.di))
+                    #print("hat.fi is now")
+                    #print(sol$hat.fi)
+                } 
+                # else if (case$inputs$phi.A < case$inputs$gamma) {
+                #     # the user prefers to report the errors on pi 
+                #     sol <- info.rule("hat.pi, hat.fi -> hat.di [+ hat.pi + !hat.pij]", sol, verbose=verbose, indent=indent+1)
+                #     sol$hat.pi <- normalise(nan_to_zeros(sol$hat.pi * sol$hat.di))
+                #     sol$hat.pij <- NULL
+                #     print("hat.pi")
+                #     print(sol$hat.pi)
+                # } 
+                else {
+                    stop("not enough freedom on pdi to respect both fi and pi. Try relaxing phi.A, or add more potential degrees to pdi")
+                }
+                
+            } else {
+                sol <- info.rule("hat.pi, hat.fi -> hat.di", sol, verbose=verbose, indent=indent+1)
             }
-            sol$hat.di <- sol$hat.di * factor
-            
+
+            # print("updated hat.di")
+            # print(sol$hat.di)
+
             changed <- TRUE
         }
 
@@ -658,17 +691,27 @@ propagate.direct <- function(sol,case, verbose=FALSE, indent=1) {
             ) {
             sol$hat.dj <- nan_to_zeros(sol$hat.pj / sol$hat.fj)
             
-            sol <- info.rule("hat.pj, hat.fj -> hat.dj", sol, verbose=verbose, indent=indent+1)
+            # the degrees higher than the possible one are set to the maximum
+            ids_too_high <- which(sol$hat.dj > case$inputs$max.dj)
+            sol$hat.dj[ids_too_high] <- case$inputs$max.dj[ids_too_high]
 
-            # in factor we might change it of a factor, only the ratio matters
-            factor <- 1
-            if (any(sol$hat.dj > case$inputs$max.dj)) {
-                # we are higher than what is allowed
-                factor <- min(case$inputs$max.dj / sol$hat.dj, na.rm=TRUE)
-            }  else if (any(sol$hat.di < case$inputs$min.di)) {
-                factor <- min(case$inputs$min.dj / sol$hat.dj, na.rm=TRUE) # TODO verifier
+            ids_too_low <- which(sol$hat.dj < case$inputs$min.dj)
+            sol$hat.dj[ids_too_low] <- case$inputs$min.dj[ids_too_low]
+
+            # now, maybe we cannot reach the expected values...
+            if (length(ids_too_high) + length(ids_too_low) > 0) {
+                if (case$inputs$phi.B > 0) { # case$inputs$gamma
+                    # the user prefers to report the errors on fi !
+                    sol <- info.rule("hat.pj, hat.fj -> hat.dj [+ hat.fj]", sol, verbose=verbose, indent=indent+1)
+                    sol$hat.fj <- normalise(nan_to_zeros(sol$hat.pj / sol$hat.dj))
+                } else {
+                    stop("not enough freedom on pdj to respect both fj and pj. Try relaxing phi.B, or add more potential degrees to pdj")
+                }
+                
+            } else {
+                sol <- info.rule("hat.pj, hat.fj -> hat.dj", sol, verbose=verbose, indent=indent+1)
             }
-            sol$hat.dj <- sol$hat.dj * factor
+
             changed <- TRUE
         }
 
@@ -794,6 +837,8 @@ propagate.direct <- function(sol,case, verbose=FALSE, indent=1) {
             # update our past knowledge according to rounding
             if ("hat.di" %in% names(sol)) {
                 sol$hat.di <- colSums(sol$hat.pdi * (0:(nrow(sol$hat.pdi)-1)))
+                #print("now hat.di")
+                #print(sol$hat.di)
             }
 
             changed <- TRUE
@@ -920,13 +965,14 @@ assert.equal <- function(v1,v2,msg, verbose=FALSE, indent=3, tolerance=1.5e-8) {
 #' @param verbose if TRUE, will ddetect.problemsisplay detailed information on the console
 #' @param indent the indentation (count of tabs) for verbose display
 #' @param tolerance.pd the tolerance for probability distributions
+#' @param tolerance.degree.max the tolerance for min/max average degrees
 #' @return the count of problems 
 #'  
 #' @author Samuel Thiriot <samuel.thiriot@res-ear.ch>
 #'  
 #' @keywords internal
 #'
-detect.problems <- function(sol, case, fail=TRUE, verbose=FALSE, indent=1, tolerance.pd=1.5e-8) {
+detect.problems <- function(sol, case, fail=TRUE, verbose=FALSE, indent=1, tolerance.pd=1.5e-8, tolerance.degree.max=1.5e-8) {
 
     if (verbose) {
         cat(rep("\t",times=indent),"checking the consistency of the current solution with ",paste.known(sol),"\n",sep="")
@@ -1106,25 +1152,25 @@ detect.problems <- function(sol, case, fail=TRUE, verbose=FALSE, indent=1, toler
     if (!is.null(sol$hat.di)) {
         problems <- problems + assert.equal(
                                 FALSE, 
-                                any(sol$hat.di < case$inputs$min.di), 
-                                "hat.di >= min.di", 
+                                any(sol$hat.di - case$inputs$min.di < tolerance.degree.max), 
+                                "hat.di >= min.di (try increasing tolerance.degree.max)", 
                                 verbose=verbose, indent=indent+1)     
         problems <- problems + assert.equal(
                                 FALSE, 
-                                any(sol$hat.di > case$inputs$max.di), 
-                                "hat.di <= max.di", 
+                                any(sol$hat.di - case$inputs$max.di > tolerance.degree.max), 
+                                "hat.di <= max.di (try increasing tolerance.degree.max)", 
                                 verbose=verbose, indent=indent+1)     
     }
     if (!is.null(sol$hat.dj)) {
         problems <- problems + assert.equal(
                                 FALSE, 
-                                any(sol$hat.dj < case$inputs$min.dj), 
-                                "hat.dj >= min.dj", 
+                                any(sol$hat.dj - case$inputs$min.dj < tolerance.degree.max), 
+                                "hat.dj >= min.dj (try increasing tolerance.degree.max)", 
                                 verbose=verbose, indent=indent+1)     
         problems <- problems + assert.equal(
                                 FALSE, 
-                                any(sol$hat.dj > case$inputs$max.dj), 
-                                "hat.dj <= max.dj", 
+                                any(sol$hat.dj - case$inputs$max.dj > tolerance.degree.max), 
+                                "hat.dj <= max.dj (try increasing tolerance.degree.max)", 
                                 verbose=verbose, indent=indent+1)     
     }
 
@@ -1264,6 +1310,7 @@ paste.known <- function(sol) {
 #' @param nu.B control for nB: 0 means "respect nB", non-null "adapt it to solve the case"
 #' @param verbose if TRUE, will display detailed information on the console
 #' @param tolerance.pd the tolerance for probability distributions
+#' @param tolerance.degree.max the tolerance for min/max average degrees
 #' @return a list of vectors (the chains) of strings 
 #'
 #' @seealso \code{\link{propagate.direct}} for the inference of the consequences of the hypothesis,
@@ -1279,7 +1326,7 @@ resolve.missing.chain <- function(sol, chain, case,
                                     nA, nB, 
                                     nu.A, phi.A, delta.A, nu.B, phi.B, delta.B, gamma, 
                                     verbose=FALSE,
-                                    tolerance.pd=1.5e-8) {
+                                    tolerance.pd=1.5e-8, tolerance.degree.max=1.5e-8) {
 
     if (verbose)
         cat("\tstarting the investigation of the missing chain: ",paste(chain,collapse=","),"\n",sep="")
@@ -1363,7 +1410,10 @@ resolve.missing.chain <- function(sol, chain, case,
             } else {
                 
                 # do we achieve to solve the problem on this basis ?
-                nb.problems <- detect.problems(sol.hyp, case, fail=FALSE, verbose=verbose, indent=3, tolerance.pd=tolerance.pd)
+                nb.problems <- detect.problems(
+                                        sol.hyp, case, 
+                                        fail=FALSE, verbose=verbose, indent=3, 
+                                        tolerance.pd=tolerance.pd, tolerance.degree.max=tolerance.degree.max)
 
                 if (nb.problems > 0) {
                     #cat("this variable does not provides a valid solution to our problem","\n")
@@ -1509,6 +1559,7 @@ resolve.missing.chain <- function(sol, chain, case,
 #' @param nu.B control for nB: 0 means "respect nB", non-null "adapt it to solve the case"
 #' @param verbose if TRUE, will display detailed information on the console
 #' @param tolerance.pd the tolerance for probability distributions
+#' @param tolerance.degree.max the tolerance for min/max average degrees
 #' 
 #' @return a list of vectors (the chains) of strings 
 #' 
@@ -1522,7 +1573,7 @@ resolve <- function(sol, case,
                         gamma,
                         nu.B, phi.B, delta.B,  
                         verbose=FALSE,
-                        tolerance.pd=1.5e-8) {
+                        tolerance.pd=1.5e-8, tolerance.degree.max=1.5e-8) {
 
     # direct propagation of what we know
     sol.tmp <- propagate.direct(sol, case, verbose=verbose)
@@ -1536,7 +1587,7 @@ resolve <- function(sol, case,
         found <- resolve.missing.chain(sol.tmp, chain, case, 
                     nA, nB, nu.A, phi.A, delta.A, nu.B, phi.B, delta.B, gamma, 
                     verbose=verbose,
-                    tolerance.pd=tolerance.pd)
+                    tolerance.pd=tolerance.pd, tolerance.degree.max=tolerance.degree.max)
 
         if (!is.null(found)) {
             if (verbose) {
@@ -1735,6 +1786,7 @@ mean.data.frame <- function(x, ...) {
 #' @param nu.B control for nB: 0 means "respect nB", non-null "adapt it to solve the case"
 #' @param verbose if TRUE, the resolution will emit messages for debug
 #' @param tolerance.pd the tolerance for probability distributions
+#' @param tolerance.degree.max the tolerance for min/max average degrees
 #' 
 #' @return a case ready for generation
 #'
@@ -1771,7 +1823,7 @@ matching.solve <- function(case,
                                 gamma, 
                                 delta.B, phi.B, nu.B, 
                                 verbose = FALSE,
-                                tolerance.pd = 1.5e-6) {
+                                tolerance.pd = 1.5e-6, tolerance.degree.max=1.5e-8) {
 
     if (class(case) != "dpp_prepared") 
         stop("case should be the result of a preparation of data by matching.prepare")
@@ -1792,6 +1844,18 @@ matching.solve <- function(case,
     case$masks$mask.fj.all <- as.integer(rowSums(case$masks$mask.pij.all) > 0)
     case$masks$mask.di.all <- case$masks$mask.di * case$masks$mask.fi.all
     case$masks$mask.dj.all <- case$masks$mask.dj * case$masks$mask.fj.all
+
+    case$inputs$nA <- nA
+    case$inputs$nB <- nB
+    case$inputs$nu.A <- nu.A 
+    case$inputs$nu.B <- nu.B 
+    case$inputs$phi.A <- phi.A 
+    case$inputs$phi.B <- phi.B
+    case$inputs$delta.A <- delta.A 
+    case$inputs$delta.B <- delta.B
+    case$inputs$gamma <- gamma 
+    case$inputs$tolerance.pd <- tolerance.pd
+    case$inputs$tolerance.degree.max <- tolerance.degree.max
 
     #print(case$masks)
 
@@ -1815,9 +1879,13 @@ matching.solve <- function(case,
     }
 
     # detect issues right now; maybe the problem is overconstrained or badly constrainted
-    detect.problems(sol, case, verbose=verbose, tolerance.pd=tolerance.pd)
+    detect.problems(sol, case, verbose=verbose, tolerance.pd=tolerance.pd, tolerance.degree.max=tolerance.degree.max)
 
-    sol <- resolve(sol, case, nA, nB, nu.A, phi.A, delta.A, nu.B, phi.B, delta.B, gamma, verbose=verbose, tolerance.pd=tolerance.pd)
+    sol <- resolve(sol, case, 
+                nA, nB, 
+                nu.A, phi.A, delta.A, nu.B, phi.B, delta.B, gamma, 
+                verbose=verbose, 
+                tolerance.pd=tolerance.pd, tolerance.degree.max=tolerance.degree.max)
 
     # ensure all the variables found a solution during the process
      if (!all(c(
@@ -1836,7 +1904,7 @@ matching.solve <- function(case,
             ")")
     } 
 
-    detect.problems(sol, case, verbose=verbose, tolerance.pd=tolerance.pd)
+    detect.problems(sol, case, verbose=verbose, tolerance.pd=tolerance.pd, tolerance.degree.max=tolerance.degree.max)
 
     if (verbose) {
         cat("\ncase solved.\n")
@@ -1849,17 +1917,7 @@ matching.solve <- function(case,
 
     # prepare the result
     res <- case
-    res$inputs$nA <- nA
-    res$inputs$nB <- nB
-    res$inputs$nu.A <- nu.A 
-    res$inputs$nu.B <- nu.B 
-    res$inputs$phi.A <- phi.A 
-    res$inputs$phi.B <- phi.B
-    res$inputs$delta.A <- delta.A 
-    res$inputs$delta.B <- delta.B
-    res$inputs$gamma <- gamma 
-    res$inputs$tolerance.pd <- tolerance.pd
-
+    
     res$gen <- sol
 
 
