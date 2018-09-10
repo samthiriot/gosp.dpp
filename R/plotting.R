@@ -631,21 +631,23 @@ plot_variable <- function(sample, generated, var.name, colorRef="darkgray", colo
 
 
 # TODO doc
-create_probability_view_init <- function(sp) {
+create_probability_view_init <- function(sp, maxcol=NULL) {
 
     if ( (class(sp) != "dpp_prepared") && (class(sp) != "dpp_resolved") ) 
         stop("the parameter 'sp' should be the result of a 'matching.prepare' or 'matching.solve' call")
 
     count_cols_left <- 4 
-    count_cols_right <- ncol(sp$inputs$pij$data)
+    count_cols_right <- if (is.null(maxcol)) ncol(sp$inputs$pij$data) else maxcol
  
     count_rows_left <- nrow(sp$inputs$pij$data)
+
+    missingcol <- if (is.null(maxcol)) "" else " & ..."
 
     end_line <- "\\\\\n"
 
     # define the header of the table
     s <- paste(
-        "\\begin{tabular}{r|ccc|c", 
+        "\\begin{tabular}{r|cccc|", 
         paste(rep("c",count_cols_right),collapse=""), 
         "|c}\n",
         sep="")
@@ -653,51 +655,52 @@ create_probability_view_init <- function(sp) {
     # Mod A
     s <- paste(
         s,
-        "\\multicolumn{4}{r|}{$\\text{Mod}_i^A$} & ",
+        "\\multicolumn{5}{r|}{$\\text{Mod}_i^A$} ",
         " & \\rot{",
-        paste(names(sp$stats$fi), collapse="} & \\rot{"),
-        "} & ",
+        paste(names(sp$stats$fi[1:count_cols_right-1]), collapse="} & \\rot{"),
+        "} ", missingcol,
+        "& ",
         end_line,
         "\\hline\n",
         sep="")
     # fi
     s <- paste(
         s,
-        "\\multicolumn{4}{r|}{$f_i$} & ",
+        "\\multicolumn{5}{r|}{$f_i$} ",
         " & ",
-        paste(formatC(sp$stats$fi,format="G"), collapse=" & "),
-        " & ",
+        paste(formatC(sp$stats$fi[1:count_cols_right-1],format="G"), collapse=" & "),
+        missingcol, " & ",
         formatC(sum(sp$stats$fi), format="G"),
         end_line,
         sep="")
     # di
     s <- paste(
         s,
-        "\\multicolumn{4}{r|}{$\\tilde{d}_i$} & ",
+        "\\multicolumn{5}{r|}{$\\tilde{d}_i$} ",
         " & ",
-        paste(formatC(sp$inputs$di, format="G"), collapse=" & "),
-        " & ",
+        paste(formatC(sp$inputs$di[1:count_cols_right-1], format="G"), collapse=" & "),
+        missingcol, " & ",
         end_line,
         sep="")
 
     # pi
     s <-  paste(
         s,
-        "\\multicolumn{4}{r|}{$p_i$} & ",
+        "\\multicolumn{5}{r|}{$p_i$} ",
         " & ",
-        paste(formatC(colSums(sp$inputs$pij$data), format="G"), collapse=" & "),
-        " & ",
+        paste(formatC(colSums(sp$inputs$pij$data[1:count_cols_right-1]), format="G"), collapse=" & "),
+        missingcol, " & ",
         formatC(sum(sp$inputs$pij$data), format="G"),
         end_line,
         sep="")
 
-    s <- paste(s, "\\hline\n", sep="")
+    s <- paste(s, "\n", sep="")
 
     # define the header of the left part
     s <- paste(s, 
             "$\\text{Mod}_j^B$ & $f_j$ & $\\tilde{d}_j$ & $p_j$ & $j/i$ & ", 
-            paste(seq(1, count_cols_right), collapse="&"), 
-            "&",
+            paste(seq(1, count_cols_right-1), collapse="&"), 
+            missingcol, "&",
             end_line, 
             "\\hline\n",
             sep="")
@@ -707,9 +710,9 @@ create_probability_view_init <- function(sp) {
                 paste(names(sp$stats$fj[j]), collapse=""), " & ",
                 formatC(sp$stats$fj[j], format="G"), " & ",
                 formatC(sp$inputs$dj[j], format="G"), " & ",
-                formatC(sum(sp$inputs$pij$data[j,]), format="G"), " & ",
+                formatC(sum(sp$inputs$pij$data[j,1:count_cols_right-1]), format="G"), " & ",
                 j, " & ",
-                paste(sapply(sp$inputs$pij$data[j,], formatC, format="G"), collapse=" & "), " & ",
+                paste(sapply(sp$inputs$pij$data[j,1:count_cols_right-1], formatC, format="G"), collapse=" & "), missingcol, " & ",
                 end_line,
                 sep="")
     }
@@ -732,21 +735,22 @@ create_probability_view_init <- function(sp) {
 
  }
 
-create_probability_view_solved  <- function(sp) {
+create_probability_view_solved  <- function(sp, maxcol=NULL) {
 
     if (class(sp) != "dpp_resolved") 
         stop("the parameter 'sp' should be the result of a 'matching.solve' call")
 
     count_cols_left <- 4 
-    count_cols_right <- ncol(sp$inputs$pij$data)
+    count_cols_right <- if (is.null(maxcol)) ncol(sp$inputs$pij$data) else maxcol
  
     count_rows_left <- nrow(sp$inputs$pij$data)
+    missingcol <- if (is.null(maxcol)) "" else " & ..."
 
     end_line <- "\\\\\n"
 
     # define the header of the table
     s <- paste(
-        "\\begin{tabular}{r|ccc|c", 
+        "\\begin{tabular}{r|cccc|", 
         paste(rep("c",count_cols_right),collapse=""), 
         "|c}\n",
         sep="")
@@ -754,51 +758,51 @@ create_probability_view_solved  <- function(sp) {
     # Mod A
     s <- paste(
         s,
-        "\\multicolumn{4}{r|}{$\\text{Mod}_i^A$} & ",
+        "\\multicolumn{5}{r|}{$\\text{Mod}_i^A$} ",
         " & \\rot{",
-        paste(names(sp$stats$fi), collapse="} & \\rot{"),
-        "} & ",
+        paste(names(sp$stats$fi[1:count_cols_right-1]), collapse="} & \\rot{"),
+        "} ", missingcol, "& ",
         end_line,
         "\\hline\n",
         sep="")
     # fi
     s <- paste(
         s,
-        "\\multicolumn{4}{r|}{$\\hat{f_i}$} & ",
+        "\\multicolumn{5}{r|}{$\\hat{f_i}$} ",
         " & ",
-        paste(formatC(sp$gen$hat.fi,format="G"), collapse=" & "),
-        " & ",
+        paste(formatC(sp$gen$hat.fi[1:count_cols_right-1],format="G"), collapse=" & "),
+        missingcol, " & ",
         formatC(sum(sp$gen$hat.fi), format="G"),
         end_line,
         sep="")
     # di
     s <- paste(
         s,
-        "\\multicolumn{4}{r|}{$\\hat{\\tilde{d}}_i$} & ",
+        "\\multicolumn{5}{r|}{$\\hat{\\tilde{d}}_i$} ",
         " & ",
-        paste(formatC(sp$gen$hat.di, format="G"), collapse=" & "),
-        " & ",
+        paste(formatC(sp$gen$hat.di[1:count_cols_right-1], format="G"), collapse=" & "),
+        missingcol, " & ",
         end_line,
         sep="")
 
     # pi
     s <-  paste(
         s,
-        "\\multicolumn{4}{r|}{$\\hat{p}_i$} & ",
+        "\\multicolumn{5}{r|}{$\\hat{p}_i$} ",
         " & ",
-        paste(formatC(colSums(sp$gen$hat.pij), format="G"), collapse=" & "),
-        " & ",
+        paste(formatC(colSums(sp$gen$hat.pij[,1:count_cols_right-1]), format="G"), collapse=" & "),
+        missingcol, " & ",
         formatC(sum(sp$gen$hat.pij), format="G"),
         end_line,
         sep="")
 
-    s <- paste(s, "\\hline\n", sep="")
+    s <- paste(s, "\n", sep="")
 
     # define the header of the left part
     s <- paste(s, 
             "$\\text{Mod}_j^B$ & $\\hat{f}_j$ & $\\hat{\\tilde{d}}_j$ & $\\hat{p}_j$ & $j/i$ & ", 
-            paste(seq(1, count_cols_right), collapse="&"), 
-            "&",
+            paste(seq(1, count_cols_right-1), collapse="&"), 
+            missingcol, "&",
             end_line, 
             "\\hline\n",
             sep="")
@@ -810,7 +814,7 @@ create_probability_view_solved  <- function(sp) {
                 formatC(sp$gen$hat.dj[j], format="G"), " & ",
                 formatC(sum(sp$gen$hat.pij[j,]), format="G"), " & ",
                 j, " & ",
-                paste(sapply(sp$gen$hat.pij[j,], formatC, format="G"), collapse=" & "), " & ",
+                paste(sapply(sp$gen$hat.pij[j,1:count_cols_right-1], formatC, format="G"), collapse=" & "), missingcol, " & ",
                 end_line,
                 sep="")
     }
@@ -833,21 +837,22 @@ create_probability_view_solved  <- function(sp) {
 
  }
 
-create_discrete_view_solved  <- function(sp) {
+create_discrete_view_solved  <- function(sp, maxcol=NULL) {
 
     if (class(sp) != "dpp_resolved") 
         stop("the parameter 'sp' should be the result of a 'matching.solve' call")
 
     count_cols_left <- 4 
-    count_cols_right <- ncol(sp$inputs$pij$data)
+    count_cols_right <- if (is.null(maxcol)) ncol(sp$inputs$pij$data) else maxcol
  
     count_rows_left <- nrow(sp$inputs$pij$data)
+    missingcol <- if (is.null(maxcol)) "" else " & ..."
 
     end_line <- "\\\\\n"
 
     # define the header of the table
     s <- paste(
-        "\\begin{tabular}{r|ccc|c", 
+        "\\begin{tabular}{r|cccc|", 
         paste(rep("c",count_cols_right),collapse=""), 
         "|c}\n",
         sep="")
@@ -855,51 +860,51 @@ create_discrete_view_solved  <- function(sp) {
     # Mod A
     s <- paste(
         s,
-        "\\multicolumn{4}{r|}{$\\text{Mod}_i^A$} & ",
+        "\\multicolumn{5}{r|}{$\\text{Mod}_i^A$} ",
         " & \\rot{",
-        paste(names(sp$stats$fi), collapse="} & \\rot{"),
-        "} & ",
+        paste(names(sp$stats$fi[1:count_cols_right-1]), collapse="} & \\rot{"),
+        "} ", missingcol ," & ",
         end_line,
         "\\hline\n",
         sep="")
     # fi
     s <- paste(
         s,
-        "\\multicolumn{4}{r|}{$\\hat{c_i}$} & ",
+        "\\multicolumn{5}{r|}{$\\hat{c_i}$} ",
         " & ",
-        paste(formatC(sp$gen$hat.ci,format="d"), collapse=" & "),
-        " & ",
+        paste(formatC(sp$gen$hat.ci[1:count_cols_right-1],format="d"), collapse=" & "),
+        missingcol, " & ",
         formatC(sum(sp$gen$hat.ci), format="d"),
         end_line,
         sep="")
     # di
     s <- paste(
         s,
-        "\\multicolumn{4}{r|}{$\\hat{\\tilde{d}}_i$} & ",
+        "\\multicolumn{5}{r|}{$\\hat{\\tilde{d}}_i$} ",
         " & ",
-        paste(formatC(sp$gen$hat.di, format="G"), collapse=" & "),
-        " & ",
+        paste(formatC(sp$gen$hat.di[1:count_cols_right-1], format="G"), collapse=" & "),
+        missingcol, " & ",
         end_line,
         sep="")
 
     # pi
     s <-  paste(
         s,
-        "\\multicolumn{4}{r|}{$\\hat{n}_i$} & ",
+        "\\multicolumn{5}{r|}{$\\hat{n}_i$} ",
         " & ",
-        paste(formatC(colSums(sp$gen$hat.nij), format="d"), collapse=" & "),
-        " & ",
+        paste(formatC(colSums(sp$gen$hat.nij[,1:count_cols_right-1]), format="d"), collapse=" & "),
+        missingcol, " & ",
         formatC(sum(sp$gen$hat.nij), format="d"),
         end_line,
         sep="")
 
-    s <- paste(s, "\\hline\n", sep="")
+    s <- paste(s, "\n", sep="")
 
     # define the header of the left part
     s <- paste(s, 
             "$\\text{Mod}_j^B$ & $\\hat{c}_j$ & $\\hat{\\tilde{d}}_j$ & $\\hat{n}_j$ & $j/i$ & ", 
-            paste(seq(1, count_cols_right), collapse="&"), 
-            "&",
+            paste(seq(1, count_cols_right-1), collapse="&"), 
+            missingcol, "&",
             end_line, 
             "\\hline\n",
             sep="")
@@ -911,7 +916,7 @@ create_discrete_view_solved  <- function(sp) {
                 formatC(sp$gen$hat.dj[j], format="G"), " & ",
                 formatC(sum(sp$gen$hat.nij[j,]), format="d"), " & ",
                 j, " & ",
-                paste(sapply(sp$gen$hat.nij[j,], formatC, format="d"), collapse=" & "), " & ",
+                paste(sapply(sp$gen$hat.nij[j,1:count_cols_right-1], formatC, format="d"), collapse=" & "), missingcol, " & ",
                 end_line,
                 sep="")
     }
