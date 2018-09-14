@@ -211,7 +211,7 @@ expand_with_variable.dpp_degree_cpt <- function(cpt, name, values) {
     cpt$data <- expand_with_variable_col.data.frame(cpt$data, name, values)
     cpt$attributes[length(cpt$attributes)+1] <- name
 
-    normalise(cpt)
+    normalise.dpp_degree_cpt(cpt)
 }
 
 #' Expands a conditional probability table for degrees with additional variables
@@ -388,7 +388,6 @@ matching.fix <- function(sample.A, sample.B, pdi, pdj, pij) {
     res_pdj <- remove_excess_probas_pd(res_pdj, sample.B$dictionary)
     res_pij <- remove_excess_probas_pd(res_pij, sample.A$dictionary)
     res_pij <- remove_excess_probas_pd_lines(res_pij, sample.B$dictionary)
-    # TODO pij
 
     mods_pdi <- res_pdi$attributes
     mods_pdj <- res_pdj$attributes
@@ -688,7 +687,6 @@ matching.prepare <- function(sample.A, sample.B, pdi, pdj, pij, fix=TRUE) {
                 sample.A=list(dictionary=sample.A_fixed$dictionary),
                 sample.B=list(dictionary=sample.B_fixed$dictionary)
                 )
-
     # store as inputs
     
     inputs$pij_fixed <- pij_fixed
@@ -707,6 +705,7 @@ matching.prepare <- function(sample.A, sample.B, pdi, pdj, pij, fix=TRUE) {
     inputs$max.dj <- assess.max.pd(inputs$pdj_fixed)
     inputs$min.di <- assess.min.pd(inputs$pdi_fixed)
     inputs$min.dj <- assess.min.pd(inputs$pdj_fixed)
+
 
     # compute basic statistics 
     stats <- list()
