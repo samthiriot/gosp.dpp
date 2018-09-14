@@ -23,7 +23,7 @@ compute_common_columns <- function(t1, t2) {
 ensure_presence_ggplot <- function() {
 
     if (!requireNamespace("ggplot2", quietly = TRUE) || !requireNamespace("gridExtra", quietly = TRUE)) {
-        stop("Packages \"ggplot2\" and \"gridExtra\" a required for plotting features. Please install it with install.packages(\"ggplot2\",\"gridExtra\")", call. = FALSE)
+        stop("Packages \"ggplot2\" and \"gridExtra\" a required for plotting features. You might install them with install.packages(c(\"ggplot2\",\"gridExtra\"))", call. = FALSE)
     }
 
 }
