@@ -55,7 +55,7 @@ relax.zeros <- function(x, by=.Machine$double.eps, ...) {
 }
 relax.zeros.data.frame <- function(x, by=.Machine$double.eps, ...) {
    x[x == 0] <- by
-   x
+   normalise.data.frame(x)
 }
 
 #' Creates a sample organized for dpp manipulation. 
@@ -304,7 +304,7 @@ as.data.frame.dpp_degree_cpt <- function(x, ...) {
 
 relax.zeros.dpp_degree_cpt <- function(x, by=.Machine$double.eps, ...) {
    x$data <- relax.zeros.data.frame(x$data)
-   x
+   normalise(x)
 }
 
 # TODO manage multiple attributes
