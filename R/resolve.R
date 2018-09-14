@@ -62,22 +62,40 @@ sum_degrees <- function(pdx) {
 #' 
 #' @param pdx the distribution of degrees 
 #' @param t.target the vector of the expected average degrees
+#' @param verbose more text if TRUE (FALSE by default)
+#' @param precision for comparisons
 #'
 #' @author samuel.thiriot@res-ear.ch
 #'
 #' @keywords internal
 #'
-update_degree_distribution.col <- function(pdx, t.target) {
+update_degree_distribution.col <- function(pdx, t.target, verbose=FALSE, precision=1e-10) {
 
     np.orig <- pdx * 0:(length(pdx)-1)
     t.orig <- sum(np.orig)
     # cat("t.orig", t.orig, "\n")
     
     # quick exit if there is nothing to do
-    if (abs(t.target - t.orig) <= 1e-10) {
+    if (abs(t.target - t.orig) <= precision) {
         return(pdx)
     }
 
+    # quick case: if the target is 0, then the solution is (1,0,.....,0) 
+    if (t.target <= precision) {
+        pdx[0] <- 1
+        for (i in 2:length(pdx)) {
+            pdx[i] <- 0
+        }
+        return(pdx)
+    }
+
+
+    if (verbose) {
+        cat("should update a column of degree distribution pdx=", 
+            paste(pdx, collapse=","), "such as it sums up to ", t.target, 
+            "instead of the current sum ", t.orig, "\n")
+    }
+    
     p.potential <- rep(0,times=length(pdx))
     p.potential.sum.neg <- 0
 
@@ -98,8 +116,8 @@ update_degree_distribution.col <- function(pdx, t.target) {
     }
 
     # 
-    # print("potential")
-    # print(p.potential)
+    print("potential")
+    print(p.potential)
 
     # what can we gain ?
     np.potential <- pmin(p.potential,-p.potential.sum.neg) * 0:(length(pdx)-1)
@@ -108,26 +126,29 @@ update_degree_distribution.col <- function(pdx, t.target) {
     np.min <- min(np.potential)
     np.max <- max(np.potential)
     np.potential.positive.max <- max(np.potential) # max(p.potential[which(np.potential == np.max)])
-    # cat("np.potential.positive.max",np.potential.positive.max,"\n") 
+    cat("np.potential.positive.max",np.potential.positive.max,"\n") 
     
     np.potential.negative.sum <- sum(np.potential[which(np.potential < 0)])
-    # cat("np.potential.negative.sum",np.potential.negative.sum,"\n") 
+    cat("np.potential.negative.sum",np.potential.negative.sum,"\n") 
     
     np.potential.cumulated <- np.potential.negative.sum + np.potential.positive.max
+    print("np.potential.cumulated")
+    print(np.potential.cumulated)
 
-    # create factors, 0 or 1
+    # create factors, 0 or 1 
     factors <- pmin( (np.potential == np.max) + (p.potential < 0), 1)
-    # print("factors")
-    # print(factors)
+    print("factors")
+    print(factors)
 
     rat <- (t.target - t.orig) / np.potential.cumulated
-    # cat("rat",rat,"\n")
+    cat("rat",rat,"\n")
 
 
     p.add <- factors * rat * pmin(p.potential, -p.potential.sum.neg)
 
+    cat("p.add", p.add,"summing up to ", abs(sum(p.add)),"\n")
     # cat("p.add",p.add,"=",sum(p.add),"\n")
-    if (abs(sum(p.add)) >= 1e-10 ) {
+    if (abs(sum(p.add)) >= precision) {
         stop("The case is too constrained to be solved (cannot adapt the degree probabilities that far)")
     }
 
@@ -135,14 +156,14 @@ update_degree_distribution.col <- function(pdx, t.target) {
     p.modified <- p.add + pdx
     # cat("p.modified",p.modified,"=",sum(p.modified),"\n")
     if (length(which(p.modified < 0)) > 0) {
-        stop("The case is too constrained to be solved (cannot adapt the degree probabilities that far)")
+        stop("The case is too constrained to be solved (cannot adapt the degree probabilities that far - would have probabilities below 0)")
     }
     if (length(which(p.modified > 1)) > 0) {
-        stop("The case is too constrained to be solved (cannot adapt the degree probabilities that far)")
+        stop("The case is too constrained to be solved (cannot adapt the degree probabilities that far - would have probabilities greater than 1)")
     }
 
-    
-    if (abs(sum(p.modified)-1) > 1e-10) {
+    cat("p.modified", p.modified, abs(sum(p.modified)-1), "\n")
+    if (abs(sum(p.modified)-1) > precision) {
         stop("The case is too constrained to be solved (cannot adapt the degree probabilities that far)")
     }
      
@@ -153,18 +174,30 @@ update_degree_distribution.col <- function(pdx, t.target) {
     p.modified
 }
 
-#' Update a given distribution of degrees probabilities so its matching target values.
+#' Update a given distribution of degrees probabilities so its matching target degrees
 #' 
 #' This process is done column by column by calling \link{update_degree_distribution.col}.
 #' '
 #' @param pdx the distribution of degrees 
 #' @param dx the vector of the expected average degrees
+#' @param precision the precision for comparison with 0; change only if suggested and relevant
+#' @param verbose more messages if TRUE
 #'
 #' @author Samuel Thiriot <samuel.thiriot@res-ear.ch> 
 #'
 #' @keywords internal
 #'
-update_degree_distribution <- function(pdx, dx) {
+update_degree_distribution <- function(pdx, dx, precision=.Machine$double.eps, verbose=T) {
+
+    if (class(pdx) != "data.frame") {
+        stop("pdx should be a data.frame")
+    }
+    if (class(dx) != "numeric") {
+        stop("dx should be numeric")
+    }
+    if (ncol(pdx) != length(dx)) {
+        stop("length of dx (",length(dx),") should match the columns count of pdx (",ncol(pdx),")")
+    }
 
     # ... sum the weight we are playing with 
     power <- sum_degrees(pdx)
@@ -181,7 +214,7 @@ update_degree_distribution <- function(pdx, dx) {
     pdx.reweighted <- pdx
 
     for (c in 1:ncol(pdx)) {
-        pdx.reweighted[,c] <- update_degree_distribution.col(pdx[,c],dx[c])
+        pdx.reweighted[,c] <- update_degree_distribution.col(pdx[,c],dx[c], verbose=verbose, precision=precision)
     }
 
     colnames(pdx.reweighted) <- colnames(pdx)
@@ -320,17 +353,48 @@ rectify.degree.counts <- function(pdn, nn, cn, verbose=FALSE) {
 #' takes a vector, matrix or list and updates its content
 #' by dividing it by its sum.
 #'
-#' @param df any data to normalise
+#' @param d any data to normalise
+#' @param ... additional parameters are likely to be ignored
 #' @return the same object normalised
 #'
 #' @keywords internal
 #'
 #' @author Samuel Thiriot <samuel.thiriot@res-ear.ch>
 #'
-normalise <- function(df) {
-    df / sum(df)
+normalise <- function(d, ...) {
+   UseMethod("normalise", d)
+}
+normalise.data.frame <- function(d, ...) {
+    d / sum(d)
+}
+normalise.numeric <- function(d, ...) {
+    d / sum(d) 
+}
+normalise.list <- function(d, ...) {
+    total <- sum.list(d)
+    lapply(d, "/", total) 
+}
+normalise.dpp_degree_cpt <- function(d, ...) {
+    for (i in 1:ncol(d$data)) {
+        d$data[i] <- normalise(d$data[i])  
+    }
+    d
 }
 
+#' Sums applied on a list
+#' 
+#' sums the content of the list (required for recent R versions)
+#'
+#' @param l the list to sum
+#' @return the same object summed with operator "+"
+#'
+#' @keywords internal
+#'
+#' @author Samuel Thiriot <samuel.thiriot@res-ear.ch>
+#'
+sum.list <- function(l) {
+    Reduce("+", l) 
+}
 
 #' Replaces NaN by zeros
 #' 
@@ -378,6 +442,137 @@ inf_to_zeros <- function(vv) {
     vv
 }
 
+#' a simple Iterated Proportional Fitting implementation 
+#' 
+#' taken from https://stats.stackexchange.com/questions/59115/iterative-proportional-fitting-in-r
+#' 
+#' @author Samuel Thiriot <samuel.thiriot@res-ear.ch>
+#' 
+#' @keywords internal
+#' 
+ipf.stackoverflow <- function(Margins_, seedAry, maxiter=100, closure=0.001, verbose=FALSE) {
+    #Check to see if the sum of each margin is equal
+    MarginSums. <- unlist(lapply(Margins_, sum))
+    if(any(MarginSums. != MarginSums.[1])) warning("IPF: sum of each margin not equal")
+
+    #Replace margin values of zero with 0.001
+    Margins_ <- lapply(Margins_, function(x) {
+        # TODO ???
+        if(any(x == 0)) warning("IPF: zeros in marginsMtx replaced with 0.001") 
+        x[x == 0] <- 0.001
+        x
+    })
+
+    #Check to see if number of dimensions in seed array equals the number of
+    #margins specified in the marginsMtx
+    numMargins <- length(dim(seedAry))
+    if(length(Margins_) != numMargins) {
+        stop("IPF: number of margins in marginsMtx not equal to number of margins in seedAry")
+    }
+
+    #Set initial values
+    resultAry <- seedAry
+    iter <- 0
+    marginChecks <- rep(1, numMargins)
+    margins <- seq(1, numMargins)
+
+    #Iteratively proportion margins until closure or iteration criteria are met
+    while((any(marginChecks > closure)) & (iter < maxiter)) {
+        for(margin in margins) {
+            marginTotal <- apply(resultAry, margin, sum)
+            marginCoeff <- Margins_[[margin]]/marginTotal
+            marginCoeff[is.infinite(marginCoeff)] <- 0
+            resultAry <- sweep(resultAry, margin, marginCoeff, "*")
+            marginChecks[margin] <- sum(abs(1 - marginCoeff))
+        }    
+        iter <- iter + 1
+    }
+
+    #If IPF stopped due to number of iterations then output info
+    if(verbose && (iter == maxiter)) cat("IPF stopped due to number of iterations\n")
+
+    #Return balanced array
+    resultAry
+}
+
+
+#' Applies Iterative Proportional Fitting on a 2d dataframe
+#' 
+#' Takes as inputs a dataframe representing a 2d matrix, 
+#' and target marings for cols and rows. 
+#' Returns a table reweighted so its sums fit margins.
+#' 
+#' Either falls back to a local implementation, or to an
+#' higher quality one from the mipfp package if it is installed. 
+#'
+#' @param df the dataframe to reweight
+#' @param margins_cols a vector containing the target marginals for cols
+#' @param margins_rows a vector containing the target marginals for rows
+#' @param verbose displays more messages if TRUE (FALSE by default)
+#' @param max.iterations the maximum iterations before stopping (1000 by default)
+#' @param precision the target precision, will stop once reached (defaults to 1e-6)
+#' @return the dataframe reweighted
+#' 
+#' @author Samuel Thiriot <samuel.thiriot@res-ear.ch>
+#'  
+#' @keywords internal
+#'
+ipf <- function(df, margins_cols, margins_rows, max.iterations=1000, precision=1e-10, verbose=FALSE) {
+
+
+    if (class(df) != "data.frame") 
+        stop("df should be a data frame")
+    if (class(margins_cols) != "numeric") 
+        stop("margins_cols should be a numeric vector")
+    if (class(margins_rows) != "numeric") 
+        stop("margins_rows should be a numeric vector")
+
+    if (length(margins_rows) != nrow(df)) 
+        stop(paste("the length of margins_rows (", length(margins_rows) , ") should match the count of rows (", nrow(df), ") from df", sep=""))
+    if (length(margins_cols) != ncol(df)) 
+        stop(paste("the length of margins_cols (", length(margins_cols) , ") should match the count of columns (", ncol(df), ") from df", sep=""))
+
+    if (FALSE && verbose) {
+        cat("should reweight the matrix\n")
+        print(df)
+        cat("in order to reach column marginals: ", paste(margins_cols, collapse=","), "\n")
+        cat("in order to reach row marginals: ", paste(margins_rows, collapse=","), "\n")
+    }
+
+        # FALSE && TODO
+    if (requireNamespace("mipfp", quietly = TRUE)) {
+        # the mipfp package is available, let's use it, its a reference implementation
+        if (verbose) cat("using for IPF the implementation from package mipfp\n")
+
+        res <- mipfp::Ipfp(
+            seed=as.matrix(df), 
+            target.list=list(2,1), 
+            target.data=list(margins_cols, margins_rows), 
+            print = verbose, 
+            iter = max.iterations, 
+            tol = 1e-10, tol.margins = precision , na.target = FALSE
+            )
+
+        if (!res$conv) {
+            # detect failure
+            print(res)
+            stop("IPF did not converged properly. That's a bit unexpected. Stopping.")
+        }
+        # extract the result of interest
+        as.data.frame(res$p.hat)
+
+    } else {
+        res <- ipf.stackoverflow(
+            Margins_=list(margins_cols, margins_rows), 
+            seedAry=as.matrix(df), 
+            maxiter=max.iterations, 
+            closure=precision,
+            verbose=verbose
+            )
+        normalise(as.data.frame(res))
+    }
+    
+}
 
 #' Completes a partial solution by inference  
 #' 
@@ -388,6 +583,7 @@ inf_to_zeros <- function(vv) {
 #'
 #' @param sol the current solution (a named list)
 #' @param case the case to solve
+#' @param precision.pd the precision to be used for probabilistic distributions of degrees comparisons
 #' @param verbose if TRUE, will display detailed information on the console
 #' @param indent the level of indentation for verbose messages
 #' @return a solution with possibly more variables known
@@ -402,7 +598,7 @@ inf_to_zeros <- function(vv) {
 #'  
 #' @keywords internal
 #'
-propagate.direct <- function(sol,case, verbose=FALSE, indent=1) {
+propagate.direct <- function(sol, case, precision.pd=.Machine$double.eps, verbose=FALSE, indent=1) {
 
     info.rule <- function(name, sol, verbose=FALSE, indent=3) {
         if (verbose) { 
@@ -507,6 +703,7 @@ propagate.direct <- function(sol,case, verbose=FALSE, indent=1) {
         # based on ni and pij (either defined, or from inputs)
         if ( 
             ("hat.ni" %in% names(sol))
+            && ("hat.pij" %in% names(sol))
             && (!"hat.nij" %in% names(sol))
             ) {
             pij <- if ("hat.pij" %in% names(sol)) sol$hat.pij else case$inputs$pij$data
@@ -517,11 +714,12 @@ propagate.direct <- function(sol,case, verbose=FALSE, indent=1) {
             }
             # adapt th based on rounded values
             sol$hat.pij <- sol$hat.nij / sum(sol$hat.nij)
-            sol <- info.rule("hat.ni -> hat.nij, hat.pij", sol, verbose=verbose, indent=indent+1)
+            sol <- info.rule("hat.ni, hat.pij -> hat.nij [hat.pij]", sol, verbose=verbose, indent=indent+1)
             changed <- TRUE
         }
         if ( 
             ("hat.nj" %in% names(sol))
+            && ("hat.pij" %in% names(sol))
             && (!"hat.nij" %in% names(sol))
             ) {
             pij <- if ("hat.pij" %in% names(sol)) sol$hat.pij else case$inputs$pij$data
@@ -531,8 +729,34 @@ propagate.direct <- function(sol,case, verbose=FALSE, indent=1) {
                 sol$hat.nij[i,] <- round_sum(sol$hat.nij[i,])
             }
             sol$hat.pij <- sol$hat.nij / sum(sol$hat.nij)
-            sol <- info.rule("hat.nj -> hat.nij, hat.pij", sol, verbose=verbose, indent=indent+1)
+            sol <- info.rule("hat.nj, hat.pij -> hat.nij [hat.pij]", sol, verbose=verbose, indent=indent+1)
+            changed <- TRUE
+        }
 
+        if ( 
+            ("hat.nL" %in% names(sol))
+            && ("hat.pij" %in% names(sol))
+            && (!"hat.nij" %in% names(sol))
+            ) {
+
+            sol$hat.nij <- round_sum(sol$hat.pij * sol$hat.nL)
+            
+            # round.
+            # if the totals of ci are known, then round per column 
+            # (same for cj and rows)
+            # if ("hat.ci" %in% names(sol)) {
+            #     for (i in 1:ncol(sol$hat.nij)) {
+            #         sol$hat.nij[,i] <- round_sum(sol$hat.nij[,i])
+            #     }
+            # } else if ("hat.cj" %in% names(sol)) {
+            #     for (i in 1:nrow(sol$hat.nij)) {
+            #         sol$hat.nij[i,] <- round_sum(sol$hat.nij[i,])
+            #     }
+            # } 
+            # TODO what if both ci and cj ?
+            # recompute pij, in case rounding would make things inconsistent
+            sol$hat.pij <- normalise(sol$hat.nij)
+            sol <- info.rule("hat.nL, hat.pij -> hat.nij [hat.pij]", sol, verbose=verbose, indent=indent+1)
             changed <- TRUE
         }
 
@@ -631,6 +855,25 @@ propagate.direct <- function(sol,case, verbose=FALSE, indent=1) {
             ) {
             sol$hat.pj <- rowSums(sol$hat.pij)
             sol <- info.rule("hat.pij -> hat.pj", sol, verbose=verbose, indent=indent+1)
+            changed <- TRUE
+        }
+
+        # TODO IPF
+
+        # pi, pj -> pij
+        # (IPF)
+        if ( 
+            ("hat.pi" %in% names(sol)) && ("hat.pj" %in% names(sol)) && (!"hat.pij" %in% names(sol))
+            ) {
+
+            sol <- info.rule("hat.pi, hat.pj -> hat.pij (IPF)", sol, verbose=verbose, indent=indent+1)
+    
+            reweighted <- ipf(  
+                    df=case$inputs$pij$data, 
+                    margins_cols=sol$hat.pi, margins_rows=sol$hat.pj, 
+                    max.iterations=1000, precision=1e-10, verbose=F) # verbose
+
+            sol$hat.pij <- reweighted
             changed <- TRUE
         }
 
@@ -756,20 +999,20 @@ propagate.direct <- function(sol,case, verbose=FALSE, indent=1) {
         # }
 
         # pj + pij -> pij 
-        if ( 
-            ("hat.pi" %in% names(sol)) && (!"hat.pij" %in% names(sol))
-            ) {
-            sol$hat.pij <- t(t(case$inputs$pij$data) / colSums(case$inputs$pij$data)) * sol$hat.pi
-            sol <- info.rule("hat.pi -> hat.pij", sol, verbose=verbose, indent=indent+1)
-            changed <- TRUE
-        }
-        if ( 
-            ("hat.pj" %in% names(sol)) && (!"hat.pij" %in% names(sol))
-            ) {
-            sol$hat.pij <- case$inputs$pij$data / rowSums(case$inputs$pij$data) * sol$hat.pj
-            sol <- info.rule("hat.pj -> hat.pij", sol, verbose=verbose, indent=indent+1)
-            changed <- TRUE
-        }
+        # if ( 
+        #     ("hat.pi" %in% names(sol)) && (!"hat.pij" %in% names(sol))
+        #     ) {
+        #     sol$hat.pij <- t(t(case$inputs$pij$data) / colSums(case$inputs$pij$data)) * sol$hat.pi
+        #     sol <- info.rule("hat.pi -> hat.pij", sol, verbose=verbose, indent=indent+1)
+        #     changed <- TRUE
+        # }
+        # if ( 
+        #     ("hat.pj" %in% names(sol)) && (!"hat.pij" %in% names(sol))
+        #     ) {
+        #     sol$hat.pij <- case$inputs$pij$data / rowSums(case$inputs$pij$data) * sol$hat.pj
+        #     sol <- info.rule("hat.pj -> hat.pij", sol, verbose=verbose, indent=indent+1)
+        #     changed <- TRUE
+        # }
 
         # ci -> fi
         if ( 
@@ -826,7 +1069,6 @@ propagate.direct <- function(sol,case, verbose=FALSE, indent=1) {
             ) {
 
             sol <- info.rule("hat.pdi, hat.ci, hat.ni -> hat.ndi", sol, verbose=verbose, indent=indent+1)
-            # print(sol$hat.pdi)
             sol$hat.ndi <- round_sum(t(t(sol$hat.pdi) * sol$hat.ci))
             sol$hat.ndi <- rectify.degree.counts(sol$hat.ndi, sol$hat.ni, sol$hat.ci, verbose=F)
             
@@ -872,10 +1114,11 @@ propagate.direct <- function(sol,case, verbose=FALSE, indent=1) {
             ) {
             sol <- info.rule("hat.di -> hat.pdi", sol, verbose=verbose, indent=indent+1)
             sol$hat.pdi <- tryCatch({
-                        update_degree_distribution(case$inputs$pdi$data, sol$hat.di)
+                        update_degree_distribution(case$inputs$pdi$data, sol$hat.di, precision=precision.pd, verbose=T)
                     }, error = function(e) {
                         if (verbose) 
-                            cat(rep("\t",times=indent+2),"unable to update hat.pdi to fit hat.di=",paste(sol$hat.di,collapse=","),"\n",sep="")                   
+                            cat(rep("\t",times=indent+2),
+                                "unable to update hat.pdi to fit hat.di=",paste(sol$hat.di,collapse=","),": ",e$message,"\n",sep="")                   
                         
                         stop("The case is too constrained to be solved (hat.di are not compliant with the original pdi)")
                     })           
@@ -890,7 +1133,7 @@ propagate.direct <- function(sol,case, verbose=FALSE, indent=1) {
                         update_degree_distribution(case$inputs$pdj$data, sol$hat.dj)
                     }, error = function(e) {
                         if (verbose) 
-                            cat(rep("\t",times=indent+2),"unable to update hat.pdj to fit hat.dj=",paste(sol$hat.dj,collapse=","),"\n",sep="")                   
+                            cat(rep("\t",times=indent+2),"unable to update hat.pdj to fit hat.dj=",paste(sol$hat.dj,collapse=","),": ",e$message,,"\n",sep="")                   
                         stop("The case is too constrained to be solved (probabilities hat.dj are not compliant with the original pdj)")
                     })
             changed <- TRUE
@@ -1866,15 +2109,21 @@ matching.solve <- function(case,
     
 
     sol <- list()
-    if (nu.A == 0)  {   sol$hat.nA <- nA }
-    if (phi.A == 0) {   sol$hat.fi <- normalise(case$stats$fi * case$masks$mask.fi.all) }
-    if (delta.A == 0) { sol$hat.di <- case$inputs$di * case$masks$mask.di.all }
+    if (nu.A == 0)      { sol$hat.nA <- nA }
+    if (phi.A == 0)     { sol$hat.fi <- normalise(case$stats$fi * case$masks$mask.fi.all) }
+    if (delta.A == 0)   { 
+        sol$hat.di <- case$inputs$di * case$masks$mask.di.all 
+        sol$hat.pdi <- case$inputs$pdi$data #* case$masks$mask.di.all 
+    }
 
-    if (nu.B == 0) {    sol$hat.nB <- nB }
-    if (phi.B == 0) {   sol$hat.fj <- normalise(case$stats$fj * case$masks$mask.fj.all) }
-    if (delta.B == 0) { sol$hat.dj <- case$inputs$dj * case$masks$mask.dj.all }
+    if (nu.B == 0)      { sol$hat.nB <- nB }
+    if (phi.B == 0)     { sol$hat.fj <- normalise(case$stats$fj * case$masks$mask.fj.all) }
+    if (delta.B == 0)   { 
+        sol$hat.dj <- case$inputs$dj * case$masks$mask.dj.all 
+        sol$hat.pdj <- case$inputs$pdj$data
+    }
 
-    if (gamma == 0) {   sol$hat.pij <- normalise(case$inputs$pij$data * case$masks$mask.pij.all) }
+    if (gamma == 0)     { sol$hat.pij <- normalise(case$inputs$pij$data * case$masks$mask.pij.all) }
 
     if (verbose) {
         cat("\taccording to user weights, we already know: ",paste(names(sol),collapse=","),"\n",sep="")
