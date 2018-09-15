@@ -57,8 +57,8 @@
 as.igraph.dpp_population <- function(pop, with.attributes=FALSE, ...) {
     
     # ensure this object is of the right type
-    if (class(pop) != "dpp_result")
-        stop("the population to export should be the result of a matching.generate call")
+    if (class(pop) != "dpp_population")
+        stop("the population to export should be the result of a matching.generate()$pop call")
     
     # pop$links is a data frame that requires convertion to a matrix
 
@@ -107,6 +107,10 @@ as.igraph.dpp_population <- function(pop, with.attributes=FALSE, ...) {
 #' @author Samuel Thiriot <samuel.thiriot@res-ear.ch> 
 #'
 as.igraph.dpp_result <- function(generated, with.attributes=FALSE, ...) {
+    
+    # ensure this object is of the right type
+    if (class(pop) != "dpp_result")
+        stop("the population to export should be the result of a matching.generate call")
     
     as.igraph.dpp_population(generated$pop, with.attributes=with.attributes)
 
