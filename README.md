@@ -27,7 +27,9 @@ you would also better install the optional dependancies:
 
 clone the repository
 
-    install.packages("devtools", "rhub")
+from inside the clone
+
+    install.packages(c("devtools", "rhub"))
 	library(devtools)
 	devtools::install()
 	devtools::load_all()
