@@ -59,7 +59,7 @@ run local tests
 check the package locally
 
 	library(devtools)
-	devtools::check(manual=TRUE)
+	devtools::check(manual=TRUE, vignette=TRUE)
 
 check on various platforms
 
