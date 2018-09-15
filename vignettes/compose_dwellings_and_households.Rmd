@@ -27,7 +27,7 @@ both being composed inside each other depending to their characteristics.
 ```{r, fig.show='hold'}
 # load the package from current directory (development mode)
 library(devtools)
-devtools::load_all() 
+load_all() 
 
 # install on a local computer: 
 # library(gosp.dpp) 
