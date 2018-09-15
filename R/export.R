@@ -122,7 +122,7 @@ as.igraph.dpp_result <- function(generated, with.attributes=FALSE, ...) {
 #' into one unique merged one. There will be partial lines when 
 #' one entity had no link.
 #'
-#' @param generated the generation result produced by \link{\code{matching.generate}}
+#' @param generated the generation result produced by \code{\link{matching.generate}}
 #'
 #' @export
 #'
