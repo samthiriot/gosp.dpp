@@ -80,7 +80,7 @@ update_degree_distribution.col <- function(pdx, t.target, verbose=FALSE, precisi
         return(pdx)
     }
 
-    # quick case: if the target is 0, then the solution is (1,0,.....,0) 
+    # quick case: if the target is 0, then the solution is (1,0,.....,0) 
     if (t.target <= precision) {
         pdx[0] <- 1
         for (i in 2:length(pdx)) {
@@ -116,8 +116,8 @@ update_degree_distribution.col <- function(pdx, t.target, verbose=FALSE, precisi
     }
 
     # 
-    print("potential")
-    print(p.potential)
+    # print("potential")
+    # print(p.potential)
 
     # what can we gain ?
     np.potential <- pmin(p.potential,-p.potential.sum.neg) * 0:(length(pdx)-1)
@@ -126,27 +126,27 @@ update_degree_distribution.col <- function(pdx, t.target, verbose=FALSE, precisi
     np.min <- min(np.potential)
     np.max <- max(np.potential)
     np.potential.positive.max <- max(np.potential) # max(p.potential[which(np.potential == np.max)])
-    cat("np.potential.positive.max",np.potential.positive.max,"\n") 
+    # cat("np.potential.positive.max",np.potential.positive.max,"\n") 
     
     np.potential.negative.sum <- sum(np.potential[which(np.potential < 0)])
-    cat("np.potential.negative.sum",np.potential.negative.sum,"\n") 
+    # cat("np.potential.negative.sum",np.potential.negative.sum,"\n") 
     
     np.potential.cumulated <- np.potential.negative.sum + np.potential.positive.max
-    print("np.potential.cumulated")
-    print(np.potential.cumulated)
+    # print("np.potential.cumulated")
+    # print(np.potential.cumulated)
 
     # create factors, 0 or 1 
     factors <- pmin( (np.potential == np.max) + (p.potential < 0), 1)
-    print("factors")
-    print(factors)
+    # print("factors")
+    # print(factors)
 
     rat <- (t.target - t.orig) / np.potential.cumulated
-    cat("rat",rat,"\n")
+    # cat("rat",rat,"\n")
 
 
     p.add <- factors * rat * pmin(p.potential, -p.potential.sum.neg)
 
-    cat("p.add", p.add,"summing up to ", abs(sum(p.add)),"\n")
+    # cat("p.add", p.add,"summing up to ", abs(sum(p.add)),"\n")
     # cat("p.add",p.add,"=",sum(p.add),"\n")
     if (abs(sum(p.add)) >= precision) {
         stop("The case is too constrained to be solved (cannot adapt the degree probabilities that far)")
@@ -162,7 +162,7 @@ update_degree_distribution.col <- function(pdx, t.target, verbose=FALSE, precisi
         stop("The case is too constrained to be solved (cannot adapt the degree probabilities that far - would have probabilities greater than 1)")
     }
 
-    cat("p.modified", p.modified, abs(sum(p.modified)-1), "\n")
+    # cat("p.modified", p.modified, abs(sum(p.modified)-1), "\n")
     if (abs(sum(p.modified)-1) > precision) {
         stop("The case is too constrained to be solved (cannot adapt the degree probabilities that far)")
     }
@@ -187,7 +187,7 @@ update_degree_distribution.col <- function(pdx, t.target, verbose=FALSE, precisi
 #'
 #' @keywords internal
 #'
-update_degree_distribution <- function(pdx, dx, precision=.Machine$double.eps, verbose=T) {
+update_degree_distribution <- function(pdx, dx, precision=.Machine$double.eps, verbose=F) {
 
     if (class(pdx) != "data.frame") {
         stop("pdx should be a data.frame")
@@ -264,10 +264,10 @@ rectify.degree.counts <- function(pdn, nn, cn, verbose=FALSE) {
 
             # we are creating more slots than expected
             # ... we have to remove it somewhere 
-            if ( (pdn[2,col] >= to.remove) ) { # && (pdn[1,col] > 0)
+            if ( (pdn[2,col] >= to.remove) ) { # && (pdn[1,col] > 0)
                 pdn[2,col] <- pdn[2,col] - to.remove
                 pdn[1,col] <- pdn[1,col] + to.remove
-            } else if ( ( nrow(pdn) >= 3) && (pdn[3,col] >= to.remove/2) ) { # && (pdn[1,col] > 0)
+            } else if ( ( nrow(pdn) >= 3) && (pdn[3,col] >= to.remove/2) ) { # && (pdn[1,col] > 0)
                 # cat("removing 2 and adding 1\n")
                 # to remove -1, we also might remove 2 and add 1 !
                 # print(pdn[,col])
@@ -291,10 +291,10 @@ rectify.degree.counts <- function(pdn, nn, cn, verbose=FALSE) {
 
             # we are creating more slots than expected
             # ... we have to remove it somewhere 
-            if (pdn[1,col] >= to.add) { # (pdn[2,col] > 0
+            if (pdn[1,col] >= to.add) { # (pdn[2,col] > 0
                 pdn[1,col] <- pdn[1,col] - to.add
                 pdn[2,col] <- pdn[2,col] + to.add
-            } else if ( (nrow(pdn) >= 3) && (pdn[3,col] >= to.add) ) { # (pdn[2,col] > 0
+            } else if ( (nrow(pdn) >= 3) && (pdn[3,col] >= to.add) ) { # (pdn[2,col] > 0
                 pdn[2,col] <- pdn[2,col] - to.add
                 pdn[3,col] <- pdn[3,col] + to.add
             } else {
@@ -450,7 +450,7 @@ inf_to_zeros <- function(vv) {
 #' 
 #' @keywords internal
 #' 
-ipf.stackoverflow <- function(Margins_, seedAry, maxiter=100, closure=0.001, verbose=FALSE) {
+ipf.2d.stackoverflow <- function(Margins_, seedAry, maxiter=100, closure=0.001, verbose=FALSE) {
     #Check to see if the sum of each margin is equal
     MarginSums. <- unlist(lapply(Margins_, sum))
     if(any(MarginSums. != MarginSums.[1])) warning("IPF: sum of each margin not equal")
@@ -517,8 +517,7 @@ ipf.stackoverflow <- function(Margins_, seedAry, maxiter=100, closure=0.001, ver
 #'  
 #' @keywords internal
 #'
-ipf <- function(df, margins_cols, margins_rows, max.iterations=1000, precision=1e-10, verbose=FALSE) {
-
+ipf.2d <- function(df, margins_cols, margins_rows, max.iterations=1000, precision=1e-10, verbose=FALSE) {
 
     if (class(df) != "data.frame") 
         stop("df should be a data frame")
@@ -539,7 +538,6 @@ ipf <- function(df, margins_cols, margins_rows, max.iterations=1000, precision=1
         cat("in order to reach row marginals: ", paste(margins_rows, collapse=","), "\n")
     }
 
-        # FALSE && TODO
     if (requireNamespace("mipfp", quietly = TRUE)) {
         # the mipfp package is available, let's use it, its a reference implementation
         if (verbose) cat("using for IPF the implementation from package mipfp\n")
@@ -554,16 +552,17 @@ ipf <- function(df, margins_cols, margins_rows, max.iterations=1000, precision=1
             )
 
         if (!res$conv) {
-            # detect failure
+            # detect failure
             print(res)
             stop("IPF did not converged properly. That's a bit unexpected. Stopping.")
         }
-        # extract the result of interest
+        # extract the result of interest
         as.data.frame(res$p.hat)
 
     } else {
-        res <- ipf.stackoverflow(
-            Margins_=list(margins_cols, margins_rows), 
+        # fallback to a local, less powerful implementation
+        res <- ipf.2d.stackoverflow(
+            Margins_=list(margins_rows, margins_cols), 
             seedAry=as.matrix(df), 
             maxiter=max.iterations, 
             closure=precision,
@@ -643,7 +642,6 @@ propagate.direct <- function(sol, case, precision.pd=.Machine$double.eps, verbos
             changed <- TRUE
         }
 
-
         # forward ci + di -> ni 
         if ( 
             ("hat.ci" %in% names(sol)) && ("hat.di" %in% names(sol)) && (!"hat.ni" %in% names(sol))
@@ -654,17 +652,21 @@ propagate.direct <- function(sol, case, precision.pd=.Machine$double.eps, verbos
             sol$hat.ni <- round_sum(sol$hat.ci * sol$hat.di)
             # adapt rounding
             sol$hat.di <- nan_to_zeros(sol$hat.ni / sol$hat.ci)
-            sol <- info.rule("hat.ci, hat.di -> hat.ni", sol, verbose=verbose, indent=indent+1)
+            # adapt because of rounding
+            sol$hat.pi <- normalise(sol$hat.ni)
+            sol <- info.rule("hat.ci, hat.di -> hat.ni [hat.pi]", sol, verbose=verbose, indent=indent+1)
             changed <- TRUE
         }
 
-         # forward cj + dj -> nj 
+        # forward cj + dj -> nj 
         if ( 
             ("hat.cj" %in% names(sol)) && ("hat.dj" %in% names(sol)) && (!"hat.nj" %in% names(sol))
             ) {
             sol$hat.nj <- round_sum(sol$hat.cj * sol$hat.dj)
             sol$hat.dj <- nan_to_zeros(sol$hat.nj / sol$hat.cj)
-            sol <- info.rule("hat.cj, hat.dj -> hat.nj", sol, verbose=verbose, indent=indent+1)
+            # adapt because of rounding
+            sol$hat.pj <- normalise(sol$hat.nj)
+            sol <- info.rule("hat.cj, hat.dj -> hat.nj [hat.pj]", sol, verbose=verbose, indent=indent+1)
             changed <- TRUE
         }
 
@@ -714,7 +716,7 @@ propagate.direct <- function(sol, case, precision.pd=.Machine$double.eps, verbos
             }
             # adapt th based on rounded values
             sol$hat.pij <- sol$hat.nij / sum(sol$hat.nij)
-            sol <- info.rule("hat.ni, hat.pij -> hat.nij [hat.pij]", sol, verbose=verbose, indent=indent+1)
+            sol <- info.rule("hat.ni, hat.pij -> hat.nij [hat.pij]", sol, verbose=verbose, indent=indent+1)
             changed <- TRUE
         }
         if ( 
@@ -741,9 +743,9 @@ propagate.direct <- function(sol, case, precision.pd=.Machine$double.eps, verbos
 
             sol$hat.nij <- round_sum(sol$hat.pij * sol$hat.nL)
             
-            # round.
+            # round.
             # if the totals of ci are known, then round per column 
-            # (same for cj and rows)
+            # (same for cj and rows)
             # if ("hat.ci" %in% names(sol)) {
             #     for (i in 1:ncol(sol$hat.nij)) {
             #         sol$hat.nij[,i] <- round_sum(sol$hat.nij[,i])
@@ -754,9 +756,9 @@ propagate.direct <- function(sol, case, precision.pd=.Machine$double.eps, verbos
             #     }
             # } 
             # TODO what if both ci and cj ?
-            # recompute pij, in case rounding would make things inconsistent
+            # recompute pij, in case rounding would make things inconsistent
             sol$hat.pij <- normalise(sol$hat.nij)
-            sol <- info.rule("hat.nL, hat.pij -> hat.nij [hat.pij]", sol, verbose=verbose, indent=indent+1)
+            sol <- info.rule("hat.nL, hat.pij -> hat.nij [hat.pij]", sol, verbose=verbose, indent=indent+1)
             changed <- TRUE
         }
 
@@ -765,15 +767,24 @@ propagate.direct <- function(sol, case, precision.pd=.Machine$double.eps, verbos
             ("hat.nij" %in% names(sol)) && (!"hat.ni" %in% names(sol))
             ) {
             sol$hat.ni <- colSums(sol$hat.nij)
-            sol <- info.rule("hat.nij -> hat.ni", sol, verbose=verbose, indent=indent+1)
-
+            if ("hat.pi" %in% names(sol)) {
+                sol <- info.rule("hat.nij -> hat.ni [hat.pi]", sol, verbose=verbose, indent=indent+1)
+                sol$hat.pi <- normalise(sol$hat.ni)
+            } else {
+                sol <- info.rule("hat.nij -> hat.ni", sol, verbose=verbose, indent=indent+1)
+            }
             changed <- TRUE
         }
         if ( 
             ("hat.nij" %in% names(sol)) && (!"hat.nj" %in% names(sol))
             ) {
             sol$hat.nj <- rowSums(sol$hat.nij)
-            sol <- info.rule("hat.nij -> hat.nj", sol, verbose=verbose, indent=indent+1)
+            if ("hat.pj" %in% names(sol)) {
+                sol <- info.rule("hat.nij -> hat.nj [hat.pj]", sol, verbose=verbose, indent=indent+1)
+                sol$hat.pj <- normalise(sol$hat.nj)
+            } else {
+                sol <- info.rule("hat.nij -> hat.nj", sol, verbose=verbose, indent=indent+1)
+            }
             changed <- TRUE
         }
  
@@ -858,17 +869,17 @@ propagate.direct <- function(sol, case, precision.pd=.Machine$double.eps, verbos
             changed <- TRUE
         }
 
-        # TODO IPF
+        # TODO IPF
 
-        # pi, pj -> pij
-        # (IPF)
+        # pi, pj -> pij
+        # (IPF)
         if ( 
             ("hat.pi" %in% names(sol)) && ("hat.pj" %in% names(sol)) && (!"hat.pij" %in% names(sol))
             ) {
 
             sol <- info.rule("hat.pi, hat.pj -> hat.pij (IPF)", sol, verbose=verbose, indent=indent+1)
     
-            reweighted <- ipf(  
+            reweighted <- ipf.2d(  
                     df=case$inputs$pij$data, 
                     margins_cols=sol$hat.pi, margins_rows=sol$hat.pj, 
                     max.iterations=1000, precision=1e-10, verbose=F) # verbose
@@ -898,11 +909,11 @@ propagate.direct <- function(sol, case, precision.pd=.Machine$double.eps, verbos
             ids_too_low <- which(sol$hat.di < case$inputs$min.di)
             sol$hat.di[ids_too_low] <- case$inputs$min.di[ids_too_low]
 
-            # now, maybe we cannot reach the expected values...
+            # now, maybe we cannot reach the expected values...
             if (length(ids_too_high) + length(ids_too_low) > 0) {
                 if (case$inputs$phi.A > 0) { # case$inputs$gamma
-                    # the user prefers to report the errors on fi !
-                    sol <- info.rule("hat.pi, hat.fi -> hat.di [+ hat.fi]", sol, verbose=verbose, indent=indent+1)
+                    # the user prefers to report the errors on fi !
+                    sol <- info.rule("hat.pi, hat.fi -> hat.di [hat.fi]", sol, verbose=verbose, indent=indent+1)
                     sol$hat.fi <- normalise(nan_to_zeros(sol$hat.pi / sol$hat.di))
                     #print("hat.fi is now")
                     #print(sol$hat.fi)
@@ -941,11 +952,11 @@ propagate.direct <- function(sol, case, precision.pd=.Machine$double.eps, verbos
             ids_too_low <- which(sol$hat.dj < case$inputs$min.dj)
             sol$hat.dj[ids_too_low] <- case$inputs$min.dj[ids_too_low]
 
-            # now, maybe we cannot reach the expected values...
+            # now, maybe we cannot reach the expected values...
             if (length(ids_too_high) + length(ids_too_low) > 0) {
                 if (case$inputs$phi.B > 0) { # case$inputs$gamma
-                    # the user prefers to report the errors on fi !
-                    sol <- info.rule("hat.pj, hat.fj -> hat.dj [+ hat.fj]", sol, verbose=verbose, indent=indent+1)
+                    # the user prefers to report the errors on fi !
+                    sol <- info.rule("hat.pj, hat.fj -> hat.dj [hat.fj]", sol, verbose=verbose, indent=indent+1)
                     sol$hat.fj <- normalise(nan_to_zeros(sol$hat.pj / sol$hat.dj))
                 } else {
                     stop("not enough freedom on pdj to respect both fj and pj. Try relaxing phi.B, or add more potential degrees to pdj")
@@ -1114,7 +1125,7 @@ propagate.direct <- function(sol, case, precision.pd=.Machine$double.eps, verbos
             ) {
             sol <- info.rule("hat.di -> hat.pdi", sol, verbose=verbose, indent=indent+1)
             sol$hat.pdi <- tryCatch({
-                        update_degree_distribution(case$inputs$pdi$data, sol$hat.di, precision=precision.pd, verbose=T)
+                        update_degree_distribution(case$inputs$pdi$data, sol$hat.di, precision=precision.pd, verbose=F)
                     }, error = function(e) {
                         if (verbose) 
                             cat(rep("\t",times=indent+2),
@@ -1209,13 +1220,14 @@ assert.equal <- function(v1,v2,msg, verbose=FALSE, indent=3, tolerance=1.5e-8) {
 #' @param indent the indentation (count of tabs) for verbose display
 #' @param tolerance.pd the tolerance for probability distributions
 #' @param tolerance.degree.max the tolerance for min/max average degrees
+#' @param tolerance.pij the tolerance for pij probabilities
 #' @return the count of problems 
 #'  
 #' @author Samuel Thiriot <samuel.thiriot@res-ear.ch>
 #'  
 #' @keywords internal
 #'
-detect.problems <- function(sol, case, fail=TRUE, verbose=FALSE, indent=1, tolerance.pd=1.5e-8, tolerance.degree.max=1.5e-8) {
+detect.problems <- function(sol, case, fail=TRUE, verbose=FALSE, indent=1, tolerance.pd=1.5e-8, tolerance.degree.max=1.5e-8, tolerance.pij=1e-4) {
 
     if (verbose) {
         cat(rep("\t",times=indent),"checking the consistency of the current solution with ",paste.known(sol),"\n",sep="")
@@ -1287,7 +1299,7 @@ detect.problems <- function(sol, case, fail=TRUE, verbose=FALSE, indent=1, toler
     }
 
     # nL = sum(ni)
-    if (!is.null(sol$hat.nL) && !is.null(sol$hat.ni)) {
+    if (!is.null(sol$hat.nL) && !is.null(sol[["hat.ni", exact=TRUE]])) {
         problems <- problems + assert.equal(
                                         sol$hat.nL, sum(sol$hat.ni), 
                                         "hat.nL = sum(hat.ni)", 
@@ -1325,7 +1337,7 @@ detect.problems <- function(sol, case, fail=TRUE, verbose=FALSE, indent=1, toler
     }
     
     # colSum(hat.nij) = hat.ni 
-    if (!is.null(sol$hat.nij) && !is.null(sol$hat.ni)) {
+    if (!is.null(sol$hat.nij) && !is.null(sol[["hat.ni", exact=TRUE]])) {
         problems <- problems + assert.equal(
                                         as.vector(colSums(sol$hat.nij)), as.vector(sol$hat.ni), 
                                         "hat.ni = colSums(hat.nij)", 
@@ -1336,6 +1348,22 @@ detect.problems <- function(sol, case, fail=TRUE, verbose=FALSE, indent=1, toler
                                         as.vector(rowSums(sol$hat.nij)), as.vector(sol$hat.nj), 
                                         "hat.nj = rowSums(hat.nij)", 
                                         verbose=verbose, indent=indent+1)
+    }
+
+    # colSum(hat.pij) = hat.pi 
+    if (!is.null(sol$hat.pij) && !is.null(sol[["hat.pi", exact=TRUE]])) {
+        problems <- problems + assert.equal(
+                                        as.vector(colSums(sol$hat.pij)), as.vector(sol$hat.pi), 
+                                        "hat.pi = colSums(hat.pij)", 
+                                        verbose=verbose, indent=indent+1,
+                                        tolerance=tolerance.pij)
+    }
+    if (!is.null(sol$hat.pij) && !is.null(sol$hat.pj)) {
+        problems <- problems + assert.equal(
+                                        as.vector(rowSums(sol$hat.pij)), as.vector(sol$hat.pj), 
+                                        "hat.pj = rowSums(hat.pij)", 
+                                        verbose=verbose, indent=indent+1,
+                                        tolerance=tolerance.pij)
     }
 
     # vsum(pdi) = 1
@@ -1377,7 +1405,7 @@ detect.problems <- function(sol, case, fail=TRUE, verbose=FALSE, indent=1, toler
     }    
 
     # sum(hat.ndi * n) = hat.ni
-    if (!is.null(sol$hat.ndi) && !is.null(sol$hat.ni)) {
+    if (!is.null(sol$hat.ndi) && !is.null(sol[["hat.ni", exact=TRUE]])) {
         problems <- problems + assert.equal(
                                 as.vector(colSums(sol$hat.ndi * 0:(nrow(sol$hat.ndi)-1))), 
                                 as.vector(sol$hat.ni), 
@@ -1519,7 +1547,7 @@ paste.known <- function(sol) {
             names(sol),
             c("hat.nA", "hat.ci", "hat.fi", "hat.di", "hat.pij", "hat.dj", "hat.fj", "hat.cj", "hat.nB")
             ),
-        collapse=","
+        collapse=", "
         )
 }
 
@@ -1554,6 +1582,7 @@ paste.known <- function(sol) {
 #' @param verbose if TRUE, will display detailed information on the console
 #' @param tolerance.pd the tolerance for probability distributions
 #' @param tolerance.degree.max the tolerance for min/max average degrees
+#' @param tolerance.pij the tolerance for pij probabilities
 #' @return a list of vectors (the chains) of strings 
 #'
 #' @seealso \code{\link{propagate.direct}} for the inference of the consequences of the hypothesis,
@@ -1569,7 +1598,7 @@ resolve.missing.chain <- function(sol, chain, case,
                                     nA, nB, 
                                     nu.A, phi.A, delta.A, nu.B, phi.B, delta.B, gamma, 
                                     verbose=FALSE,
-                                    tolerance.pd=1.5e-8, tolerance.degree.max=1.5e-8) {
+                                    tolerance.pd=1.5e-8, tolerance.degree.max=1.5e-8, tolerance.pij=1e-6) {
 
     if (verbose)
         cat("\tstarting the investigation of the missing chain: ",paste(chain,collapse=","),"\n",sep="")
@@ -1656,7 +1685,7 @@ resolve.missing.chain <- function(sol, chain, case,
                 nb.problems <- detect.problems(
                                         sol.hyp, case, 
                                         fail=FALSE, verbose=verbose, indent=3, 
-                                        tolerance.pd=tolerance.pd, tolerance.degree.max=tolerance.degree.max)
+                                        tolerance.pd=tolerance.pd, tolerance.degree.max=tolerance.degree.max, tolerance.pij=tolerance.pij)
 
                 if (nb.problems > 0) {
                     #cat("this variable does not provides a valid solution to our problem","\n")
@@ -1671,14 +1700,10 @@ resolve.missing.chain <- function(sol, chain, case,
                     if (verbose) {
 
                         cat(paste("\t\t\there are the NRMSE errors of this solution: ",
-                            "nA=",sol.hyp$nrmse.nA,
-                            ",fi=",sol.hyp$nrmse.fi, 
-                            ",di=",sol.hyp$nrmse.di,
-                            ",pij=",sol.hyp$nrmse.pij, 
-                            ",dj=",sol.hyp$nrmse.dj, 
-                            ",fj=",sol.hyp$nrmse.fj,
-                            ",nB=",sol.hyp$nrmse.nB,
-                            "\n",
+                            "nA=",formatC(sol.hyp$nrmse.nA, format="G"), ", fi=",formatC(sol.hyp$nrmse.fi, format="G"), 
+                            ", di=",formatC(sol.hyp$nrmse.di, format="G"), ", pij=",formatC(sol.hyp$nrmse.pij, format="G"), 
+                            ", dj=",formatC(sol.hyp$nrmse.dj, format="G"), ", fj=",formatC(sol.hyp$nrmse.fj, format="G"),
+                            ", nB=",formatC(sol.hyp$nrmse.nB, format="G"), "\n",
                             sep=""
                             ))
                     }
@@ -1714,22 +1739,22 @@ resolve.missing.chain <- function(sol, chain, case,
             }
         }
         cumulated.errors <- rep(0, times=length(solutions))
+        cumulated.errors.constrainsts <- rep(0, times=length(solutions))
+
         weights <- c(nu.A, phi.A, delta.A, gamma, delta.B, phi.B, nu.B)
         weights.names <- c("nu.A", "phi.A", "delta.A", "gamma", "delta.B", "phi.B", "nu.B")
-        indices_weights_not_null <- which(weights != 0)
+        indices_weights_not_null <- which(weights > 0)
+        indices_weights_null <- which(weights == 0)
+        rnmse.names <- c("RNMSE.nA", "RNMSE.fi", "RNMSE.di", "RNMSE.pij", "RNMSE.dj", "RNMSE.fj", "RNMSE.nB")
 
 
         if (verbose)
             cat("\t\tfound ",length(solutions)," solutions, we have to select the best according to weights", 
-                    paste(weights.names[indices_weights_not_null], collapse=","),"\n")
-            weights <- c(nu.A, phi.A, delta.A, gamma, delta.B, phi.B, nu.B)
+                    paste(weights.names, weights, collapse=", ", sep="="),"\n")
 
-        # print("weights")
-        # print(weights)
         for (i in 1:length(solutions)) {
 
             s <- solutions[[i]]
-            # print(names(s$sol))
 
             errors <- c(
                         val.or.0(s$sol$nrmse.nA), 
@@ -1741,21 +1766,36 @@ resolve.missing.chain <- function(sol, chain, case,
                         val.or.0(s$sol$nrmse.nB)
                         )
 
-            # print("errors for this sol")
-            # print(errors[indices_weights_not_null])
-            # print("weighted")
-            # print(errors[indices_weights_not_null] / weights[indices_weights_not_null])
             weighted <- errors[indices_weights_not_null] / weights[indices_weights_not_null]
             cumulated.errors[i] <- sum(weighted)
-            
+            cumulated.errors.constrainsts[i] <- sum(errors[indices_weights_null])
+
             if (verbose)
-                cat(paste("\t\t\tsolution (",i,") (", cumulated.errors[i], ") =>\n",
-                    "\t\t\t\t\t\t", paste(errors[indices_weights_not_null],collapse="\t"), "\n",
-                    "\t\t\t\t weighted: \t",paste(weighted,collapse="\t"),"\n",sep=""))
+                cat(paste(
+                    "\t\t\tsolution (",i,") (", formatC(cumulated.errors[i],format="G"), ") => ", s$investigated.var.name, "\n",
+                    "\t\t\t\t\t\t", paste(rnmse.names[indices_weights_not_null], formatC(errors[indices_weights_not_null],format="G"),collapse=", ",sep="="), "\n",
+                    "\t\t\t\t weighted: \t",paste(rnmse.names[indices_weights_not_null], formatC(weighted,format="G"), collapse=", ",sep="="),"\n",
+                    "\t\t\t\t constrainsts: \t",paste(rnmse.names[indices_weights_null], formatC(errors[indices_weights_null],format="G"), collapse=", ",sep="="),"\n",
+                    sep=""))
         }
 
-        best.solutions <- which(cumulated.errors == min(cumulated.errors)) 
+        # the best solution is either the solution which minimizes the errors on constrainsts (if there is any difference), 
+        # or the solution minimizing cumulated errors on relaxed parameters.
+        weight.by.constrainsts <- length(unique(cumulated.errors.constrainsts))>1
+        best.solutions <-   if (weight.by.constrainsts) 
+                                which(cumulated.errors.constrainsts == min(cumulated.errors.constrainsts)) 
+                            else 
+                                which(cumulated.errors == min(cumulated.errors)) 
+                                
         best.solution <- NULL
+
+        if (weight.by.constrainsts && (length(best.solutions) > 1)) {
+            # the solutions are equivalent by constraints; why one is the best according to weights ?
+            best.solutions <- which(
+                    (cumulated.errors.constrainsts == min(cumulated.errors.constrainsts)) &
+                    (cumulated.errors == min(cumulated.errors))) 
+                
+        }   
         if (length(best.solutions) > 1) {
             best.solution <- sample(best.solutions, 1)
             # TODO warning ? systematic message ?
@@ -1764,12 +1804,22 @@ resolve.missing.chain <- function(sol, chain, case,
                 for (idx in best.solutions)
                     cat("\t\t\t\t* solution ",idx," solved with:\t",solutions[[idx]]$investigated.var.name,"\n",sep="")
                 #cat("\t\t\tthere are multiple best solutions (that is: ",length(best.solutions),") ; just selecting one randomly\n",sep="")
-                cat("\t\t=> selected ",best.solution," which is one of the ",length(best.solutions)," solutions having lowest weighted error\n",sep="")
+                cat("\t\t=> selected ",best.solution, " which is one of the ",length(best.solutions)," solutions having ", sep="")
+                if (weight.by.constrainsts)
+                    cat("lowest error for constrainsts\n",sep="")
+                else 
+                    cat("lowest weighted error\n",sep="")
             }
         } else {
             best.solution <- best.solutions[[1]]
-            if (verbose)
-                cat("\t\t=> will keep solution ",best.solution," which is the one with the lowest weighted error\n",sep="")
+            if (verbose) {
+                cat("\t\t=> will keep solution ",best.solution," which is the one with the ",sep="")
+                if (weight.by.constrainsts)
+                    cat("lowest error for constrainsts\n",sep="")
+                else 
+                    cat("lowest weighted error\n",sep="")
+            }
+
         }
         if (verbose) {
             cat("\t\t\tthis solution is based on hypothesis: ",solutions[[best.solution]]$investigated.var.name,"\n",sep="")
@@ -1805,6 +1855,7 @@ resolve.missing.chain <- function(sol, chain, case,
 #' @param verbose if TRUE, will display detailed information on the console
 #' @param tolerance.pd the tolerance for probability distributions
 #' @param tolerance.degree.max the tolerance for min/max average degrees
+#' @param tolerance.pij the tolerance for pij probabilities
 #' 
 #' @return a list of vectors (the chains) of strings 
 #' 
@@ -1818,10 +1869,13 @@ resolve <- function(sol, case,
                         gamma,
                         nu.B, phi.B, delta.B,  
                         verbose=FALSE,
-                        tolerance.pd=1.5e-8, tolerance.degree.max=1.5e-8) {
+                        tolerance.pd=1.5e-8, tolerance.degree.max=1.5e-8, tolerance.pij=1e-6) {
 
     # direct propagation of what we know
     sol.tmp <- propagate.direct(sol, case, verbose=verbose)
+    detect.problems(sol.tmp, case, 
+                    verbose=verbose, 
+                    tolerance.pd=tolerance.pd, tolerance.degree.max=tolerance.degree.max, tolerance.pij=tolerance.pij)
 
     missing.chains <- detect.missing.chains(sol.tmp)
     while (length(missing.chains) > 0) {
@@ -1830,9 +1884,9 @@ resolve <- function(sol, case,
         missing.chains[[1]] <- NULL
 
         found <- resolve.missing.chain(sol.tmp, chain, case, 
-                    nA, nB, nu.A, phi.A, delta.A, nu.B, phi.B, delta.B, gamma, 
+                    nA=nA, nB=nB, nu.A=nu.A, phi.A=phi.A, delta.A=delta.A, nu.B=nu.B, phi.B=phi.B, delta.B=delta.B, gamma=gamma, 
                     verbose=verbose,
-                    tolerance.pd=tolerance.pd, tolerance.degree.max=tolerance.degree.max)
+                    tolerance.pd=tolerance.pd, tolerance.degree.max=tolerance.degree.max, tolerance.pij=tolerance.pij)
 
         if (!is.null(found)) {
             if (verbose) {
@@ -2032,6 +2086,7 @@ mean.data.frame <- function(x, ...) {
 #' @param verbose if TRUE, the resolution will emit messages for debug
 #' @param tolerance.pd the tolerance for probability distributions
 #' @param tolerance.degree.max the tolerance for min/max average degrees
+#' @param tolerance.pij the tolerance for pij probabilities
 #' 
 #' @return a case ready for generation
 #'
@@ -2068,7 +2123,7 @@ matching.solve <- function(case,
                                 gamma, 
                                 delta.B, phi.B, nu.B, 
                                 verbose = FALSE,
-                                tolerance.pd = 1.5e-6, tolerance.degree.max=1.5e-8) {
+                                tolerance.pd = 1.5e-6, tolerance.degree.max=1.5e-8, tolerance.pij=1e-6) {
 
     if (class(case) != "dpp_prepared") 
         stop("case should be the result of a preparation of data by matching.prepare")
@@ -2115,7 +2170,7 @@ matching.solve <- function(case,
         sol$hat.di <- case$inputs$di * case$masks$mask.di.all 
         sol$hat.pdi <- case$inputs$pdi$data #* case$masks$mask.di.all 
     }
-
+        
     if (nu.B == 0)      { sol$hat.nB <- nB }
     if (phi.B == 0)     { sol$hat.fj <- normalise(case$stats$fj * case$masks$mask.fj.all) }
     if (delta.B == 0)   { 
@@ -2127,16 +2182,19 @@ matching.solve <- function(case,
 
     if (verbose) {
         cat("\taccording to user weights, we already know: ",paste(names(sol),collapse=","),"\n",sep="")
+
     }
 
     # detect issues right now; maybe the problem is overconstrained or badly constrainted
-    detect.problems(sol, case, verbose=verbose, tolerance.pd=tolerance.pd, tolerance.degree.max=tolerance.degree.max)
+    detect.problems(sol, case, 
+                    verbose=verbose, 
+                    tolerance.pd=tolerance.pd, tolerance.degree.max=tolerance.degree.max, tolerance.pij=tolerance.pij)
 
     sol <- resolve(sol, case, 
-                nA, nB, 
-                nu.A, phi.A, delta.A, nu.B, phi.B, delta.B, gamma, 
+                nA=nA, nB=nB, 
+                nu.A=nu.A, phi.A=phi.A, delta.A=delta.A, nu.B=nu.B, phi.B=phi.B, delta.B=delta.B, gamma=gamma, 
                 verbose=verbose, 
-                tolerance.pd=tolerance.pd, tolerance.degree.max=tolerance.degree.max)
+                tolerance.pd=tolerance.pd, tolerance.degree.max=tolerance.degree.max, tolerance.pij=tolerance.pij)
 
     # ensure all the variables found a solution during the process
      if (!all(c(
@@ -2155,7 +2213,9 @@ matching.solve <- function(case,
             ")")
     } 
 
-    detect.problems(sol, case, verbose=verbose, tolerance.pd=tolerance.pd, tolerance.degree.max=tolerance.degree.max)
+    detect.problems(sol, case, 
+                    verbose=verbose, 
+                    tolerance.pd=tolerance.pd, tolerance.degree.max=tolerance.degree.max, tolerance.pij=tolerance.pij)
 
     if (verbose) {
         cat("\ncase solved.\n")

@@ -179,16 +179,18 @@ test_that("constraints: phi.A, delta.A (free on matching and B)", {
 	
 })
 
-test_that("constraints: phi.A, gamma (free on A and B)", {
+test_that("constraints: gamma (free on A and B)", {
 	
 	data(cas1)
 
 	prepared <- matching.prepare(cas1$sample.A, cas1$sample.B, cas1$pdi, cas1$pdj, cas1$pij)
 
+	# solved <- matching.solve(prepared, nA=50000, nB=40000, nu.A=1, phi.A=1, delta.A=1, gamma=0, delta.B=1, phi.B=1, nu.B=1, verbose=T)
+	
 	solved <- matching.solve(prepared, 
 		nA=50000, nB=40000, 
-		nu.A=1, phi.A=0, delta.A=1, gamma=0, delta.B=1, phi.B=1, nu.B=1
-		)
+		nu.A=1, phi.A=1, delta.A=1, gamma=0, delta.B=1, phi.B=1, nu.B=1,
+		verbose=F)
 	
 	expect_is(solved, "dpp_resolved")
 
@@ -196,8 +198,7 @@ test_that("constraints: phi.A, gamma (free on A and B)", {
 	expect_false(is.null(solved$gen$hat.nB))
 	expect_false(is.null(solved$gen$hat.di))
 	
-	expect_equal(prepared$stats$fi, solved$gen$hat.fi, tolerance=1e-5)
-	expect_equal(as.matrix(cas1$pij$data), solved$gen$hat.pij, tolerance=1e-5)
+	expect_equal(as.matrix(cas1$pij$data), solved$gen$hat.pij, tolerance=0.1)
 	
 })
 
@@ -388,7 +389,7 @@ test_that("constraints: pdi with zero (p(di=0)=1.0)", {
 
 	solved <- matching.solve(prepared, 
 		nA=50000, nB=40000, 
-		nu.A=1, phi.A=0, delta.A=1, gamma=0, delta.B=1, phi.B=1, nu.B=1,
+		nu.A=1, phi.A=1, delta.A=1, gamma=0, delta.B=1, phi.B=1, nu.B=1,
 		verbose=FALSE
 		)
 	

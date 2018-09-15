@@ -47,7 +47,7 @@
 #'
 # TODO keep ? remove ? @describeIn as.igraph exports a generation result as an igraph graph
 #'
-#' @importFrom igraph graph_from_edgelist set_vertex_attr as.igraph 
+#' @importFrom igraph as.igraph graph_from_edgelist set_vertex_attr
 #'
 #' @author Samuel Thiriot <samuel.thiriot@res-ear.ch> 
 #'
@@ -101,7 +101,7 @@ as.igraph.dpp_population <- function(pop, with.attributes=FALSE, ...) {
 #' @author Samuel Thiriot <samuel.thiriot@res-ear.ch> 
 #'
 as.igraph.dpp_result <- function(generated, with.attributes=FALSE, ...) {
-
+    
     as.igraph.dpp_population(generated$pop, with.attributes=with.attributes)
 
 }
