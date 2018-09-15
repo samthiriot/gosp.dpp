@@ -282,7 +282,7 @@ plot_average_degree_A <- function(sp, nameA="A", colorRef="darkgray", colorSynth
                         scale_gray_blue + 
                         ggplot2::ylab("average degree") + 
                         ggplot2::ggtitle(paste("average degree",nameA," (NRMSE ",sp$gen$nrmse.di,")")) +
-                        ggplot2::theme(axis.text.x = element_text(angle = 90, hjust = 1))
+                        ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 90, hjust = 1))
 
     plot_degrees_A
 }
@@ -308,7 +308,7 @@ plot_average_degree_B <- function(sp, nameB="B", colorRef="darkgray", colorSynth
                         scale_gray_blue + 
                         ggplot2::ylab("average degree") + 
                         ggplot2::ggtitle(paste("average degree",nameB," (NRMSE ",sp$gen$nrmse.dj,")")) +
-                        ggplot2::theme(axis.text.x = element_text(angle = 90, hjust = 1))
+                        ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 90, hjust = 1))
 
     plot_degrees_B 
 }
@@ -350,7 +350,7 @@ plot_frequencies_A <- function(sp, nameA="A", colorRef="darkgray", colorSyntheti
                         scale_gray_blue + 
                         ggplot2::ylab("freq") + 
                         ggplot2::ggtitle(paste("frequencies",nameA," (NRMSE ",sp$gen$nrmse.fi,")")) +
-                        ggplot2::theme(axis.text.x = element_text(angle = 90, hjust = 1))
+                        ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 90, hjust = 1))
 
     res_plot
 }
@@ -375,7 +375,7 @@ plot_frequencies_B <- function(sp, nameB="B", colorRef="darkgray", colorSyntheti
                         scale_gray_blue + 
                         ggplot2::ylab("freq") + 
                         ggplot2::ggtitle(paste("frequencies",nameB," (NRMSE ",sp$gen$nrmse.fj,")")) +
-                        ggplot2::theme(axis.text.x = element_text(angle = 90, hjust = 1))
+                        ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 90, hjust = 1))
 
 
     res_plot
@@ -416,7 +416,7 @@ plot_errors_pdi <- function(sp, nameA="A", colorRef="darkgray", colorSynthetic="
                         ggplot2::geom_tile(ggplot2::aes(fill=value)) + 
                         heat_map_gradient + 
                         ggplot2::ggtitle(paste("difference degree for",nameA," (NRMSE ",sp$gen$nrmse.pdi,")")) +
-                        ggplot2::theme(axis.text.x = element_text(angle = 90, hjust = 1))
+                        ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 90, hjust = 1))
 
     plot_pdi
 }
@@ -438,7 +438,7 @@ plot_errors_pdj <- function(sp, nameB="B", colorRef="darkgray", colorSynthetic="
                         ggplot2::geom_tile(ggplot2::aes(fill=value)) + 
                         heat_map_gradient + 
                         ggplot2::ggtitle(paste("difference degree for",nameB," (NRMSE ",sp$gen$nrmse.pdj,")")) +
-                        ggplot2::theme(axis.text.x = element_text(angle = 90, hjust = 1))
+                        ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 90, hjust = 1))
     plot_pdj
 }
 
@@ -477,7 +477,7 @@ plot_errors_pij <- function(sp) {
                         ggplot2::geom_tile(ggplot2::aes(fill=value)) + 
                         heat_map_gradient + 
                         ggplot2::ggtitle(paste("difference pairing (NRMSE ",sp$gen$nrmse.pij,")")) +
-                        ggplot2::theme(axis.text.x = element_text(angle = 90, hjust = 1))
+                        ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 90, hjust = 1))
 
     plot_pij
 }
