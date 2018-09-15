@@ -56,6 +56,10 @@
 #'
 as.igraph.dpp_population <- function(pop, with.attributes=FALSE, ...) {
     
+    # ensure this object is of the right type
+    if (class(pop) != "dpp_result")
+        stop("the population to export should be the result of a matching.generate call")
+    
     # pop$links is a data frame that requires convertion to a matrix
 
     g <- igraph::graph_from_edgelist(as.matrix(pop$links), directed=TRUE)
@@ -100,11 +104,44 @@ as.igraph.dpp_population <- function(pop, with.attributes=FALSE, ...) {
 #'
 #' @importFrom igraph as.igraph
 #'
-#'
 #' @author Samuel Thiriot <samuel.thiriot@res-ear.ch> 
 #'
 as.igraph.dpp_result <- function(generated, with.attributes=FALSE, ...) {
     
     as.igraph.dpp_population(generated$pop, with.attributes=with.attributes)
+
+}
+
+#' Exports a synthetic population as one unique dataframe
+#' 
+#' Merges the individual dataframes of population A, B and links
+#' into one unique merged one. There will be partial lines when 
+#' one entity had no link.
+#'
+#' @param generated the generation result produced by \link{\code{matching.generate}}
+#'
+#' @export
+#'
+#' @author Samuel Thiriot <samuel.thiriot@res-ear.ch> 
+#'
+as.merged.dataframe <- function(generated) {
+  
+    # ensure this object is of the right type
+    if (class(generated) != "dpp_result")
+        stop("the population to export should be the result of a matching.generate call")
+   
+    joined <- merge(
+                    merge(
+                        generated$pop$A, 
+                        generated$pop$links, 
+                        by="id.A", 
+                        all=T), 
+                    generated$pop$B, 
+                    by="id.B", 
+                    all=T
+                    )
+
+    # return in random order
+    joined[sample(nrow(joined)),]
 
 }

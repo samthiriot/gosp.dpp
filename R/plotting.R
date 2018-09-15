@@ -537,7 +537,7 @@ plot.dpp_resolved <- function(x, nameA="A", nameB="B", colorRef="darkgray", colo
 
     sp <- x
 
-    # TODO ensure this object is of the right type
+    # ensure this object is of the right type
     if ((class(sp) != "dpp_result") && (class(sp) != "dpp_resolved")) 
         stop("the data to analyze x should be the result of a matching.solve or matching.generate call")
     
