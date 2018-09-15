@@ -186,7 +186,8 @@ The plot of all errors also shown how the frequencies of classes for dwellings w
 plot_frequencies_A(solved)
 ```
 
-## Actual generation
+
+## Actual generation
 
 The actual generation actually creates the synthetic population from the computed parameters.
 
