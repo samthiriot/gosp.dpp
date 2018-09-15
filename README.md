@@ -20,7 +20,7 @@ then use it to install the package from github
 
 you would also better install the optional dependancies:
 
-    install.packages("ggplot2", "gridExtra", "igraph")
+    install.packages(c("ggplot2", "gridExtra", "igraph", "mipfp"))
 
 
 # developer install
