@@ -35,7 +35,7 @@ clone the repository
 
 from inside the clone
 
-    install.packages(c("devtools", "rhub", "knitr"))
+    install.packages(c("devtools", "rhub", "knitr", "rmarkdown", "roxygen2"))
 	library(devtools)
 	devtools::install()
 	devtools::load_all()
@@ -60,6 +60,11 @@ check the package locally
 
 	library(devtools)
 	devtools::check(manual=TRUE, vignette=TRUE)
+
+build the vignettes
+
+    build_vignettes()
+
 
 check on various platforms
 
