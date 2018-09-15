@@ -22,6 +22,16 @@ Simple case to discover the principles of Direct Probabilistic Pairing.
 It illustrates how to use this method to generate populations of dwellings and households, 
 both being composed inside each other depending to their characteristics.
 
+## Load the package
+
+```{r, fig.show='hold'}
+# load the package from current directory (development mode)
+library(devtools)
+devtools::load_all() 
+
+# install on a local computer: 
+# library(gosp.dpp) 
+```
 
 ## Input data
 
