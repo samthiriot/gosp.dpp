@@ -648,7 +648,7 @@ plot_variable <- function(sample, generated, var.name, colorRef="darkgray", colo
 #' pv <- as.latex.table.probabilistic.init(solved)
 #' print(pv)
 #' # write it into a file
-#' # write(pv, , file="case1_probabilistic_init.tex")
+#' # write(pv, file="case1_probabilistic_init.tex")
 #' 
 #' @export
 #'
@@ -731,7 +731,7 @@ as.latex.table.probabilistic.init <- function(sp, maxcol=NULL) {
                 paste(names(sp$stats$fj[j]), collapse=""), " & ",
                 formatC(sp$stats$fj[j], format="G"), " & ",
                 formatC(sp$inputs$dj[j], format="G"), " & ",
-                formatC(sum(sp$inputs$pij$data[j,1:count_cols_right-1]), format="G"), " & ",
+                formatC(sum(sp$inputs$pij$data[j,]), format="G"), " & ",
                 j, " & ",
                 paste(sapply(sp$inputs$pij$data[j,1:count_cols_right-1], formatC, format="G"), collapse=" & "), missingcol, " & ",
                 end_line,
@@ -774,7 +774,7 @@ as.latex.table.probabilistic.init <- function(sp, maxcol=NULL) {
 #' pv <- as.latex.table.probabilistic.solved(solved)
 #' print(pv)
 #' # write it into a file
-#' # write(pv, , file="case1_probabilistic_solved.tex")
+#' # write(pv, file="case1_probabilistic_solved.tex")
 #' 
 #' @export
 #'
