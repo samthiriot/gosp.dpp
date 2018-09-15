@@ -1,8 +1,9 @@
 # documentation of datasets
 
-#' Data for a Direct Probabilistic Peering of 
-#' dwellings and households based on just several attributes. 
+#' Example dataset for DPP with simple dwellings and households 
 #' 
-#' This is fake, forged data for testing purpose. 
+#' This is fake, forged data for testing purpose. Contains a sample of dwellings, 
+#' and sample of households, and the data required to associate them together.
+#'
 #'
 "dwellings_households"
