@@ -630,8 +630,29 @@ plot_variable <- function(sample, generated, var.name, colorRef="darkgray", colo
 }
 
 
-# TODO doc
-create_probability_view_init <- function(sp, maxcol=NULL) {
+#' Creates a LaTeX view with the probabilistic values after resolution
+#'
+#' Create a table view of the solved problem, with probabilistic values. 
+#' Ready to be written into a tex file.
+#' 
+#' @param sp a solved case produced by \code{\link{matching.solve}} 
+#' @param maxcol an optional integer containing the highest count of columns to display (useful for large tables)
+#' @return a string containing a LaTeX table
+#' 
+#' @examples 
+#' data(cas1)
+#' prepared <- matching.prepare(cas1$sample.A, cas1$sample.B, cas1$pdi, cas1$pdj, cas1$pij)
+#' solved <- matching.solve(prepared, nA=50000, nB=40000, nu.A=1, phi.A=0, 
+#'                            delta.A=0, gamma=0, delta.B=0, phi.B=0, nu.B=1, verbose=TRUE)
+#' # create the string
+#' pv <- as.latex.table.probabilistic.init(solved)
+#' print(pv)
+#' # write it into a file
+#' # write(pv, , file="case1_probabilistic_init.tex")
+#' 
+#' @export
+#'
+as.latex.table.probabilistic.init <- function(sp, maxcol=NULL) {
 
     if ( (class(sp) != "dpp_prepared") && (class(sp) != "dpp_resolved") ) 
         stop("the parameter 'sp' should be the result of a 'matching.prepare' or 'matching.solve' call")
@@ -735,7 +756,29 @@ create_probability_view_init <- function(sp, maxcol=NULL) {
 
  }
 
-create_probability_view_solved  <- function(sp, maxcol=NULL) {
+#' Creates a LaTeX view with the probabilistic values after resolution
+#'
+#' Create a table view of the solved problem, with probabilistic values. 
+#' Ready to be written into a tex file.
+#' 
+#' @param sp a solved case produced by \code{\link{matching.solve}} 
+#' @param maxcol an optional integer containing the highest count of columns to display (useful for large tables)
+#' @return a string containing a LaTeX table
+#' 
+#' @examples 
+#' data(cas1)
+#' prepared <- matching.prepare(cas1$sample.A, cas1$sample.B, cas1$pdi, cas1$pdj, cas1$pij)
+#' solved <- matching.solve(prepared, nA=50000, nB=40000, nu.A=1, phi.A=0, 
+#'                            delta.A=0, gamma=0, delta.B=0, phi.B=0, nu.B=1, verbose=TRUE)
+#' # create the string
+#' pv <- as.latex.table.probabilistic.solved(solved)
+#' print(pv)
+#' # write it into a file
+#' # write(pv, , file="case1_probabilistic_solved.tex")
+#' 
+#' @export
+#'
+as.latex.table.probabilistic.solved  <- function(sp, maxcol=NULL) {
 
     if (class(sp) != "dpp_resolved") 
         stop("the parameter 'sp' should be the result of a 'matching.solve' call")
@@ -837,7 +880,29 @@ create_probability_view_solved  <- function(sp, maxcol=NULL) {
 
  }
 
-create_discrete_view_solved  <- function(sp, maxcol=NULL) {
+#' Creates a LaTeX view with the discrete values
+#'
+#' Create a table view of the solved problem, with integer values. 
+#' Ready to be written into a tex file.
+#' 
+#' @param sp a solved case produced by \code{\link{matching.solve}} 
+#' @param maxcol an optional integer containing the highest count of columns to display (useful for large tables)
+#' @return a string containing a LaTeX table
+#' 
+#' @examples 
+#' data(cas1)
+#' prepared <- matching.prepare(cas1$sample.A, cas1$sample.B, cas1$pdi, cas1$pdj, cas1$pij)
+#' solved <- matching.solve(prepared, nA=50000, nB=40000, nu.A=1, phi.A=0, 
+#'                            delta.A=0, gamma=0, delta.B=0, phi.B=0, nu.B=1, verbose=TRUE)
+#' # create the string
+#' dv <- as.latex.table.discrete(solved)
+#' print(dv)
+#' # write it into a file
+#' # write(dv, , file="case1_discrete.tex")
+#' 
+#' @export
+#'
+as.latex.table.discrete <- function(sp, maxcol=NULL) {
 
     if (class(sp) != "dpp_resolved") 
         stop("the parameter 'sp' should be the result of a 'matching.solve' call")
