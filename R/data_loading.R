@@ -207,6 +207,25 @@ relax.zeros.dpp_sample <- function(x, by=.Machine$double.eps, ...) {
 }
 
 
+
+#' Sets row names for degrees distribution 
+#' 
+#' Changes the row names so their numbering
+#' starts at 0 instead of 1. It's fitting the
+#' actual semantics of this type of table.
+#' 
+#' @param df a dataframe
+#' @return the dataframe with fixed names
+#'
+#' @keywords internal
+#' 
+#' @author Samuel Thiriot <samuel.thiriot@res-ear.ch>
+#' 
+set.rownames.degrees <- function(df) {
+    row.names(df) <- 0:(nrow(df)-1)
+    df
+}
+
 # TODO manage multiple attributes
 # 
 #' Creates a table storing probabilities for degrees
@@ -264,7 +283,7 @@ create_degree_probabilities_table <- function(probabilities, norm=TRUE) {
 
     # forge the result 
     res <- list(
-            data=probabilities,
+            data=set.rownames.degrees(probabilities),
             attributes=attributes.names
         )
     class(res) <- "dpp_degree_cpt"
