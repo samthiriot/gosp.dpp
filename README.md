@@ -1,11 +1,11 @@
 [![Travis-CI Build Status](https://travis-ci.org/samthiriot/gosp.dpp.svg?branch=master)](https://travis-ci.org/samthiriot/gosp.dpp)
 
-# gosp.dpp 
+## gosp.dpp 
 
 Generation of Synthetic Populations: Direct Probabilistic Pairing
 
 
-# user install
+## user install
 
 From R, you can install it in 2 steps only:
 
@@ -23,7 +23,7 @@ you would also better install the optional dependancies:
     install.packages(c("ggplot2", "gridExtra", "igraph", "mipfp"))
 
 
-# developer install
+## developer install
 
 clone the repository
 
@@ -37,7 +37,7 @@ from inside the clone
 enjoy!
 
 
-# releasing
+## releasing
 
 generate the data
 
@@ -65,6 +65,7 @@ before release, we test the package on Windows, MacOSX and Linux
 update comments for CRAN: if relevant, update the comments in cran-comments.md
 
 
-## TODO
+## first steps
 
-actual upload:
+To now how to start, you might have a look to the vignettes:
+* simple example of generation of a synthetic populations made of dwellings and households: http://htmlpreview.github.io/?https://raw.githubusercontent.com/samthiriot/gosp.dpp/master/inst/doc/compose_dwellings_and_households.html
