@@ -1,0 +1,224 @@
+---
+title: "Simple example: compose dwellings and households"
+author: "Samuel Thiriot"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Vignette Title}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.width=8, 
+  fig.height=3
+)
+```
+
+Simple case to discover the principles of Direct Probabilistic Pairing. 
+It illustrates how to use this method to generate populations of dwellings and households, 
+both being composed inside each other depending to their characteristics.
+
+
+## Input data
+
+The data to run this case is included in the package. Let's load it and have a look to its content. 
+
+```{r, fig.show='hold'}
+data(dwellings_households)
+dwellings_households
+```
+
+The data required for the generation of a synthetic population made of paired entities is made of the elements displayed there. 
+We describe in detail each type of data below.
+
+### Samples for A and B
+
+Two samples are provided for each entities. These samples are microdata, similar to PUMS.
+
+The sample A contains a sample of dwellings, characterised by a surface category and a cost per month:
+```{r, fig.show='hold'}
+dwellings_households$sample.A
+head(as.data.frame(dwellings_households$sample.A))
+```
+
+The sample B contains a sample of households, characterised by a size (count of people) and an income level:
+```{r, fig.show='hold'}
+dwellings_households$sample.B
+head(as.data.frame(dwellings_households$sample.B))
+```
+
+### Probability distributions for degrees
+
+Input data also includes the description of how many links to create for each entity type given its characteristics. 
+Here for dwellings, the count of links (in rows) depends on the attribute `surface` (in columns).
+This distribution means that for dwellings having surface 1 (first column), 20% have no link (so have no link with any household,
+aka empty) and 80% contain 1 household only. This table describes the fact smaller dwellings tend to host only one household, 
+whilst bigger ones can contain several households.
+```{r, fig.show='hold'}
+dwellings_households$pdi
+```
+
+The distribution of degrees for households describes an easier situation: whatever caracteristic of the household, 
+always link the household with exactly one dwelling.
+```{r, fig.show='hold'}
+dwellings_households$pdj
+```
+
+### Pairing probabilies
+
+Pairing probabilities define which household and dwelling should be linked given their characteristics. 
+The data proposed here describes that if we take one link randomly in the generated population, it has 20% of 
+linking a small dwelling (column) with a small household (row):
+```{r, fig.show='hold'}
+dwellings_households$pij
+```
+
+## Solve the case
+
+### Prepare the case
+
+The step of preparation of data will ensure data is consistent, and is ready for resolution.
+
+```{r, fig.show='hold'}
+prepared <- matching.prepare(dwellings_households$sample.A, dwellings_households$sample.B, dwellings_households$pdi, dwellings_households$pdj, dwellings_households$pij)
+```
+
+This step will be useful and important one real cases. Il might display warnings, enrich data, or even fail if the data is not consistent.
+
+
+### Resolution 
+
+In the target population, many different variables should have consistent values. 
+The resolution of the system will precisely solve the underlying system of equations.
+The resolution takes as parameters relaxation parameters which help you define where you prefer the errors to take place. 
+
+Let's first resolve the system without specific relaxation (we let the algorithm do wathever is better).
+```{r, fig.show='hold'}
+solved <- matching.solve(
+                      prepared, nA=50000, nB=40000, nu.A=1, phi.A=1, 
+                      delta.A=1, gamma=1, delta.B=1, phi.B=1, nu.B=1, verbose=FALSE)
+```
+
+Because we left the algorithm plenty of possibilities, the solver explored many possibilies.
+
+On your actual screen, you can run `plot(solved)` and obtain a large, synthetic view of the result of the generation.
+We will build here every of these plots and comment them.
+
+The plot of errors shows a synthetic view of where the errors (more precisely, the Normalized Mean Squarred Error) 
+were assigned. Here we can see the algorithm ended with errors on the count of entities $n_A$ (count of dwellings), on the pairing probabilities $p_{i,j}$, 
+with no error on other characteristics.
+```{r, fig.show='hold'}
+plot_errors(solved)
+```
+
+We can plot the population sizes to confirm that:
+```{r, fig.show='hold'}
+plot_population_sizes(solved)
+```
+
+We also can investigate what happend to pairing probabilities.
+```{r, fig.show='hold'}
+# input probabilities
+solved$inputs$pij
+# solved probabilities
+solved$gen$hat.pij
+# display the measure of differences: positive values are probabilities in excess.
+errors.pij(solved)
+# we also can plot that as an heatmap. Red means "not enough created", blue "too many".
+# the differences are so low they are not very visible here.
+plot_errors_pij(solved) 
+```
+
+
+### Resolution and relaxation of parameters
+
+Let's now imagine we would like to keep the count of entities A (dwellings), the relative frequencies for A, and the degree of connectivity. 
+It means we are sure of these parameters, and accept to report errors on other characteristics. 
+```{r, fig.show='hold'}
+solved <- matching.solve(
+                      prepared, nA=50000, nB=40000, nu.A=0, phi.A=0, 
+                      delta.A=0, gamma=0, delta.B=1, phi.B=1, nu.B=1, verbose=TRUE)
+```
+
+We displayed the resolution process in order to show how it works. 
+Basically, every relaxation parameter set to 0 means the initial value is taken for granted. 
+Then equations are applied in order to compute values for other variables. 
+If the solving leads to contradictions between values, it means the problem is overconstrained. 
+Most of the time, you don't need to care about this level of detail. 
+
+
+```{r, fig.show='hold'}
+plot_errors(solved)
+```
+
+The plot of errors shows how the algorithm, following our request, reported the errors elsewhere (here in pairing probabilities and count of households).
+
+
+Let's now try to enforce pairing probabilities by setting relaxation parameter $\gamma=0$:
+```{r, fig.show='hold'}
+solved <- matching.solve(
+                      prepared, nA=50000, nB=40000, nu.A=1, phi.A=1, 
+                      delta.A=1, gamma=0, delta.B=1, phi.B=1, nu.B=1, verbose=TRUE)
+plot_errors(solved)
+```
+
+Here enforcing pairing led to the propagation of errors to many other characteristics. For instance the average degrees of dwellings was adapted.
+```{r, fig.show='hold'}
+plot_average_degree_A(solved)
+```
+
+We also can check what happens in detail to the distribution of degrees of probabilities, to analyze carefully which specific dwellings 
+are concerned by this error. Here we observe the small dwellings have more links than planned (so there are less empy dwellings).
+There are also more empty dwellings than expected.
+```{r, fig.show='hold'}
+# the modified distribution of degrees
+solved$gen$hat.pdi
+# plot it
+plot_errors_pdi(solved)
+```
+
+The plot of all errors also shown how the frequencies of classes for dwellings were biased. Let's display these frequencies $f_i$, in order to analyze which are over or underrepresented.
+```{r, fig.show='hold'}
+plot_frequencies_A(solved)
+```
+
+## Actual generation
+
+The actual generation actually creates the synthetic population from the computed parameters.
+
+```{r, fig.show='hold'}
+sp <- matching.generate(
+                     solved, 
+                     sample.A=dwellings_households$sample.A, 
+                     sample.B=dwellings_households$sample.B, 
+                     verbose=TRUE)
+```
+
+The corresponding result contains three main tables (R data frames) which contain dwellings, households and links between them.
+```{r, fig.show='hold'}
+sp
+```
+
+We can now access each data set using:
+```{r, fig.show='hold'}
+head(sp$pop$A)
+head(sp$pop$B)
+head(sp$pop$links)
+```
+
+## Assess the quality of the generation
+
+Beyond the variables which are controlled by the algorithm, we can wonder what happened to variables which are not constrained. 
+We provide a function for this plot:
+```{r, fig.show='hold'}
+plot_variable(sample=dwellings_households$sample.A, generated=sp$pop$A, var.name="cost.per.month")
+
+```
+
+## More
+
+For more information, have a look to the conference papers related to this work, and to the other vignettes which describe the package.

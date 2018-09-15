@@ -1,11 +1,11 @@
 Package: gosp.dpp
 Type: Package
-Title: Peering of entities to generate structured synthetic populations 
+Title: Pairing of entities to generate structured synthetic populations 
 Version: 0.6.5
 Date: 2018-09-15
 Author: Samuel Thiriot
 Maintainer: Samuel Thiriot <samuel.thiriot@res-ear.ch>
-Description: Peering of entities for Synthetic populations, 
+Description: Pairing of entities for Synthetic populations, 
 	such as composing entities within each others (individuals in households,
 	households in dwellings...) or creating links 
 	(social links between individuals). 
@@ -18,9 +18,12 @@ Description: Peering of entities for Synthetic populations,
 	between the populations.
 Imports: dplyr, utils, stats, reshape2, graphics, igraph
 Depends: R (>= 2.10)
-Suggests: testthat, mipfp, ggplot2, gridExtra
+Suggests: testthat, mipfp, ggplot2, gridExtra,
+    knitr,
+    rmarkdown
 License: GPL-2
 RoxygenNote: 6.1.0
 LazyData: true
 Encoding: UTF-8
 URL: https://github.com/samthiriot/gosp.dpp
+VignetteBuilder: knitr
