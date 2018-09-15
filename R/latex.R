@@ -9,10 +9,14 @@
 #' @return a string containing a LaTeX table
 #' 
 #' @examples 
-#' data(cas1)
-#' prepared <- matching.prepare(cas1$sample.A, cas1$sample.B, cas1$pdi, cas1$pdj, cas1$pij)
-#' solved <- matching.solve(prepared, nA=50000, nB=40000, nu.A=1, phi.A=0, 
-#'                            delta.A=0, gamma=0, delta.B=0, phi.B=0, nu.B=1, verbose=TRUE)
+#' data(dwellings_households)
+#' prepared <- matching.prepare(
+#'                      dwellings_households$sample.A, dwellings_households$sample.B, 
+#'                      dwellings_households$pdi, dwellings_households$pdj, 
+#'                      dwellings_households$pij)
+#' solved <- matching.solve(
+#'                      prepared, nA=50000, nB=40000, nu.A=1, phi.A=0, 
+#'                      delta.A=0, gamma=0, delta.B=0, phi.B=0, nu.B=1, verbose=TRUE)
 #' # create the string
 #' pv <- as.latex.table.probabilistic.init(solved)
 #' print(pv)
@@ -20,6 +24,8 @@
 #' # write(pv, file="case1_probabilistic_init.tex")
 #' 
 #' @export
+#'
+#' @keywords latex
 #'
 as.latex.table.probabilistic.init <- function(sp, maxcol=NULL) {
 
@@ -135,10 +141,14 @@ as.latex.table.probabilistic.init <- function(sp, maxcol=NULL) {
 #' @return a string containing a LaTeX table
 #' 
 #' @examples 
-#' data(cas1)
-#' prepared <- matching.prepare(cas1$sample.A, cas1$sample.B, cas1$pdi, cas1$pdj, cas1$pij)
-#' solved <- matching.solve(prepared, nA=50000, nB=40000, nu.A=1, phi.A=0, 
-#'                            delta.A=0, gamma=0, delta.B=0, phi.B=0, nu.B=1, verbose=TRUE)
+#' data(dwellings_households)
+#' prepared <- matching.prepare(
+#'                      dwellings_households$sample.A, dwellings_households$sample.B, 
+#'                      dwellings_households$pdi, dwellings_households$pdj, 
+#'                      dwellings_households$pij)
+#' solved <- matching.solve(
+#'                      prepared, nA=50000, nB=40000, nu.A=1, phi.A=0, 
+#'                      delta.A=0, gamma=0, delta.B=0, phi.B=0, nu.B=1, verbose=TRUE)
 #' # create the string
 #' pv <- as.latex.table.probabilistic.solved(solved)
 #' print(pv)
@@ -146,6 +156,8 @@ as.latex.table.probabilistic.init <- function(sp, maxcol=NULL) {
 #' # write(pv, file="case1_probabilistic_solved.tex")
 #' 
 #' @export
+#'
+#' @keywords latex
 #'
 as.latex.table.probabilistic.solved  <- function(sp, maxcol=NULL) {
 
@@ -259,10 +271,14 @@ as.latex.table.probabilistic.solved  <- function(sp, maxcol=NULL) {
 #' @return a string containing a LaTeX table
 #' 
 #' @examples 
-#' data(cas1)
-#' prepared <- matching.prepare(cas1$sample.A, cas1$sample.B, cas1$pdi, cas1$pdj, cas1$pij)
-#' solved <- matching.solve(prepared, nA=50000, nB=40000, nu.A=1, phi.A=0, 
-#'                            delta.A=0, gamma=0, delta.B=0, phi.B=0, nu.B=1, verbose=TRUE)
+#' data(dwellings_households)
+#' prepared <- matching.prepare(
+#'                      dwellings_households$sample.A, dwellings_households$sample.B, 
+#'                      dwellings_households$pdi, dwellings_households$pdj, 
+#'                      dwellings_households$pij)
+#' solved <- matching.solve(
+#'                      prepared, nA=50000, nB=40000, nu.A=1, phi.A=0, 
+#'                      delta.A=0, gamma=0, delta.B=0, phi.B=0, nu.B=1, verbose=TRUE)
 #' # create the string
 #' dv <- as.latex.table.discrete(solved)
 #' print(dv)
@@ -270,6 +286,8 @@ as.latex.table.probabilistic.solved  <- function(sp, maxcol=NULL) {
 #' # write(dv, , file="case1_discrete.tex")
 #' 
 #' @export
+#'
+#' @keywords latex
 #'
 as.latex.table.discrete <- function(sp, maxcol=NULL) {
 
@@ -382,10 +400,14 @@ as.latex.table.discrete <- function(sp, maxcol=NULL) {
 #' @return a string containing a LaTeX string.
 #' 
 #' @examples 
-#' data(cas1)
-#' prepared <- matching.prepare(cas1$sample.A, cas1$sample.B, cas1$pdi, cas1$pdj, cas1$pij)
-#' solved <- matching.solve(prepared, nA=50000, nB=40000, nu.A=1, phi.A=0, 
-#'                            delta.A=0, gamma=0, delta.B=0, phi.B=0, nu.B=1, verbose=TRUE)
+#' data(dwellings_households)
+#' prepared <- matching.prepare(
+#'                      dwellings_households$sample.A, dwellings_households$sample.B, 
+#'                      dwellings_households$pdi, dwellings_households$pdj, 
+#'                      dwellings_households$pij)
+#' solved <- matching.solve(
+#'                      prepared, nA=50000, nB=40000, nu.A=1, phi.A=0, 
+#'                      delta.A=0, gamma=0, delta.B=0, phi.B=0, nu.B=1, verbose=TRUE)
 #' # create the string
 #' rel <- as.latex.relaxation.constrainsts(solved)
 #' print(rel)
@@ -393,6 +415,8 @@ as.latex.table.discrete <- function(sp, maxcol=NULL) {
 #' # write(rel, , file="relaxation_parameters.tex")
 #' 
 #' @export
+#'
+#' @keywords latex
 #'
 as.latex.relaxation.constrainsts <- function(sp) {
 

@@ -29,7 +29,7 @@ clone the repository
 
 from inside the clone
 
-    install.packages(c("devtools", "rhub"))
+    install.packages(c("devtools", "rhub", "knitr"))
 	library(devtools)
 	devtools::install()
 	devtools::load_all()
@@ -43,8 +43,7 @@ generate the data
 
 	library(devtools)
 	devtools::install()
-	source("data-raw/cas1.R")
-	source("data-raw/case2.R")
+	source("data-raw/dwellings_households.R")
 
 run local tests
 

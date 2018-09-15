@@ -1,14 +1,14 @@
 #
-# generates the cas1 data
+# generates the dwellings_households data
 
 
 library(gosp.dpp)
 
 
-cas1 = list()
+dwellings_households = list()
 
 # parents
-cas1$sample.A <- gosp.dpp::create_sample(
+dwellings_households$sample.A <- gosp.dpp::create_sample(
                 data=data.frame(
                         read.csv(
                             "data-raw/logements.csv", 
@@ -29,7 +29,7 @@ cas1$sample.A <- gosp.dpp::create_sample(
 
 
 # children
-cas1$sample.B <- create_sample(
+dwellings_households$sample.B <- create_sample(
                 data=data.frame(
                         read.csv(
                             "data-raw/foyers.csv", 
@@ -51,7 +51,7 @@ cas1$sample.B <- create_sample(
 
 
 # pdi
-cas1$pdi <- create_degree_probabilities_table(
+dwellings_households$pdi <- create_degree_probabilities_table(
                 data.frame(
                     'surface=1'=c(0.2, 0.8, 0, 0, 0),
                     'surface=2'=c(0.15, 0.8, 0.05, 0, 0),
@@ -62,7 +62,7 @@ cas1$pdi <- create_degree_probabilities_table(
 
 
 # pdj
-cas1$pdj <- create_degree_probabilities_table(
+dwellings_households$pdj <- create_degree_probabilities_table(
                 data.frame(
                     'size=1'=c(0, 1),
                     'size=2'=c(0, 1),
@@ -72,7 +72,7 @@ cas1$pdj <- create_degree_probabilities_table(
                     )
                 )
 
-cas1$pij <- create_matching_probabilities_table(
+dwellings_households$pij <- create_matching_probabilities_table(
                 data.frame(
                     'surface=1'=c(0.2, 0.1, 0.05, 0.025),
                     'surface=2'=c(0.0375, 0.125, 0.1, 0.05),
@@ -82,4 +82,4 @@ cas1$pij <- create_matching_probabilities_table(
                     )
                 )
 
-devtools::use_data(cas1, overwrite=TRUE)
+devtools::use_data(dwellings_households, overwrite=TRUE)

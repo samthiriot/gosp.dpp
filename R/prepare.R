@@ -617,8 +617,10 @@ reorder_column_modalities <- function(dataset, expected_order) {
 #'
 #' @seealso \code{\link{matching.solve}} to use the result of this function
 #' @examples
-#' data(cas1)
-#' prepared <- matching.prepare(cas1$sample.A, cas1$sample.B, cas1$pdi, cas1$pdj, cas1$pij)
+#' data(dwellings_households)
+#' prepared <- matching.prepare(dwellings_households$sample.A, dwellings_households$sample.B, 
+#'                              dwellings_households$pdi, dwellings_households$pdj, 
+#'                              dwellings_households$pij)
 #'
 #' @export
 #'

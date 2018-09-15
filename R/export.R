@@ -16,14 +16,17 @@
 #'
 #' library(igraph)
 #' # generate a population based on sample case 1
-#' data(cas1)
-#' prepared <- matching.prepare(cas1$sample.A, cas1$sample.B, cas1$pdi, cas1$pdj, cas1$pij)
+#' data(dwellings_households)
+#' prepared <- matching.prepare(
+#'                     dwellings_households$sample.A, dwellings_households$sample.B, 
+#'                     dwellings_households$pdi, dwellings_households$pdj, 
+#'                     dwellings_households$pij)
 #' solved <- matching.solve(prepared, 
 #'                     nA=500,nB=400, 
 #'                     nu.A=0, phi.A=0, delta.A=1, 
 #'                     gamma=1, 
 #'                     delta.B=0, phi.B=0, nu.B=0)
-#' sampled <- matching.generate(solved, cas1$sample.A, cas1$sample.B)
+#' sampled <- matching.generate(solved, dwellings_households$sample.A, dwellings_households$sample.B)
 #' 
 #' # convert the population as a population
 #' g <- as.igraph(sampled$pop, with.attributes=TRUE)

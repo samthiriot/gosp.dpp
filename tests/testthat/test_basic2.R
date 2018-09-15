@@ -73,8 +73,8 @@ test_that("resolution with nA, phi.A, delta.B, phi.B and nB", {
   	expect_equal(nrow(case$pop$B), 40000*factor)
 
   	# ensure the weight column in not present
-  	expect_false(cas1$sample.A$dictionary$colname.weight %in% colnames(case$pop$A))
-  	expect_false(cas1$sample.B$dictionary$colname.weight %in% colnames(case$pop$B))
+  	expect_false(dwellings_households$sample.A$dictionary$colname.weight %in% colnames(case$pop$A))
+  	expect_false(dwellings_households$sample.B$dictionary$colname.weight %in% colnames(case$pop$B))
 
   	# TODO more tests
 

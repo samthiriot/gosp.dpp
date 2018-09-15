@@ -19,7 +19,7 @@ library("igraph")
 # }
 
 
-data(cas1)
+data(dwellings_households)
 
 
 context("tests on igraph conversion")
@@ -27,13 +27,13 @@ context("tests on igraph conversion")
 test_that("export a population as an igraph (without attributes)", {
 
 	# prepare the case
-	case.prepared <- matching.prepare(cas1$sample.A, cas1$sample.B, cas1$pdi, cas1$pdj, cas1$pij)
+	case.prepared <- matching.prepare(dwellings_households$sample.A, dwellings_households$sample.B, dwellings_households$pdi, dwellings_households$pdj, dwellings_households$pij)
 
 	# resolve the case
 	disc <- matching.solve(case.prepared, nA=5000,nB=4000, nu.A=0, phi.A=0, delta.A=1, gamma=1, delta.B=0, phi.B=0, nu.B=0)
 
 	# generate
-	generated <- matching.generate(disc, cas1$sample.A, cas1$sample.B)
+	generated <- matching.generate(disc, dwellings_households$sample.A, dwellings_households$sample.B)
 
 	# convert to an igraph graph 
 	g <- as.igraph(generated$pop)
@@ -59,13 +59,13 @@ test_that("export a population as an igraph (without attributes)", {
 test_that("export a population as an igraph (with attributes)", {
 
 	# prepare the case
-	case.prepared <- matching.prepare(cas1$sample.A, cas1$sample.B, cas1$pdi, cas1$pdj, cas1$pij)
+	case.prepared <- matching.prepare(dwellings_households$sample.A, dwellings_households$sample.B, dwellings_households$pdi, dwellings_households$pdj, dwellings_households$pij)
 
 	# resolve the case
 	disc <- matching.solve(case.prepared, nA=5000,nB=4000, nu.A=0, phi.A=0, delta.A=1, gamma=1, delta.B=0, phi.B=0, nu.B=0)
 
 	# generate
-	generated <- matching.generate(disc, cas1$sample.A, cas1$sample.B)
+	generated <- matching.generate(disc, dwellings_households$sample.A, dwellings_households$sample.B)
 
 	# convert to an igraph graph 
 	g <- as.igraph(generated$pop, with.attributes=TRUE)

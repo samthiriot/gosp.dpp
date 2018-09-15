@@ -236,7 +236,7 @@ create_degree_probabilities_table <- function(probabilities, norm=TRUE) {
         stop("probabilities should be a data frame")
     }
 
-    # ensure the given colnames(cas1$pdi)
+    # ensure the given colnames(dwellings_households$pdi)
     for (name in colnames(probabilities)) {
 
         # ensure probabilities sum to 1
@@ -319,7 +319,7 @@ relax.zeros.dpp_degree_cpt <- function(x, by=.Machine$double.eps, ...) {
 #' 
 #' @examples
 #' 
-#' cas1.pij <- create_matching_probabilities_table(
+#' dwellings_households.pij <- create_matching_probabilities_table(
 #'                data.frame(
 #'                    'surface=1'=c(0.2, 0.1, 0.05, 0.025),
 #'                    'surface=2'=c(0.0375, 0.125, 0.1, 0.05),
@@ -328,7 +328,7 @@ relax.zeros.dpp_degree_cpt <- function(x, by=.Machine$double.eps, ...) {
 #'                    check.names=FALSE
 #'                    )
 #'                )
-#' print(cas1.pij)
+#' print(dwellings_households.pij)
 #'
 #' @export
 #' 

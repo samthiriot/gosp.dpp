@@ -508,13 +508,21 @@ plot_errors_pij <- function(sp) {
 #' @return nothing
 #' 
 #' @examples 
-#' data(cas1)
-#' prepared <- matching.prepare(cas1$sample.A, cas1$sample.B, cas1$pdi, cas1$pdj, cas1$pij)
-#' solved <- matching.solve(prepared, nA=50000, nB=40000, nu.A=1, phi.A=0, 
-#'                            delta.A=0, gamma=0, delta.B=0, phi.B=0, nu.B=1, verbose=TRUE)
+#' data(dwellings_households)
+#' prepared <- matching.prepare(
+#'                      dwellings_households$sample.A, dwellings_households$sample.B, 
+#'                      dwellings_households$pdi, dwellings_households$pdj, 
+#'                      dwellings_households$pij)
+#' solved <- matching.solve(
+#'                      prepared, nA=50000, nB=40000, nu.A=1, phi.A=0, 
+#'                      delta.A=0, gamma=0, delta.B=0, phi.B=0, nu.B=1, verbose=TRUE)
 #' plot(solved, "dwellings", "households")
 #' # we might as well drive the same on a generated case:
-#' # sp <- matching.generate(solved, sample.A=cas1$sample.A, sample.B=cas1$sample.B, verbose=TRUE)
+#' # sp <- matching.generate(
+#' #                     solved, 
+#' #                     sample.A=dwellings_households$sample.A, 
+#' #                     sample.B=dwellings_households$sample.B, 
+#' #                     verbose=TRUE)
 #' # plot(sp, "dwellings", "households")
 #' 
 #' @export

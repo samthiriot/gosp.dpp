@@ -357,7 +357,7 @@ rectify.degree.counts <- function(pdn, nn, cn, verbose=FALSE) {
 #' @param ... additional parameters are likely to be ignored
 #' @return the same object normalised
 #'
-#' @keywords internal
+#' @export
 #'
 #' @author Samuel Thiriot <samuel.thiriot@res-ear.ch>
 #'
@@ -442,14 +442,16 @@ inf_to_zeros <- function(vv) {
     vv
 }
 
-#' a simple Iterated Proportional Fitting implementation 
+#' A simple Iterated Proportional Fitting implementation 
 #' 
 #' taken from https://stats.stackexchange.com/questions/59115/iterative-proportional-fitting-in-r
 #' 
 #' @author Samuel Thiriot <samuel.thiriot@res-ear.ch>
 #' 
-#' @keywords internal
+#' @seealso The entry point for IPF 2D: \code{\link{ipf.2d}}
 #' 
+#' @keywords internal
+#'
 ipf.2d.stackoverflow <- function(Margins_, seedAry, maxiter=100, closure=0.001, verbose=FALSE) {
     #Check to see if the sum of each margin is equal
     MarginSums. <- unlist(lapply(Margins_, sum))
@@ -502,7 +504,7 @@ ipf.2d.stackoverflow <- function(Margins_, seedAry, maxiter=100, closure=0.001, 
 #' and target marings for cols and rows. 
 #' Returns a table reweighted so its sums fit margins.
 #' 
-#' Either falls back to a local implementation, or to an
+#' Either falls back to a local implementation \code{\link{ipf.2d.stackoverflow}}, or to an
 #' higher quality one from the mipfp package if it is installed. 
 #'
 #' @param df the dataframe to reweight
@@ -515,7 +517,7 @@ ipf.2d.stackoverflow <- function(Margins_, seedAry, maxiter=100, closure=0.001, 
 #' 
 #' @author Samuel Thiriot <samuel.thiriot@res-ear.ch>
 #'  
-#' @keywords internal
+#' @export
 #'
 ipf.2d <- function(df, margins_cols, margins_rows, max.iterations=1000, precision=1e-10, verbose=FALSE) {
 
@@ -2099,15 +2101,18 @@ mean.data.frame <- function(x, ...) {
 #' @examples
 #'
 #' # load sample data
-#' data(cas1)
+#' data(dwellings_households)
 #' # prepare the case  
-#' case.prepared <- matching.prepare(cas1$sample.A, cas1$sample.B, cas1$pdi, cas1$pdj, cas1$pij)
+#' case.prepared <- matching.prepare(
+#'                      dwellings_households$sample.A, dwellings_households$sample.B, 
+#'                      dwellings_households$pdi, dwellings_households$pdj, 
+#'                      dwellings_households$pij)
 #' # resolve tbe case
 #' solved <- matching.solve(case.prepared, 
-#'                     nA=50000,nB=40000, 
-#'                     nu.A=0, phi.A=0, delta.A=1, 
-#'                     gamma=1, 
-#'                     delta.B=0, phi.B=0, nu.B=0)
+#'                      nA=50000,nB=40000, 
+#'                      nu.A=0, phi.A=0, delta.A=1, 
+#'                      gamma=1, 
+#'                      delta.B=0, phi.B=0, nu.B=0)
 #' # print the resolution information
 #' print(solved)
 #' # access the solved frequencies, distribution of degrees and matching probabilities
