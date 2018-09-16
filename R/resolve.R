@@ -1963,13 +1963,13 @@ quantify.errors <- function(sol, case, nA, nB) {
         sol$mse.di <- mean( ( sol$hat.di - case$inputs$di)^2  )
         sol$rmse.di <- sqrt(sol$mse.di)
         sol$nrmse.di <- sol$rmse.di
-        sol$ft.di <- gof.freeman_tukey(sol$hat.fi, case$inputs$di)
+        sol$ft.di <- gof.freeman_tukey(sol$hat.di, case$inputs$di)
     }
     if (!is.null(sol$hat.dj)) {
         sol$mse.dj <- mean( ( sol$hat.dj - case$inputs$dj)^2  )
         sol$rmse.dj <- sqrt(sol$mse.dj)
         sol$nrmse.dj <- sol$rmse.dj
-        sol$ft.dj <- gof.freeman_tukey(sol$hat.fj, case$inputs$dj)
+        sol$ft.dj <- gof.freeman_tukey(sol$hat.dj, case$inputs$dj)
     }
 
     # MSE pdi 
