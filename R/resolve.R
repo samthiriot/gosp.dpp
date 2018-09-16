@@ -1907,6 +1907,24 @@ resolve <- function(sol, case,
     return(sol.tmp)
 }
 
+#' Quantifies the goodness of fit between two dataframes
+#' 
+#' Computes the squared of each, then the difference between them,
+#' then elevated to power 2, then summed and mult 4.
+#' 
+#' @param df1 data ref
+#' @param df2 data gen 
+#' @return a scalar 
+#' 
+#' @author Samuel Thiriot <samuel.thiriot@res-ear.ch>
+#'  
+#' @export
+#'
+gof.freeman_tukey <- function(df1, df2) {
+
+    4*sum((sqrt(df1) - sqrt(df2))^2)
+
+}
 
 #' Quantifies the errors of a solution
 #' 
@@ -1925,18 +1943,19 @@ resolve <- function(sol, case,
 #'
 quantify.errors <- function(sol, case, nA, nB) {
 
-
     # measure errors
     # MSE fi
     if (!is.null(sol$hat.fi)) {
         sol$mse.fi <- mean( ( sol$hat.fi - case$stats$fi)^2  )
         sol$rmse.fi <- sqrt(sol$mse.fi)
         sol$nrmse.fi <- sol$rmse.fi
+        sol$ft.fi <- gof.freeman_tukey(sol$hat.fi, case$stats$fi)
     }
     if (!is.null(sol$hat.fj)) {
         sol$mse.fj <- mean( ( sol$hat.fj - case$stats$fj)^2  )
         sol$rmse.fj <- sqrt(sol$mse.fj)
         sol$nrmse.fj <- sol$rmse.fj
+        sol$ft.fj <- gof.freeman_tukey(sol$hat.fj, case$stats$fj)
     }
 
     # MSE di
@@ -1944,11 +1963,13 @@ quantify.errors <- function(sol, case, nA, nB) {
         sol$mse.di <- mean( ( sol$hat.di - case$inputs$di)^2  )
         sol$rmse.di <- sqrt(sol$mse.di)
         sol$nrmse.di <- sol$rmse.di
+        sol$ft.di <- gof.freeman_tukey(sol$hat.fi, case$inputs$di)
     }
     if (!is.null(sol$hat.dj)) {
         sol$mse.dj <- mean( ( sol$hat.dj - case$inputs$dj)^2  )
         sol$rmse.dj <- sqrt(sol$mse.dj)
         sol$nrmse.dj <- sol$rmse.dj
+        sol$ft.dj <- gof.freeman_tukey(sol$hat.fj, case$inputs$dj)
     }
 
     # MSE pdi 
@@ -1956,11 +1977,13 @@ quantify.errors <- function(sol, case, nA, nB) {
         sol$mse.pdi <- mean( ( sol$hat.pdi - case$inputs$pdi$data)^2  )
         sol$rmse.pdi <- sqrt(sol$mse.pdi)
         sol$nrmse.pdi <- sol$rmse.pdi
+        sol$ft.pdi <- gof.freeman_tukey(sol$hat.pdi, case$inputs$pdi$data)
     }
     if (!is.null(sol$hat.pdj)) {
         sol$mse.pdj <- mean( ( sol$hat.pdj - case$inputs$pdj$data)^2  )
         sol$rmse.pdj <- sqrt(sol$mse.pdj)
         sol$nrmse.pdj <- sol$rmse.pdj
+        sol$ft.pdj <- gof.freeman_tukey(sol$hat.pdj, case$inputs$pdj$data)
     }
 
     # MSE pij
@@ -1982,6 +2005,7 @@ quantify.errors <- function(sol, case, nA, nB) {
         sol$mse.pij <- mean.data.frame( ( sol$hat.pij - case$inputs$pij$data )^2  )
         sol$rmse.pij <- sqrt(sol$mse.pij)
         sol$nrmse.pij <- sol$rmse.pij
+        sol$ft.pij <- gof.freeman_tukey(sol$hat.pij, case$inputs$pij$data)
     }
 
     # error n
