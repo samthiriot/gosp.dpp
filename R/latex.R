@@ -23,6 +23,8 @@
 #' # write it into a file
 #' # write(pv, file="case1_probabilistic_init.tex")
 #' 
+#' @author Samuel Thiriot <samuel.thiriot@res-ear.ch>
+#' 
 #' @export
 #'
 #' @keywords latex
@@ -155,6 +157,8 @@ as.latex.table.probabilistic.init <- function(sp, maxcol=NULL) {
 #' # write it into a file
 #' # write(pv, file="case1_probabilistic_solved.tex")
 #' 
+#' @author Samuel Thiriot <samuel.thiriot@res-ear.ch>
+#' 
 #' @export
 #'
 #' @keywords latex
@@ -285,6 +289,8 @@ as.latex.table.probabilistic.solved  <- function(sp, maxcol=NULL) {
 #' # write it into a file
 #' # write(dv, , file="case1_discrete.tex")
 #' 
+#' @author Samuel Thiriot <samuel.thiriot@res-ear.ch>
+#' 
 #' @export
 #'
 #' @keywords latex
@@ -414,6 +420,8 @@ as.latex.table.discrete <- function(sp, maxcol=NULL) {
 #' # write it into a file
 #' # write(rel, , file="relaxation_parameters.tex")
 #' 
+#' @author Samuel Thiriot <samuel.thiriot@res-ear.ch>
+#' 
 #' @export
 #'
 #' @keywords latex
@@ -440,4 +448,31 @@ as.latex.relaxation.constrainsts <- function(sp) {
 
     paste("Relaxation parameters are ", paste(elems, collapse=", "), ". ", sep="")
     
+}
+
+#' Returns the first n columns of a dataframe and adds ...
+#'
+#' When we export a table, we sometimes want to truncate its columns 
+#' so it can be entirely displayed and be readable. This function keeps the 
+#' first ncol columns (such as can be done using df[1:ncol]), and adds 
+#' as a last column "..." symbols to show the table was truncated. 
+#' Notably used for exportation to LaTeX tables. 
+#' 
+#' @param df a dataframe
+#' @param ncol the count of columns to keep
+#' @return the same dataframe with ncol columns and additional "..."
+#' 
+#' @author Samuel Thiriot <samuel.thiriot@res-ear.ch>
+#' 
+#' @export
+#'
+#' @keywords latex
+#'
+first.columns <- function(df, ncol=NULL) {
+    if (is.null(ncol) || (ncol >= ncol(df))) {
+        return (df)
+    }
+    df <- df[1:ncol-1]
+    df["..."] <- rep("...", nrow(df))
+    df
 }
