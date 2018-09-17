@@ -476,3 +476,32 @@ first.columns <- function(df, ncol=NULL) {
     df["..."] <- rep("...", nrow(df))
     df
 }
+
+#' Returns the first n rows of a dataframe and adds ...
+#'
+#' When we export a table, we sometimes want to truncate its rows 
+#' so it can be entirely displayed and be readable. This function keeps the 
+#' first nrow rows (such as can be done using df[1:nrow,]), and adds 
+#' as a last row "..." symbols to show the table was truncated. 
+#' Notably used for exportation to LaTeX tables. 
+#' 
+#' @param df a dataframe
+#' @param nrow the count of rows to keep
+#' @return the same dataframe with nrow columns and additional "..."
+#' 
+#' @author Samuel Thiriot <samuel.thiriot@res-ear.ch>
+#' 
+#' @export
+#'
+#' @keywords latex
+#'
+first.lines <- function(df, nrow=NULL) {
+    if (is.null(nrow) || (nrow >= nrow(df))) {
+        return (df)
+    }
+    res <- head(df, nrow)
+    res[nrow + 1,] = rep("...", ncol(res))
+    row.names(res) <- c(row.names(res)[1:nrow(res)-1], "...")
+    res 
+}
+
