@@ -281,7 +281,7 @@ plot_average_degree_A <- function(sp, nameA="A", colorRef="darkgray", colorSynth
                         ggplot2::geom_bar(stat="identity", position = 'dodge2') + 
                         scale_gray_blue + 
                         ggplot2::ylab("average degree") + 
-                        ggplot2::ggtitle(paste("average degree",nameA," (NRMSE ",sp$gen$nrmse.di,")")) +
+                        ggplot2::ggtitle(paste("average degree",nameA," (NRMSE ",formatC(sp$gen$nrmse.di,format="G"),")")) +
                         ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 90, hjust = 1))
 
     plot_degrees_A
@@ -307,7 +307,7 @@ plot_average_degree_B <- function(sp, nameB="B", colorRef="darkgray", colorSynth
                         ggplot2::geom_bar(stat="identity", position = 'dodge2') + 
                         scale_gray_blue + 
                         ggplot2::ylab("average degree") + 
-                        ggplot2::ggtitle(paste("average degree",nameB," (NRMSE ",sp$gen$nrmse.dj,")")) +
+                        ggplot2::ggtitle(paste("average degree",nameB," (NRMSE ",formatC(sp$gen$nrmse.dj,format="G"),")")) +
                         ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 90, hjust = 1))
 
     plot_degrees_B 
@@ -349,7 +349,7 @@ plot_frequencies_A <- function(sp, nameA="A", colorRef="darkgray", colorSyntheti
                         ggplot2::geom_bar(stat="identity", position = 'dodge2') + 
                         scale_gray_blue + 
                         ggplot2::ylab("freq") + 
-                        ggplot2::ggtitle(paste("frequencies",nameA," (NRMSE ",sp$gen$nrmse.fi,")")) +
+                        ggplot2::ggtitle(paste("frequencies",nameA," (NRMSE ",formatC(sp$gen$nrmse.fi,format="G"),")")) +
                         ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 90, hjust = 1))
 
     res_plot
@@ -374,7 +374,7 @@ plot_frequencies_B <- function(sp, nameB="B", colorRef="darkgray", colorSyntheti
                         ggplot2::geom_bar(stat="identity", position = 'dodge2') + 
                         scale_gray_blue + 
                         ggplot2::ylab("freq") + 
-                        ggplot2::ggtitle(paste("frequencies",nameB," (NRMSE ",sp$gen$nrmse.fj,")")) +
+                        ggplot2::ggtitle(paste("frequencies",nameB," (NRMSE ",formatC(sp$gen$nrmse.fj,format="G"),")")) +
                         ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 90, hjust = 1))
 
 
@@ -415,7 +415,7 @@ plot_errors_pdi <- function(sp, nameA="A", colorRef="darkgray", colorSynthetic="
     plot_pdi <- ggplot2::ggplot(data_hm_pdi, ggplot2::aes(variable, degree)) + 
                         ggplot2::geom_tile(ggplot2::aes(fill=value)) + 
                         heat_map_gradient + 
-                        ggplot2::ggtitle(paste("difference degree for",nameA," (NRMSE ",sp$gen$nrmse.pdi,")")) +
+                        ggplot2::ggtitle(paste("difference degree for",nameA," (NRMSE ",formatC(sp$gen$nrmse.pdi,format="G"),")")) +
                         ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 90, hjust = 1))
 
     plot_pdi
@@ -437,7 +437,7 @@ plot_errors_pdj <- function(sp, nameB="B", colorRef="darkgray", colorSynthetic="
     plot_pdj <- ggplot2::ggplot(data_hm_pdj, ggplot2::aes(variable, degree)) + 
                         ggplot2::geom_tile(ggplot2::aes(fill=value)) + 
                         heat_map_gradient + 
-                        ggplot2::ggtitle(paste("difference degree for",nameB," (NRMSE ",sp$gen$nrmse.pdj,")")) +
+                        ggplot2::ggtitle(paste("difference degree for",nameB," (NRMSE ",formatC(sp$gen$nrmse.pdj,format="G"),")")) +
                         ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 90, hjust = 1))
     plot_pdj
 }
@@ -476,7 +476,7 @@ plot_errors_pij <- function(sp) {
     plot_pij <- ggplot2::ggplot(data_hm_pij, ggplot2::aes(variable, attributesB)) + 
                         ggplot2::geom_tile(ggplot2::aes(fill=value)) + 
                         heat_map_gradient + 
-                        ggplot2::ggtitle(paste("difference pairing (NRMSE ",sp$gen$nrmse.pij,")")) +
+                        ggplot2::ggtitle(paste("difference pairing (NRMSE ",formatC(sp$gen$nrmse.pij,format="G"),")")) +
                         ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 90, hjust = 1))
 
     plot_pij
@@ -633,7 +633,7 @@ plot_variable <- function(sample, generated, var.name, colorRef="darkgray", colo
                         ggplot2::geom_bar(stat="identity", position = 'dodge2') + 
                         scale_gray_blue + 
                         ggplot2::ylab("freq") + 
-                        ggplot2::ggtitle(paste("proportions of attribute ", var.name, " (RMSE:",rmse,")",sep=""))
+                        ggplot2::ggtitle(paste("proportions of attribute ", var.name, " (RMSE:",formatC(rmse,format="G"),")",sep=""))
 
 }
 
