@@ -133,6 +133,34 @@ add_linebreaks_attributes <- function(labels) {
 }
 
 
+#' Creates a ggplot2 gradient adapted to the values for an heatmap
+#' 
+#' It creates a hot/cold symetric gradient
+#'
+#' @param d the data to plot
+#' @return a scale_fill_gradient2
+#' 
+#' @author Samuel Thiriot <samuel.thiriot@res-ear.ch> 
+#' 
+#' @keywords internal
+#'
+heat_map_gradient <- function(d) {
+    extreme_val <- max(max(d),abs(min(d)))
+
+
+    #extreme_val <- extreme_val + (1.0 - extreme_val)/10
+    precision <- if (extreme_val >= 0.1) 1 else if (extreme_val >= 0.01) 2 else if (extreme_val >= 0.001) 3 else 4
+
+    limits_gradient <- round(extreme_val*1.5, precision)
+
+    if (limits_gradient==0) limits_gradient<-1e-6
+
+    ggplot2::scale_fill_gradient2(limits=c(-limits_gradient,limits_gradient)) 
+
+}
+
+
+
 #' Plots the relaxation parameters
 #' 
 #' Plots as a bar chart all the relaxation parameters as they were passed by the user
@@ -406,10 +434,10 @@ plot_errors_pdi <- function(sp, nameA="A", colorRef="darkgray", colorSynthetic="
     
     ensure_presence_ggplot()
 
-    heat_map_gradient <- ggplot2::scale_fill_gradient2(limits=c(-1,1)) # , trans="log"
-
     diff_pdi <- errors.pdi(sp)
-    colnames(diff_pdi) <- colnames(diff_pdi) # add_linebreaks_attributes
+    #colnames(diff_pdi) <- colnames(diff_pdi) # add_linebreaks_attributes
+    heat_map_gradient <- heat_map_gradient(diff_pdi)
+
     diff_pdi$degree <- factor(seq(0,nrow(diff_pdi)-1))
     data_hm_pdi <- melt(diff_pdi)
     plot_pdi <- ggplot2::ggplot(data_hm_pdi, ggplot2::aes(variable, degree)) + 
@@ -428,10 +456,10 @@ plot_errors_pdj <- function(sp, nameB="B", colorRef="darkgray", colorSynthetic="
     
     ensure_presence_ggplot()
 
-    heat_map_gradient <- ggplot2::scale_fill_gradient2(limits=c(-1,1)) # , trans="log"
-
+    
     diff_pdj <- errors.pdj(sp)
-    colnames(diff_pdj) <- colnames(diff_pdj) # add_linebreaks_attributes(
+    #colnames(diff_pdj) <- colnames(diff_pdj) # add_linebreaks_attributes(
+    heat_map_gradient <- heat_map_gradient(diff_pdj)
     diff_pdj$degree <- factor(seq(0,nrow(diff_pdj)-1))
     data_hm_pdj <- melt(diff_pdj)
     plot_pdj <- ggplot2::ggplot(data_hm_pdj, ggplot2::aes(variable, degree)) + 
@@ -466,11 +494,18 @@ plot_errors_pij <- function(sp) {
     
     ensure_presence_ggplot()
 
-    heat_map_gradient <- ggplot2::scale_fill_gradient2(limits=c(-1,1)) # , trans="log"
+    
 
     diff_pij <- errors.pij(sp)
-    colnames(diff_pij) <- colnames(diff_pij) # add_linebreaks_attributes(
-    diff_pij$attributesB <- row.names(diff_pij)
+
+    extreme_val <- max(max(diff_pij),abs(min(diff_pij)))
+    limits_gradient <- round(extreme_val + (1.0 - extreme_val)/2,1)
+
+    heat_map_gradient <- heat_map_gradient(diff_pij)
+
+    #colnames(diff_pij) <- colnames(diff_pij) # add_linebreaks_attributes(
+    diff_pij$attributesB <- factor(row.names(diff_pij), levels=row.names(diff_pij))
+
     #diff_pij$variable <- add_linebreaks_attributes(diff_pij$variable)
     data_hm_pij <- melt(diff_pij)
     plot_pij <- ggplot2::ggplot(data_hm_pij, ggplot2::aes(variable, attributesB)) + 
@@ -481,6 +516,7 @@ plot_errors_pij <- function(sp) {
 
     plot_pij
 }
+
 
 #' Plots a visual synthese of the errors induced by the resolution process. 
 #'
