@@ -149,11 +149,18 @@ heat_map_gradient <- function(d) {
 
 
     #extreme_val <- extreme_val + (1.0 - extreme_val)/10
-    precision <- if (extreme_val >= 0.1) 1 else if (extreme_val >= 0.01) 2 else if (extreme_val >= 0.001) 3 else 4
+    precision <- 0
+    for (i in 0:10) {
+        if (extreme_val >= 10^(-i) ) {
+            precision <- i 
+            break
+        }
+    }
+    #if (extreme_val >= 0.1) 1 else if (extreme_val >= 0.01) 2 else if (extreme_val >= 0.001) 3 else if (extreme_val >= 0.0001) 3 else 4
 
     limits_gradient <- round(extreme_val*1.5, precision)
 
-    if (limits_gradient==0) limits_gradient<-1e-6
+    if (limits_gradient==0) limits_gradient<-1e-10
 
     ggplot2::scale_fill_gradient2(limits=c(-limits_gradient,limits_gradient)) 
 
@@ -222,10 +229,22 @@ plot_errors <- function(sp, colorSynthetic="blue") {
     ensure_presence_ggplot()
 
     all_errors <- data.frame(
-        error=c("nA","fi","pdi","di","pij","dj","pdj","fj","nB"),
-        NRMSE=c(sp$gen$nrmse.nA, sp$gen$nrmse.fi, sp$gen$nrmse.pdi, sp$gen$nrmse.di, sp$gen$nrmse.pij, sp$gen$nrmse.dj, sp$gen$nrmse.pdj, sp$gen$nrmse.fj, sp$gen$nrmse.nB)
+        error=c("nA","fi","pdi",
+                #"di",
+                "pij",
+                #"dj",
+                "pdj","fj","nB"),
+        NRMSE=c(sp$gen$nrmse.nA, sp$gen$nrmse.fi, sp$gen$nrmse.pdi, 
+            #sp$gen$nrmse.di, 
+            sp$gen$nrmse.pij, 
+            #sp$gen$nrmse.dj, 
+            sp$gen$nrmse.pdj, sp$gen$nrmse.fj, sp$gen$nrmse.nB)
         )
-    all_errors$error <- factor(all_errors$error, levels=c("nA","fi","pdi","di","pij","dj","pdj","fj","nB"))
+    all_errors$error <- factor(all_errors$error, levels=c("nA","fi","pdi",
+        #"di",
+        "pij",
+        #"dj",
+        "pdj","fj","nB"))
     plot_all_errors <- ggplot2::ggplot(all_errors, ggplot2::aes(error, NRMSE)) + 
                             ggplot2::geom_bar(stat="identity", fill=colorSynthetic)
 
@@ -300,7 +319,7 @@ plot_average_degree_A <- function(sp, nameA="A", colorRef="darkgray", colorSynth
     scale_gray_blue <- ggplot2::scale_fill_manual(values=c(colorRef,colorSynthetic))
 
     degrees_A <- data.frame(
-        attributes=c(names(sp$inputs$di),names(sp$gen$hat.di)), # add_linebreaks_attributes(
+        attributes=factor(c(names(sp$inputs$di),names(sp$gen$hat.di)), levels=names(sp$gen$hat.di)), # add_linebreaks_attributes(
         average.degree=c(sp$inputs$di,sp$gen$hat.di),
         state=c(rep("theoretical",length(sp$inputs$di)), rep("synthetic",length(sp$gen$hat.di)))
         )
@@ -326,7 +345,7 @@ plot_average_degree_B <- function(sp, nameB="B", colorRef="darkgray", colorSynth
     scale_gray_blue <- ggplot2::scale_fill_manual(values=c(colorRef,colorSynthetic))
 
     degrees_B <- data.frame(
-        attributes=c(names(sp$inputs$dj),names(sp$gen$hat.dj)), # add_linebreaks_attributes(
+        attributes=factor(c(names(sp$inputs$dj),names(sp$gen$hat.dj)), levels=names(sp$gen$hat.dj)), # add_linebreaks_attributes(
         average.degree=c(sp$inputs$dj,sp$gen$hat.dj),
         state=c(rep("theoretical",length(sp$inputs$dj)), rep("synthetic",length(sp$gen$hat.dj)))
         )
@@ -368,7 +387,7 @@ plot_frequencies_A <- function(sp, nameA="A", colorRef="darkgray", colorSyntheti
     scale_gray_blue <- ggplot2::scale_fill_manual(values=c(colorRef,colorSynthetic))
 
     frequencies_A <- data.frame(
-        attributes=c(names(sp$stats$fi),names(sp$gen$hat.fi)), #add_linebreaks_attributes(
+        attributes=factor(c(names(sp$stats$fi),names(sp$gen$hat.fi)), levels=names(sp$gen$hat.fi)), #add_linebreaks_attributes(
         frequency=c(sp$stats$fi,sp$gen$hat.fi),
         state=c(rep("theoretical",length(sp$stats$fi)), rep("synthetic",length(sp$gen$hat.fi)))
         ) 
@@ -393,11 +412,11 @@ plot_frequencies_B <- function(sp, nameB="B", colorRef="darkgray", colorSyntheti
     scale_gray_blue <- ggplot2::scale_fill_manual(values=c(colorRef,colorSynthetic))
 
     frequencies_B <- data.frame(
-        attributes=c(names(sp$stats$fj),names(sp$gen$hat.fj)), # add_linebreaks_attributes
+        attributes=factor(c(names(sp$stats$fj),names(sp$gen$hat.fj)), levels=names(sp$gen$hat.fj)), # add_linebreaks_attributes
         frequency=c(sp$stats$fj,sp$gen$hat.fj),
-        state=c(rep("theoretical",length(sp$stats$fj)), rep("synthetic",length(sp$gen$hat.fj)))
+        state=factor(c(rep("theoretical",length(sp$stats$fj)), rep("synthetic",length(sp$gen$hat.fj))), levels=c("theoretical","synthetic"))
         ) 
-    frequencies_B$state <- factor(frequencies_B$state, levels=c("theoretical","synthetic"))
+    #frequencies_B$state <- factor(frequencies_B$state, levels=c("theoretical","synthetic"))
     res_plot <- ggplot2::ggplot(frequencies_B, ggplot2::aes(x=attributes, y=frequency, fill=state)) + 
                         ggplot2::geom_bar(stat="identity", position = 'dodge2') + 
                         scale_gray_blue + 
