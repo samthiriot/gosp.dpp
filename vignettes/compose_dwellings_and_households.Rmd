@@ -233,3 +233,6 @@ plot_variable(sample=dwellings_households$sample.A, generated=sp$pop$A, var.name
 ## More
 
 For more information, have a look to the conference papers related to this work, and to the other vignettes which describe the package.
+
+This example was based on data already packaged with our method. 
+A vignette should come soon which details how to apply this method on a real size case study from micro sample data.
