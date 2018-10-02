@@ -53,7 +53,7 @@ as.latex.table.probabilistic.init <- function(sp, maxcol=NULL) {
     # Mod A
     s <- paste(
         s,
-        "\\multicolumn{5}{r|}{$\\text{Mod}_i^A$} ",
+        "\\multicolumn{5}{r|}{$\\text{Cla}_i^A$} ",
         " & \\rot{",
         paste(names(sp$stats$fi[1:count_cols_right-1]), collapse="} & \\rot{"),
         "} ", missingcol,
@@ -96,7 +96,7 @@ as.latex.table.probabilistic.init <- function(sp, maxcol=NULL) {
 
     # define the header of the left part
     s <- paste(s, 
-            "$\\text{Mod}_j^B$ & $f_j$ & $\\tilde{d}_j$ & $p_j$ & $j/i$ & ", 
+            "$\\text{Cla}_j^B$ & $f_j$ & $\\tilde{d}_j$ & $p_j$ & $j/i$ & ", 
             paste(seq(1, count_cols_right-1), collapse="&"), 
             missingcol, "&",
             end_line, 
@@ -186,7 +186,7 @@ as.latex.table.probabilistic.solved  <- function(sp, maxcol=NULL) {
     # Mod A
     s <- paste(
         s,
-        "\\multicolumn{5}{r|}{$\\text{Mod}_i^A$} ",
+        "\\multicolumn{5}{r|}{$\\text{Cla}_i^A$} ",
         " & \\rot{",
         paste(names(sp$stats$fi[1:count_cols_right-1]), collapse="} & \\rot{"),
         "} ", missingcol, "& ",
@@ -228,7 +228,7 @@ as.latex.table.probabilistic.solved  <- function(sp, maxcol=NULL) {
 
     # define the header of the left part
     s <- paste(s, 
-            "$\\text{Mod}_j^B$ & $\\hat{f}_j$ & $\\hat{\\tilde{d}}_j$ & $\\hat{p}_j$ & $j/i$ & ", 
+            "$\\text{Cla}_j^B$ & $\\hat{f}_j$ & $\\hat{\\tilde{d}}_j$ & $\\hat{p}_j$ & $j/i$ & ", 
             paste(seq(1, count_cols_right-1), collapse="&"), 
             missingcol, "&",
             end_line, 
@@ -318,7 +318,7 @@ as.latex.table.discrete <- function(sp, maxcol=NULL) {
     # Mod A
     s <- paste(
         s,
-        "\\multicolumn{5}{r|}{$\\text{Mod}_i^A$} ",
+        "\\multicolumn{5}{r|}{$\\text{Cla}_i^A$} ",
         " & \\rot{",
         paste(names(sp$stats$fi[1:count_cols_right-1]), collapse="} & \\rot{"),
         "} ", missingcol ," & ",
@@ -360,7 +360,7 @@ as.latex.table.discrete <- function(sp, maxcol=NULL) {
 
     # define the header of the left part
     s <- paste(s, 
-            "$\\text{Mod}_j^B$ & $\\hat{c}_j$ & $\\hat{\\tilde{d}}_j$ & $\\hat{n}_j$ & $j/i$ & ", 
+            "$\\text{Cla}_j^B$ & $\\hat{c}_j$ & $\\hat{\\tilde{d}}_j$ & $\\hat{n}_j$ & $j/i$ & ", 
             paste(seq(1, count_cols_right-1), collapse="&"), 
             missingcol, "&",
             end_line, 
