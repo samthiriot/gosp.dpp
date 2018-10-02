@@ -160,9 +160,11 @@ heat_map_gradient <- function(d) {
 
     limits_gradient <- round(extreme_val*1.5, precision)
 
-    if (limits_gradient==0) limits_gradient<-1e-10
+    if (limits_gradient==0) limits_gradient <- 1e-10
 
-    ggplot2::scale_fill_gradient2(limits=c(-limits_gradient,limits_gradient)) 
+    if (limits_gradient > 1) limits_gradient <- 1
+
+    ggplot2::scale_fill_gradient2(limits=c(-limits_gradient,limits_gradient), oob=scales::squish) 
 
 }
 
@@ -197,7 +199,7 @@ plot_relaxation <- function(sp, colorRef="darkgray") {
         relaxation=c(sp$inputs$nu.A, sp$inputs$phi.A, sp$inputs$delta.A, sp$inputs$gamma, sp$inputs$delta.B, sp$inputs$phi.B, sp$inputs$nu.B)
         )
     all_relaxation$parameter <- factor(all_relaxation$parameter, levels=c("nA","fi","pdi/di","pij","pdj/dj","fj","nB"))
-    plot_all_relaxation <- ggplot2::ggplot(all_relaxation, ggplot2::aes(parameter, relaxation)) + 
+    plot_all_relaxation <- ggplot2::ggplot(all_relaxation, ggplot2::aes_string("parameter", "relaxation")) + 
                                 ggplot2::geom_bar(stat="identity", fill=colorRef)
 
     plot_all_relaxation
@@ -245,7 +247,7 @@ plot_errors <- function(sp, colorSynthetic="blue") {
         "pij",
         #"dj",
         "pdj","fj","nB"))
-    plot_all_errors <- ggplot2::ggplot(all_errors, ggplot2::aes(error, NRMSE)) + 
+    plot_all_errors <- ggplot2::ggplot(all_errors, ggplot2::aes_string("error", "NRMSE")) + 
                             ggplot2::geom_bar(stat="identity", fill=colorSynthetic)
 
     plot_all_errors
@@ -319,17 +321,18 @@ plot_average_degree_A <- function(sp, nameA="A", colorRef="darkgray", colorSynth
     scale_gray_blue <- ggplot2::scale_fill_manual(values=c(colorRef,colorSynthetic))
 
     degrees_A <- data.frame(
-        attributes=factor(c(names(sp$inputs$di),names(sp$gen$hat.di)), levels=names(sp$gen$hat.di)), # add_linebreaks_attributes(
+        classes=factor(c(names(sp$inputs$di),names(sp$gen$hat.di)), levels=names(sp$gen$hat.di)), # add_linebreaks_attributes(
         average.degree=c(sp$inputs$di,sp$gen$hat.di),
         state=c(rep("theoretical",length(sp$inputs$di)), rep("synthetic",length(sp$gen$hat.di)))
         )
     degrees_A$state <- factor(degrees_A$state, levels=c("theoretical","synthetic"))
-    plot_degrees_A <- ggplot2::ggplot(degrees_A, ggplot2::aes(x=attributes, y=average.degree, fill=state)) + 
+    plot_degrees_A <- ggplot2::ggplot(degrees_A, ggplot2::aes(x=classes, y=average.degree, fill=state)) + 
                         ggplot2::geom_bar(stat="identity", position = 'dodge2') + 
                         scale_gray_blue + 
                         ggplot2::ylab("average degree") + 
                         ggplot2::ggtitle(paste("average degree",nameA," (NRMSE ",formatC(sp$gen$nrmse.di,format="G"),")")) +
-                        ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 90, hjust = 1))
+                        ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 90, hjust = 1)) +
+                        ggplot2::xlab(paste("classes ",nameA,sep=""))
 
     plot_degrees_A
 }
@@ -345,17 +348,18 @@ plot_average_degree_B <- function(sp, nameB="B", colorRef="darkgray", colorSynth
     scale_gray_blue <- ggplot2::scale_fill_manual(values=c(colorRef,colorSynthetic))
 
     degrees_B <- data.frame(
-        attributes=factor(c(names(sp$inputs$dj),names(sp$gen$hat.dj)), levels=names(sp$gen$hat.dj)), # add_linebreaks_attributes(
+        classes=factor(c(names(sp$inputs$dj),names(sp$gen$hat.dj)), levels=names(sp$gen$hat.dj)), # add_linebreaks_attributes(
         average.degree=c(sp$inputs$dj,sp$gen$hat.dj),
         state=c(rep("theoretical",length(sp$inputs$dj)), rep("synthetic",length(sp$gen$hat.dj)))
         )
     degrees_B$state <- factor(degrees_B$state, levels=c("theoretical","synthetic"))
-    plot_degrees_B <- ggplot2::ggplot(degrees_B, ggplot2::aes(x=attributes, y=average.degree, fill=state)) + 
+    plot_degrees_B <- ggplot2::ggplot(degrees_B, ggplot2::aes(x=classes, y=average.degree, fill=state)) + 
                         ggplot2::geom_bar(stat="identity", position = 'dodge2') + 
                         scale_gray_blue + 
                         ggplot2::ylab("average degree") + 
                         ggplot2::ggtitle(paste("average degree",nameB," (NRMSE ",formatC(sp$gen$nrmse.dj,format="G"),")")) +
-                        ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 90, hjust = 1))
+                        ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 90, hjust = 1)) +
+                        ggplot2::xlab(paste("classes ",nameB, sep=""))
 
     plot_degrees_B 
 }
@@ -387,17 +391,18 @@ plot_frequencies_A <- function(sp, nameA="A", colorRef="darkgray", colorSyntheti
     scale_gray_blue <- ggplot2::scale_fill_manual(values=c(colorRef,colorSynthetic))
 
     frequencies_A <- data.frame(
-        attributes=factor(c(names(sp$stats$fi),names(sp$gen$hat.fi)), levels=names(sp$gen$hat.fi)), #add_linebreaks_attributes(
+        classes=factor(c(names(sp$stats$fi),names(sp$gen$hat.fi)), levels=names(sp$gen$hat.fi)), #add_linebreaks_attributes(
         frequency=c(sp$stats$fi,sp$gen$hat.fi),
         state=c(rep("theoretical",length(sp$stats$fi)), rep("synthetic",length(sp$gen$hat.fi)))
         ) 
     frequencies_A$state <- factor(frequencies_A$state, levels=c("theoretical","synthetic"))
-    res_plot <- ggplot2::ggplot(frequencies_A, ggplot2::aes(x=attributes, y=frequency, fill=state)) + 
+    res_plot <- ggplot2::ggplot(frequencies_A, ggplot2::aes(x=classes, y=frequency, fill=state)) + 
                         ggplot2::geom_bar(stat="identity", position = 'dodge2') + 
                         scale_gray_blue + 
                         ggplot2::ylab("freq") + 
                         ggplot2::ggtitle(paste("frequencies",nameA," (NRMSE ",formatC(sp$gen$nrmse.fi,format="G"),")")) +
-                        ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 90, hjust = 1))
+                        ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 90, hjust = 1)) +
+                        ggplot2::xlab(paste("classes ",nameA,sep=""))
 
     res_plot
 }
@@ -412,17 +417,18 @@ plot_frequencies_B <- function(sp, nameB="B", colorRef="darkgray", colorSyntheti
     scale_gray_blue <- ggplot2::scale_fill_manual(values=c(colorRef,colorSynthetic))
 
     frequencies_B <- data.frame(
-        attributes=factor(c(names(sp$stats$fj),names(sp$gen$hat.fj)), levels=names(sp$gen$hat.fj)), # add_linebreaks_attributes
+        classes=factor(c(names(sp$stats$fj),names(sp$gen$hat.fj)), levels=names(sp$gen$hat.fj)), # add_linebreaks_attributes
         frequency=c(sp$stats$fj,sp$gen$hat.fj),
         state=factor(c(rep("theoretical",length(sp$stats$fj)), rep("synthetic",length(sp$gen$hat.fj))), levels=c("theoretical","synthetic"))
         ) 
     #frequencies_B$state <- factor(frequencies_B$state, levels=c("theoretical","synthetic"))
-    res_plot <- ggplot2::ggplot(frequencies_B, ggplot2::aes(x=attributes, y=frequency, fill=state)) + 
+    res_plot <- ggplot2::ggplot(frequencies_B, ggplot2::aes(x=classes, y=frequency, fill=state)) + 
                         ggplot2::geom_bar(stat="identity", position = 'dodge2') + 
                         scale_gray_blue + 
                         ggplot2::ylab("freq") + 
                         ggplot2::ggtitle(paste("frequencies",nameB," (NRMSE ",formatC(sp$gen$nrmse.fj,format="G"),")")) +
-                        ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 90, hjust = 1))
+                        ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 90, hjust = 1)) +
+                        ggplot2::xlab(paste("classes ",nameB,sep=""))
 
 
     res_plot
@@ -459,11 +465,13 @@ plot_errors_pdi <- function(sp, nameA="A", colorRef="darkgray", colorSynthetic="
 
     diff_pdi$degree <- factor(seq(0,nrow(diff_pdi)-1))
     data_hm_pdi <- melt(diff_pdi)
-    plot_pdi <- ggplot2::ggplot(data_hm_pdi, ggplot2::aes(variable, degree)) + 
+    plot_pdi <- ggplot2::ggplot(data_hm_pdi, ggplot2::aes_string("variable", "degree")) + 
                         ggplot2::geom_tile(ggplot2::aes(fill=value)) + 
                         heat_map_gradient + 
                         ggplot2::ggtitle(paste("difference degree for",nameA," (NRMSE ",formatC(sp$gen$nrmse.pdi,format="G"),")")) +
-                        ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 90, hjust = 1))
+                        ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 90, hjust = 1))  +
+                        ggplot2::xlab(paste("classes ",nameA,sep=""))
+
 
     plot_pdi
 }
@@ -481,11 +489,12 @@ plot_errors_pdj <- function(sp, nameB="B", colorRef="darkgray", colorSynthetic="
     heat_map_gradient <- heat_map_gradient(diff_pdj)
     diff_pdj$degree <- factor(seq(0,nrow(diff_pdj)-1))
     data_hm_pdj <- melt(diff_pdj)
-    plot_pdj <- ggplot2::ggplot(data_hm_pdj, ggplot2::aes(variable, degree)) + 
+    plot_pdj <- ggplot2::ggplot(data_hm_pdj, ggplot2::aes_string("variable", "degree")) + 
                         ggplot2::geom_tile(ggplot2::aes(fill=value)) + 
                         heat_map_gradient + 
                         ggplot2::ggtitle(paste("difference degree for",nameB," (NRMSE ",formatC(sp$gen$nrmse.pdj,format="G"),")")) +
-                        ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 90, hjust = 1))
+                        ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 90, hjust = 1)) +
+                        ggplot2::xlab(paste("classes ",nameB,sep=""))
     plot_pdj
 }
 
@@ -506,7 +515,7 @@ plot_errors_pdj <- function(sp, nameB="B", colorRef="darkgray", colorSynthetic="
 #' 
 #' @author Samuel Thiriot <samuel.thiriot@res-ear.ch> 
 #' 
-plot_errors_pij <- function(sp) {
+plot_errors_pij <- function(sp, nameA="A", nameB="B") {
 
     if ((class(sp) != "dpp_result") && (class(sp) != "dpp_resolved")) 
         stop("the data to analyze x should be the result of a matching.solve or matching.generate call")
@@ -527,11 +536,12 @@ plot_errors_pij <- function(sp) {
 
     #diff_pij$variable <- add_linebreaks_attributes(diff_pij$variable)
     data_hm_pij <- melt(diff_pij)
-    plot_pij <- ggplot2::ggplot(data_hm_pij, ggplot2::aes(variable, attributesB)) + 
+    plot_pij <- ggplot2::ggplot(data_hm_pij, ggplot2::aes_string("variable", "attributesB")) + 
                         ggplot2::geom_tile(ggplot2::aes(fill=value)) + 
                         heat_map_gradient + 
                         ggplot2::ggtitle(paste("difference pairing (NRMSE ",formatC(sp$gen$nrmse.pij,format="G"),")")) +
-                        ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 90, hjust = 1))
+                        ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 90, hjust = 1)) +
+                        ggplot2::xlab(paste("classes ",nameA,sep="")) + ggplot2::ylab(paste("classes ",nameB,sep=""))
 
     plot_pij
 }
@@ -619,7 +629,7 @@ plot.dpp_resolved <- function(x, nameA="A", nameB="B", colorRef="darkgray", colo
     plot_pdi <- plot_errors_pdi(sp, nameA=nameA, colorRef=colorRef, colorSynthetic=colorSynthetic)
     plot_pdj <- plot_errors_pdj(sp, nameB=nameB, colorRef=colorRef, colorSynthetic=colorSynthetic)
 
-    plot_pij <- plot_errors_pij(sp)
+    plot_pij <- plot_errors_pij(sp, nameA=nameA, nameB=nameB)
 
     # actual plot over a grid
     gridExtra::grid.arrange(
@@ -688,7 +698,8 @@ plot_variable <- function(sample, generated, var.name, colorRef="darkgray", colo
                         ggplot2::geom_bar(stat="identity", position = 'dodge2') + 
                         scale_gray_blue + 
                         ggplot2::ylab("freq") + 
-                        ggplot2::ggtitle(paste("proportions of attribute ", var.name, " (RMSE:",formatC(rmse,format="G"),")",sep=""))
+                        ggplot2::ggtitle(paste("proportions of attribute ", var.name, " (RMSE:",formatC(rmse,format="G"),")",sep="")) +
+                        ggplot2::xlab(paste("modalities for ", var.name, sep=""))
 
 }
 
