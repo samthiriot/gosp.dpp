@@ -109,7 +109,7 @@ as.igraph.dpp_population <- function(pop, with.attributes=FALSE, ...) {
 as.igraph.dpp_result <- function(generated, with.attributes=FALSE, ...) {
     
     # ensure this object is of the right type
-    if (class(pop) != "dpp_result")
+    if (class(generated) != "dpp_result")
         stop("the population to export should be the result of a matching.generate call")
     
     as.igraph.dpp_population(generated$pop, with.attributes=with.attributes)
