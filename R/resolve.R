@@ -2085,11 +2085,14 @@ resolve <- function(sol, case,
         for (b in blacklist) {
             if (all(b %in% h)) {
                 skipped <- T
+                if (verbose) {
+                    cat("\t\tskipping ", name.hypothesis(h), " because ", name.hypothesis(b), "failed in the past\n", sep="")
+                }
                 break
             }
         }
         if (skipped & verbose) {
-            cat("\t\tskipping ", name.hypothesis(h), "\n", sep="")
+            #cat("\t\tskipping ", name.hypothesis(h), "\n", sep="")
             next
         }
 
